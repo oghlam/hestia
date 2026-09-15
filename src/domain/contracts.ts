@@ -1,5 +1,23 @@
 export type RingEventType = 'motion' | 'doorbell' | 'device_status' | 'snapshot'
 
+export type AssetType = 'resident_photo' | 'care_team_photo' | 'floor_plan' | 'training_data'
+
+export type Asset = {
+  assetId: string
+  type: AssetType
+  label: string
+  fileName: string
+  fileUrl: string
+  thumbnailUrl?: string
+  residentId?: string
+  careTeamMemberId?: string
+  roomId?: string
+  description?: string
+  qualityScore?: number
+  createdAt: string
+  updatedAt: string
+}
+
 export type RingEvent = {
   eventId: string
   deviceId: string
@@ -99,6 +117,7 @@ export type CareTeamMember = {
   slaMinutes: number
   isPrimaryValidator: boolean
   avatarUrl?: string
+  avatarAssetId?: string
   assignedResidentId?: string
   shiftSchedule?: string
   notes?: string
@@ -118,6 +137,7 @@ export type Resident = {
   emergencyContacts: EmergencyContact[]
   doctorContact?: DoctorContact
   faceTemplates: FaceTemplate[]
+  primaryAvatarAssetId?: string
   createdAt: string
   updatedAt: string
 }

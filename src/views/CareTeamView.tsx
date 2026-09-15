@@ -67,36 +67,41 @@ export const CareTeamView: React.FC<CareTeamViewProps> = ({
           return (
             <div
               key={member.id}
-              className={`care-member-card ${member.isPrimaryValidator ? 'is-primary' : ''}`}
-            >
-              <div className="care-member-header">
-                {member.avatarUrl ? (
-                  <img
-                    src={member.avatarUrl}
-                    alt={member.name}
-                    className="care-member-avatar"
-                  />
-                ) : (
-                  <div
-                    className="care-member-avatar"
-                    style={{
-                      background: '#3b82f6',
-                      color: '#fff',
-                      display: 'grid',
-                      placeItems: 'center',
-                      fontWeight: 'bold',
-                    }}
-                  >
-                    {member.name.charAt(0).toUpperCase()}
-                  </div>
-                )}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      flexWrap: 'wrap',
+               className={`care-member-card ${member.isPrimaryValidator ? 'is-primary' : ''}`}
+             >
+               <div className="care-member-header">
+                 {member.avatarAssetId || member.avatarUrl ? (
+                   <img
+                     src={member.avatarUrl || ''}
+                     alt={member.name}
+                     className="care-member-avatar"
+                     onError={(e) => {
+                       // Fallback to generated avatar if image fails
+                       ;(e.target as HTMLElement).style.display = 'none'
+                     }}
+                   />
+                 ) : null}
+                 {!member.avatarUrl && (
+                   <div
+                     className="care-member-avatar"
+                     style={{
+                       background: '#3b82f6',
+                       color: '#fff',
+                       display: 'grid',
+                       placeItems: 'center',
+                       fontWeight: 'bold',
+                     }}
+                   >
+                     {member.name.charAt(0).toUpperCase()}
+                   </div>
+                 )}
+                 <div style={{ flex: 1, minWidth: 0 }}>
+                   <div
+                     style={{
+                       display: 'flex',
+                       alignItems: 'center',
+                       gap: '6px',
+                       flexWrap: 'wrap',
                     }}
                   >
                     <strong style={{ fontSize: '15px', color: '#0f172a' }}>{member.name}</strong>
