@@ -80,7 +80,7 @@ export interface UseSystemSettingsReturn {
   } | null
 
   setSystemSettings: React.Dispatch<React.SetStateAction<SystemSettings>>
-  setSettingsSubTab: (tab: 'pipeline' | 'profile_address' | 'database' | 'maintenance') => void
+  setSettingsSubTab: (tab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets') => void
   setIsDbTesting: (testing: boolean) => void
   setDbTestResult: (result: { ok: boolean; message: string; latencyMs?: number } | null) => void
   setMaintenanceFeedback: (feedback: string | null) => void
