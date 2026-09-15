@@ -1653,3 +1653,394 @@
   background: #cbd5e1;
   width: 30%;
 }
+
+/* ==========================================================================
+   Left Sidebar Menu Spacing & Responsive Mobile Drawer Fix
+   ========================================================================== */
+
+/* 1. Comfortable navigation item height and spacing */
+.primary-nav {
+  padding: 24px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.primary-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  color: #556987;
+  font-size: 14.5px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s ease-in-out;
+  line-height: 1.2;
+}
+
+.primary-nav a:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.primary-nav a.active {
+  background: #eff6ff;
+  color: #005cf5;
+  font-weight: 600;
+}
+
+.primary-nav a.active svg {
+  color: #005cf5;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 16px;
+  border-bottom: 1px solid #eff3f7;
+}
+
+.brand span {
+  font-size: 9.5px;
+  letter-spacing: 1.2px;
+  font-weight: 700;
+  color: #8a9bb2;
+  text-align: center;
+}
+
+/* 2. Responsive Mobile Drawer & Overlay */
+.sidebar-backdrop {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-menu {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: #1e293b;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+  }
+
+  .mobile-menu:hover {
+    background: #f1f5f9;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(3px);
+    z-index: 999;
+    animation: fadeInOverlay 0.2s ease-out;
+  }
+
+  @keyframes fadeInOverlay {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .main-content {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .topbar {
+    padding: 0 16px;
+  }
+
+  .page-view {
+    padding: 16px;
+  }
+}
+
+/* ==========================================================================
+   Real App Preloading Overlay Screen
+   ========================================================================== */
+
+.hestia-preload-container {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0b1329;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s ease;
+}
+
+.hestia-preload-container.preload-fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.preload-backdrop-art {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transform: scale(1.02);
+  transition: transform 10s ease-out;
+  background-image: 
+    linear-gradient(to bottom, rgba(11, 19, 41, 0.72) 0%, rgba(15, 23, 42, 0.85) 60%, rgba(11, 19, 41, 0.95) 100%), 
+    url('/logo/cozy_elder_care_scene_1.webp');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 768px) {
+  .preload-backdrop-art {
+    background-image: 
+      linear-gradient(to bottom, rgba(11, 19, 41, 0.75) 0%, rgba(15, 23, 42, 0.88) 60%, rgba(11, 19, 41, 0.96) 100%), 
+      url('/logo/elderly_woman_portrait.webp');
+    background-size: cover;
+    background-position: center 25%;
+  }
+
+  .preload-card {
+    padding: 28px 20px;
+    max-width: 92%;
+    border-radius: 20px;
+  }
+
+  .preload-logo-img {
+    width: 150px;
+  }
+
+  .preload-scene-banner {
+    padding: 12px 14px;
+    margin-bottom: 18px;
+  }
+
+  .scene-banner-text {
+    font-size: 11.5px;
+  }
+}
+
+.preload-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.45;
+}
+
+.preload-glow.glow-1 {
+  width: 380px;
+  height: 380px;
+  background: rgba(14, 165, 233, 0.28);
+  top: 10%;
+  left: 15%;
+  animation: pulseGlow 6s ease-in-out infinite alternate;
+}
+
+.preload-glow.glow-2 {
+  width: 440px;
+  height: 440px;
+  background: rgba(245, 158, 11, 0.22);
+  bottom: 8%;
+  right: 12%;
+  animation: pulseGlow 7s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes pulseGlow {
+  0% {
+    transform: scale(0.95) translate(0, 0);
+    opacity: 0.35;
+  }
+  100% {
+    transform: scale(1.1) translate(15px, 10px);
+    opacity: 0.6;
+  }
+}
+
+.preload-card {
+  position: relative;
+  z-index: 10;
+  width: 90%;
+  max-width: 480px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 24px;
+  padding: 34px 30px;
+  box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.75), 0 0 50px rgba(14, 165, 233, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.preload-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.preload-logo-img {
+  width: 170px;
+  height: auto;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.5));
+  margin-bottom: 6px;
+}
+
+.preload-tagline {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 2.2px;
+  color: #94a3b8;
+}
+
+.preload-scene-banner {
+  width: 100%;
+  background: rgba(30, 41, 59, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 15px 18px;
+  margin-bottom: 22px;
+  box-sizing: border-box;
+}
+
+.scene-banner-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.18);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+
+.scene-banner-text {
+  margin: 0;
+  font-size: 12.5px;
+  color: #cbd5e1;
+  line-height: 1.55;
+  font-style: italic;
+}
+
+.preload-progress-section {
+  width: 100%;
+  margin-bottom: 22px;
+}
+
+.preload-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 12.5px;
+}
+
+.preload-status-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.preload-percentage {
+  color: #38bdf8;
+  font-weight: 700;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.preload-progress-track {
+  width: 100%;
+  height: 7px;
+  background: rgba(51, 65, 85, 0.6);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.preload-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #10b981 100%);
+  border-radius: 10px;
+  transition: width 0.3s ease-out;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+}
+
+.preload-telemetry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.telemetry-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 11px;
+  transition: color 0.3s ease;
+}
+
+.telemetry-item .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #475569;
+  transition: all 0.3s ease;
+}
+
+.telemetry-item.ready {
+  color: #cbd5e1;
+}
+
+.telemetry-item.ready .dot {
+  background: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+}

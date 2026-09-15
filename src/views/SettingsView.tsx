@@ -76,6 +76,9 @@ export interface SettingsViewProps {
   handleTestDbConnection: () => Promise<void>
   isDbTesting: boolean
   dbTestResult: { ok: boolean; message: string; latencyMs?: number } | null
+  handleSyncToCloud?: () => Promise<void>
+  handleSyncFromCloud?: () => Promise<void>
+  isDbSyncing?: boolean
   handleClearLogs: (days: number) => Promise<void>
   handleRotateLogs: () => Promise<void>
   archivedLogs?: AuditArchiveFile[]
@@ -127,6 +130,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   handleTestDbConnection,
   isDbTesting,
   dbTestResult,
+  handleSyncToCloud,
+  handleSyncFromCloud,
+  isDbSyncing = false,
   handleClearLogs,
   handleRotateLogs,
   archivedLogs = [],
@@ -587,7 +593,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '20px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   className="sim-button secondary"
@@ -597,6 +603,28 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <RefreshCw size={14} className={isDbTesting ? 'rotating-icon' : ''} />
                   {isDbTesting ? 'Testing DynamoDB Connection...' : 'Test Connection & Authenticate MFA'}
                 </button>
+                {handleSyncToCloud && (
+                  <button
+                    type="button"
+                    className="sim-button secondary"
+                    disabled={isDbSyncing}
+                    onClick={handleSyncToCloud}
+                  >
+                    <Cloud size={14} />
+                    {isDbSyncing ? 'Syncing...' : 'Sync Local → DynamoDB'}
+                  </button>
+                )}
+                {handleSyncFromCloud && (
+                  <button
+                    type="button"
+                    className="sim-button secondary"
+                    disabled={isDbSyncing}
+                    onClick={handleSyncFromCloud}
+                  >
+                    <Download size={14} />
+                    {isDbSyncing ? 'Fetching...' : 'Sync DynamoDB → Local'}
+                  </button>
+                )}
                 <button type="submit" className="sim-button">
                   Save Database Settings
                 </button>

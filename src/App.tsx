@@ -33,6 +33,7 @@ import {
   AutomationView,
   ValidatorView,
 } from './views'
+import { PreloadScreen } from './components/layout/PreloadScreen'
 
 import {
   RoomModal,
@@ -110,6 +111,13 @@ export function App() {
   const [accessLogs, setAccessLogs] = useState<AccessLogEntry[]>([])
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
+  // Real Initial Preload State
+  const [preloadProgress, setPreloadProgress] = useState(15)
+  const [preloadStatus, setPreloadStatus] = useState('Booting HESTIA Core Services...')
+  const [isPreloadComplete, setIsPreloadComplete] = useState(false)
+  const [showPreloader, setShowPreloader] = useState(true)
+  const [backendConnected, setBackendConnected] = useState(false)
+
   // Live clock update effect
   useEffect(() => {
     const timer = setInterval(() => setLiveClock(new Date()), 1000)
@@ -160,14 +168,84 @@ export function App() {
     }
   }, [rooms, residents, careTeam, automationRules, sceneEvents, systemSettings])
 
-  // Polling loop & device enumeration on mount
+  // Master Preload & Initial Ingestion sequence
   useEffect(() => {
-    fetchData()
-    systemSettings.handleEnumerateDevices()
+    let isMounted = true
+
+    async function initialBootstrap() {
+      try {
+        setPreloadProgress(25)
+        setPreloadStatus('Connecting Ring Adapter & Hardware Telemetry...')
+        
+        // Check health
+        try {
+          const healthRes = await fetch(`${API_BASE}/health`)
+          if (healthRes.ok && isMounted) {
+            setBackendConnected(true)
+          }
+        } catch {
+          // offline
+        }
+
+        if (isMounted) {
+          setPreloadProgress(50)
+          setPreloadStatus('Loading Resident Biometrics & Face Embeddings...')
+        }
+
+        // Fetch primary domain data
+        await Promise.allSettled([
+          rooms.fetchRooms(),
+          residents.fetchResidents(),
+          careTeam.fetchCareTeam(),
+        ])
+
+        if (isMounted) {
+          setPreloadProgress(75)
+          setPreloadStatus('Hydrating Automation Rules & Scene Engine...')
+        }
+
+        await Promise.allSettled([
+          automationRules.fetchRules(),
+          sceneEvents.fetchScenes(),
+          systemSettings.fetchSettings(),
+          systemSettings.handleEnumerateDevices(),
+        ])
+
+        if (isMounted) {
+          setPreloadProgress(95)
+          setPreloadStatus('Synchronizing Store State...')
+          await fetchData()
+          setPreloadProgress(100)
+          setPreloadStatus('HESTIA Care Command Center Ready.')
+
+          setTimeout(() => {
+            if (isMounted) {
+              setIsPreloadComplete(true)
+              setTimeout(() => {
+                if (isMounted) setShowPreloader(false)
+              }, 600)
+            }
+          }, 350)
+        }
+      } catch {
+        if (isMounted) {
+          setPreloadProgress(100)
+          setIsPreloadComplete(true)
+          setTimeout(() => setShowPreloader(false), 500)
+        }
+      }
+    }
+
+    initialBootstrap()
+
     const pollInterval = setInterval(() => {
       fetchData()
     }, 4000)
-    return () => clearInterval(pollInterval)
+
+    return () => {
+      isMounted = false
+      clearInterval(pollInterval)
+    }
   }, [])
 
   // ============================================================================
@@ -297,32 +375,92 @@ export function App() {
   // ============================================================================
   return (
     <div className="dashboard-shell">
+      {/* Real Preload Screen on Initial Boot / API Hydration */}
+      {showPreloader && (
+        <PreloadScreen
+          progress={preloadProgress}
+          statusMessage={preloadStatus}
+          isComplete={isPreloadComplete}
+          backendConnected={backendConnected}
+        />
+      )}
+
+      {/* Mobile Backdrop Overlay */}
+      {menuOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
       <aside className={menuOpen ? 'sidebar open' : 'sidebar'}>
         <div className="brand">
           <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
           <span>ELDER CARE FOR RING</span>
         </div>
         <nav className="primary-nav">
-          <a className={activeTab === 'overview' ? 'active' : ''} onClick={() => setActiveTab('overview')}>
-            <House size={17} /> Overview
+          <a
+            className={activeTab === 'overview' ? 'active' : ''}
+            onClick={() => {
+              setActiveTab('overview')
+              setMenuOpen(false)
+            }}
+          >
+            <House size={18} /> Overview
           </a>
-          <a className={activeTab === 'rooms' ? 'active' : ''} onClick={() => setActiveTab('rooms')}>
-            <Monitor size={17} /> Rooms
+          <a
+            className={activeTab === 'rooms' ? 'active' : ''}
+            onClick={() => {
+              setActiveTab('rooms')
+              setMenuOpen(false)
+            }}
+          >
+            <Monitor size={18} /> Rooms
           </a>
-          <a className={activeTab === 'people' ? 'active' : ''} onClick={() => setActiveTab('people')}>
-            <Users size={17} /> People
+          <a
+            className={activeTab === 'people' ? 'active' : ''}
+            onClick={() => {
+              setActiveTab('people')
+              setMenuOpen(false)
+            }}
+          >
+            <Users size={18} /> People
           </a>
-          <a className={activeTab === 'events' ? 'active' : ''} onClick={() => setActiveTab('events')}>
-            <CalendarDays size={17} /> Events
+          <a
+            className={activeTab === 'events' ? 'active' : ''}
+            onClick={() => {
+              setActiveTab('events')
+              setMenuOpen(false)
+            }}
+          >
+            <CalendarDays size={18} /> Events
           </a>
-          <a className={activeTab === 'care_team' ? 'active' : ''} onClick={() => setActiveTab('care_team')}>
-            <UserCheck size={17} /> Care Team
+          <a
+            className={activeTab === 'care_team' ? 'active' : ''}
+            onClick={() => {
+              setActiveTab('care_team')
+              setMenuOpen(false)
+            }}
+          >
+            <UserCheck size={18} /> Care Team
           </a>
-          <a className={activeTab === 'automation' ? 'active' : ''} onClick={() => setActiveTab('automation')}>
-            <Activity size={17} /> Automation
+          <a
+            className={activeTab === 'automation' ? 'active' : ''}
+            onClick={() => {
+              setActiveTab('automation')
+              setMenuOpen(false)
+            }}
+          >
+            <Activity size={18} /> Automation
           </a>
-          <a className={activeTab === 'settings' ? 'active' : ''} onClick={() => setActiveTab('settings')}>
-            <Settings size={17} /> Settings
+          <a
+            className={activeTab === 'settings' ? 'active' : ''}
+            onClick={() => {
+              setActiveTab('settings')
+              setMenuOpen(false)
+            }}
+          >
+            <Settings size={18} /> Settings
           </a>
         </nav>
         <div className="home-switcher">
@@ -559,6 +697,16 @@ export function App() {
             handleTestDbConnection={systemSettings.handleTestDatabase}
             isDbTesting={systemSettings.isDbTesting}
             dbTestResult={systemSettings.dbTestResult}
+            handleSyncToCloud={systemSettings.handleSyncToCloud}
+            handleSyncFromCloud={async () => {
+              await systemSettings.handleSyncFromCloud()
+              fetchData()
+              rooms.fetchRooms()
+              residents.fetchResidents()
+              careTeam.fetchCareTeam()
+              automationRules.fetchRules()
+            }}
+            isDbSyncing={systemSettings.isDbSyncing}
             handleClearLogs={async (days) => {
               await systemSettings.handleClearLogs(days)
               if (days <= 0) {

@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "api": "tsx server/index.ts",
+    "db:init": "tsx scripts/init-db.ts",
     "test": "tsx tests/hestia.test.ts"
   },
   "dependencies": {

@@ -18,6 +18,14 @@ import type {
   SystemSettings,
 } from '../src/domain/contracts'
 
+import {
+  deleteEntityItem,
+  ensureDynamoTable,
+  getEntityItem,
+  listEntityItems,
+  putEntityItem,
+} from './dynamo-service'
+
 export interface HestiaRepository {
   saveEvent(event: RingEvent): Promise<void> | void
   saveScene(scene: SceneEvent): Promise<void> | void
@@ -109,7 +117,7 @@ let systemSettings: SystemSettings = {
   country: 'United States',
   coordinates: {
     lat: 44.0462,
-    lon: -123.0220,
+    lon: -123.022,
   },
   emergencyAccessNotes: 'Side entrance lockbox code: 4821. Master physical key with Maria Vance.',
 
@@ -163,7 +171,7 @@ function seedDefaultRules() {
       category: 'night_wandering',
       enabled: true,
       targetScene: 'S3_HELP',
-      confidenceThreshold: 0.80,
+      confidenceThreshold: 0.8,
       triggerZone: 'corridor',
       timeWindow: { allDay: false, startHour: 22, endHour: 6 },
       slaTimeoutMinutes: 5,
@@ -180,7 +188,7 @@ function seedDefaultRules() {
       category: 'visitor_doorbell',
       enabled: true,
       targetScene: 'S2_WATCH',
-      confidenceThreshold: 0.70,
+      confidenceThreshold: 0.7,
       triggerZone: 'entry',
       timeWindow: { allDay: true, startHour: 0, endHour: 24 },
       slaTimeoutMinutes: 10,
@@ -197,7 +205,7 @@ function seedDefaultRules() {
       category: 'hardware_health',
       enabled: true,
       targetScene: 'S4_CRITICAL',
-      confidenceThreshold: 0.90,
+      confidenceThreshold: 0.9,
       triggerZone: 'all',
       timeWindow: { allDay: true, startHour: 0, endHour: 24 },
       slaTimeoutMinutes: 2,
@@ -321,7 +329,8 @@ function seedDefaultScenes() {
         faceCount: 1,
         source: 'ring_snapshot',
       },
-      contextText: 'Eleanor is sitting comfortably on the sofa reading a book. Routine mobility and vitals appear calm and safe.',
+      contextText:
+        'Eleanor is sitting comfortably on the sofa reading a book. Routine mobility and vitals appear calm and safe.',
       createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
     },
     {
@@ -356,7 +365,8 @@ function seedDefaultScenes() {
         faceCount: 1,
         source: 'ring_snapshot',
       },
-      contextText: 'Eleanor experienced an unexpected fall near the bedside. Immediate caregiver assistance recommended.',
+      contextText:
+        'Eleanor experienced an unexpected fall near the bedside. Immediate caregiver assistance recommended.',
       createdAt: new Date(Date.now() - 58 * 60 * 1000).toISOString(),
     },
     {
@@ -417,7 +427,6 @@ function seedDefaultResidents() {
   residents.set(eleanor.id, eleanor)
 }
 
-// Seed default initial rooms
 function seedDefaultRooms() {
   rooms.clear()
   const defaults: Room[] = [
@@ -492,6 +501,9 @@ export function isDuplicateRequest(requestId?: string): boolean {
 
 export function saveEvent(event: RingEvent) {
   events.set(event.eventId, event)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('event', `EVENT#${event.eventId}`, 'METADATA', event).catch(() => {})
+  }
 }
 
 export function saveScene(scene: SceneEvent) {
@@ -511,6 +523,10 @@ export function saveScene(scene: SceneEvent) {
     }
     saveAccessLog(entry)
   }
+
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('scene', `SCENE#${scene.sceneId}`, 'METADATA', scene).catch(() => {})
+  }
 }
 
 export function listScenes() {
@@ -519,6 +535,9 @@ export function listScenes() {
 
 export function saveAlert(alert: Alert) {
   alerts.set(alert.alertId, alert)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('alert', `ALERT#${alert.alertId}`, 'METADATA', alert).catch(() => {})
+  }
 }
 
 export function getAlert(alertId: string) {
@@ -539,10 +558,17 @@ export function getRoom(id: string): Room | undefined {
 
 export function saveRoom(room: Room) {
   rooms.set(room.id, room)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('room', `ROOM#${room.id}`, 'METADATA', room).catch(() => {})
+  }
 }
 
 export function deleteRoom(id: string): boolean {
-  return rooms.delete(id)
+  const deleted = rooms.delete(id)
+  if (deleted && systemSettings.dbMode === 'cloud_dynamodb') {
+    deleteEntityItem(`ROOM#${id}`, 'METADATA').catch(() => {})
+  }
+  return deleted
 }
 
 export function getHomeMap(): HomeMapConfig {
@@ -551,6 +577,9 @@ export function getHomeMap(): HomeMapConfig {
 
 export function saveHomeMap(config: HomeMapConfig) {
   homeMapConfig = config
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('home_map', 'HOME#MAP', 'METADATA', config).catch(() => {})
+  }
 }
 
 export function listResidents(): Resident[] {
@@ -565,26 +594,42 @@ export function saveResident(resident: Resident) {
   if (resident.primaryTarget) {
     for (const [id, r] of residents.entries()) {
       if (id !== resident.id && r.primaryTarget) {
-        residents.set(id, { ...r, primaryTarget: false, updatedAt: new Date().toISOString() })
+        const updatedTarget = { ...r, primaryTarget: false, updatedAt: new Date().toISOString() }
+        residents.set(id, updatedTarget)
+        if (systemSettings.dbMode === 'cloud_dynamodb') {
+          putEntityItem('resident', `RESIDENT#${id}`, 'METADATA', updatedTarget).catch(() => {})
+        }
       }
     }
   }
   residents.set(resident.id, resident)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('resident', `RESIDENT#${resident.id}`, 'METADATA', resident).catch(() => {})
+  }
 }
 
 export function deleteResident(id: string): boolean {
-  return residents.delete(id)
+  const deleted = residents.delete(id)
+  if (deleted && systemSettings.dbMode === 'cloud_dynamodb') {
+    deleteEntityItem(`RESIDENT#${id}`, 'METADATA').catch(() => {})
+  }
+  return deleted
 }
 
 export function setPrimaryResident(id: string): boolean {
   const target = residents.get(id)
   if (!target) return false
   for (const [resId, r] of residents.entries()) {
-    residents.set(resId, {
+    const isTarget = resId === id
+    const updated = {
       ...r,
-      primaryTarget: resId === id,
+      primaryTarget: isTarget,
       updatedAt: new Date().toISOString(),
-    })
+    }
+    residents.set(resId, updated)
+    if (systemSettings.dbMode === 'cloud_dynamodb') {
+      putEntityItem('resident', `RESIDENT#${resId}`, 'METADATA', updated).catch(() => {})
+    }
   }
   return true
 }
@@ -594,11 +639,15 @@ export function addFaceTemplate(residentId: string, template: FaceTemplate): boo
   if (!res) return false
   const filtered = res.faceTemplates.filter((t) => t.angle !== template.angle)
   filtered.push(template)
-  residents.set(residentId, {
+  const updatedResident = {
     ...res,
     faceTemplates: filtered,
     updatedAt: new Date().toISOString(),
-  })
+  }
+  residents.set(residentId, updatedResident)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('resident', `RESIDENT#${residentId}`, 'METADATA', updatedResident).catch(() => {})
+  }
   return true
 }
 
@@ -606,11 +655,15 @@ export function deleteFaceTemplate(residentId: string, templateId: string): bool
   const res = residents.get(residentId)
   if (!res) return false
   const filtered = res.faceTemplates.filter((t) => t.templateId !== templateId)
-  residents.set(residentId, {
+  const updatedResident = {
     ...res,
     faceTemplates: filtered,
     updatedAt: new Date().toISOString(),
-  })
+  }
+  residents.set(residentId, updatedResident)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('resident', `RESIDENT#${residentId}`, 'METADATA', updatedResident).catch(() => {})
+  }
   return true
 }
 
@@ -626,26 +679,42 @@ export function saveCareTeamMember(member: CareTeamMember) {
   if (member.isPrimaryValidator) {
     for (const [id, m] of careTeam.entries()) {
       if (id !== member.id && m.isPrimaryValidator) {
-        careTeam.set(id, { ...m, isPrimaryValidator: false, updatedAt: new Date().toISOString() })
+        const updatedValidator = { ...m, isPrimaryValidator: false, updatedAt: new Date().toISOString() }
+        careTeam.set(id, updatedValidator)
+        if (systemSettings.dbMode === 'cloud_dynamodb') {
+          putEntityItem('care_team', `CARETEAM#${id}`, 'METADATA', updatedValidator).catch(() => {})
+        }
       }
     }
   }
   careTeam.set(member.id, member)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('care_team', `CARETEAM#${member.id}`, 'METADATA', member).catch(() => {})
+  }
 }
 
 export function deleteCareTeamMember(id: string): boolean {
-  return careTeam.delete(id)
+  const deleted = careTeam.delete(id)
+  if (deleted && systemSettings.dbMode === 'cloud_dynamodb') {
+    deleteEntityItem(`CARETEAM#${id}`, 'METADATA').catch(() => {})
+  }
+  return deleted
 }
 
 export function setPrimaryValidator(id: string): boolean {
   const target = careTeam.get(id)
   if (!target) return false
   for (const [memberId, m] of careTeam.entries()) {
-    careTeam.set(memberId, {
+    const isPrimary = memberId === id
+    const updated = {
       ...m,
-      isPrimaryValidator: memberId === id,
+      isPrimaryValidator: isPrimary,
       updatedAt: new Date().toISOString(),
-    })
+    }
+    careTeam.set(memberId, updated)
+    if (systemSettings.dbMode === 'cloud_dynamodb') {
+      putEntityItem('care_team', `CARETEAM#${memberId}`, 'METADATA', updated).catch(() => {})
+    }
   }
   return true
 }
@@ -660,17 +729,28 @@ export function getRule(id: string): AutomationRule | undefined {
 
 export function saveRule(rule: AutomationRule) {
   rules.set(rule.id, rule)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('rule', `RULE#${rule.id}`, 'METADATA', rule).catch(() => {})
+  }
 }
 
 export function toggleRule(id: string, enabled: boolean): boolean {
   const rule = rules.get(id)
   if (!rule) return false
-  rules.set(id, { ...rule, enabled, updatedAt: new Date().toISOString() })
+  const updated = { ...rule, enabled, updatedAt: new Date().toISOString() }
+  rules.set(id, updated)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('rule', `RULE#${id}`, 'METADATA', updated).catch(() => {})
+  }
   return true
 }
 
 export function deleteRule(id: string): boolean {
-  return rules.delete(id)
+  const deleted = rules.delete(id)
+  if (deleted && systemSettings.dbMode === 'cloud_dynamodb') {
+    deleteEntityItem(`RULE#${id}`, 'METADATA').catch(() => {})
+  }
+  return deleted
 }
 
 export function resetRules(): AutomationRule[] {
@@ -688,6 +768,9 @@ export function saveSettings(patch: Partial<SystemSettings>): SystemSettings {
     ...patch,
     updatedAt: new Date().toISOString(),
   }
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('settings', 'HOME#SETTINGS', 'METADATA', systemSettings).catch(() => {})
+  }
   return { ...systemSettings }
 }
 
@@ -698,11 +781,41 @@ const archivedLogFiles: AuditArchiveFile[] = [
     fileName: 'hestia_audit_archive_20260910.json',
     size: '18.4 KB',
     recordsCount: 42,
-    contentJson: JSON.stringify([
-      { logId: 'log_seed_1', timestamp: '2026-09-10T11:58:00Z', action: 'SYSTEM_ALERT_CREATED', actorId: 'system', targetId: 'alert_001', newState: 'VALIDATION_PENDING', notes: 'Automated fall detection alert' },
-      { logId: 'log_seed_2', timestamp: '2026-09-10T11:59:12Z', action: 'COMING', actorId: 'Maria Vance', targetId: 'alert_001', previousState: 'VALIDATION_PENDING', newState: 'CARE_IN_PROGRESS', notes: 'ETA 5 mins' },
-      { logId: 'log_seed_3', timestamp: '2026-09-10T12:04:30Z', action: 'I_HAVE_ARRIVED', actorId: 'Maria Vance', targetId: 'alert_001', previousState: 'CARE_IN_PROGRESS', newState: 'HANDLED', notes: 'Eleanor is fine' }
-    ], null, 2),
+    contentJson: JSON.stringify(
+      [
+        {
+          logId: 'log_seed_1',
+          timestamp: '2026-09-10T11:58:00Z',
+          action: 'SYSTEM_ALERT_CREATED',
+          actorId: 'system',
+          targetId: 'alert_001',
+          newState: 'VALIDATION_PENDING',
+          notes: 'Automated fall detection alert',
+        },
+        {
+          logId: 'log_seed_2',
+          timestamp: '2026-09-10T11:59:12Z',
+          action: 'COMING',
+          actorId: 'Maria Vance',
+          targetId: 'alert_001',
+          previousState: 'VALIDATION_PENDING',
+          newState: 'CARE_IN_PROGRESS',
+          notes: 'ETA 5 mins',
+        },
+        {
+          logId: 'log_seed_3',
+          timestamp: '2026-09-10T12:04:30Z',
+          action: 'I_HAVE_ARRIVED',
+          actorId: 'Maria Vance',
+          targetId: 'alert_001',
+          previousState: 'CARE_IN_PROGRESS',
+          newState: 'HANDLED',
+          notes: 'Eleanor is fine',
+        },
+      ],
+      null,
+      2
+    ),
   },
   {
     id: 'arch_002',
@@ -710,9 +823,21 @@ const archivedLogFiles: AuditArchiveFile[] = [
     fileName: 'hestia_audit_archive_20260901.json',
     size: '12.8 KB',
     recordsCount: 28,
-    contentJson: JSON.stringify([
-      { logId: 'log_seed_0', timestamp: '2026-09-01T08:29:00Z', action: 'OK', actorId: 'Maria Vance', targetId: 'resident_eleanor', newState: 'RESOLVED', notes: 'Morning wellness check' }
-    ], null, 2),
+    contentJson: JSON.stringify(
+      [
+        {
+          logId: 'log_seed_0',
+          timestamp: '2026-09-01T08:29:00Z',
+          action: 'OK',
+          actorId: 'Maria Vance',
+          targetId: 'resident_eleanor',
+          newState: 'RESOLVED',
+          notes: 'Morning wellness check',
+        },
+      ],
+      null,
+      2
+    ),
   },
 ]
 
@@ -750,6 +875,9 @@ export function deleteArchivedLog(id: string): boolean {
 
 export function saveAuditLog(entry: AuditLogEntry) {
   auditLogs.unshift(entry)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('audit_log', `AUDIT#${entry.logId}`, 'METADATA', entry).catch(() => {})
+  }
 }
 
 export function listAuditLogs() {
@@ -758,6 +886,9 @@ export function listAuditLogs() {
 
 export function saveAccessLog(entry: AccessLogEntry) {
   accessLogs.unshift(entry)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('access_log', `ACCESS#${entry.accessId}`, 'METADATA', entry).catch(() => {})
+  }
 }
 
 export function listAccessLogs() {
@@ -766,6 +897,9 @@ export function listAccessLogs() {
 
 export function saveNotification(notification: NotificationItem) {
   notifications.unshift(notification)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('notification', `NOTIF#${notification.id}`, 'METADATA', notification).catch(() => {})
+  }
 }
 
 export function listNotifications() {
@@ -804,6 +938,9 @@ export function getRoomStates(): RoomState[] {
 // Assets Management
 export function saveAsset(asset: Asset) {
   assets.set(asset.assetId, asset)
+  if (systemSettings.dbMode === 'cloud_dynamodb') {
+    putEntityItem('asset', `ASSET#${asset.assetId}`, 'METADATA', asset).catch(() => {})
+  }
 }
 
 export function getAsset(assetId: string): Asset | undefined {
@@ -811,31 +948,156 @@ export function getAsset(assetId: string): Asset | undefined {
 }
 
 export function listAssets(): Asset[] {
-  return Array.from(assets.values()).sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  return Array.from(assets.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   )
 }
 
 export function listAssetsByType(type: AssetType): Asset[] {
   return Array.from(assets.values())
-    .filter(a => a.type === type)
+    .filter((a) => a.type === type)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
 
 export function listAssetsByResident(residentId: string): Asset[] {
   return Array.from(assets.values())
-    .filter(a => a.residentId === residentId)
+    .filter((a) => a.residentId === residentId)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
 
 export function listAssetsByTeamMember(memberId: string): Asset[] {
   return Array.from(assets.values())
-    .filter(a => a.careTeamMemberId === memberId)
+    .filter((a) => a.careTeamMemberId === memberId)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
 
 export function deleteAsset(assetId: string): boolean {
-  return assets.delete(assetId)
+  const deleted = assets.delete(assetId)
+  if (deleted && systemSettings.dbMode === 'cloud_dynamodb') {
+    deleteEntityItem(`ASSET#${assetId}`, 'METADATA').catch(() => {})
+  }
+  return deleted
+}
+
+/**
+ * Bidirectional Database Synchronization Engine
+ */
+export async function syncLocalToDynamoDB(): Promise<{ syncedCount: number; errors: number }> {
+  let count = 0
+  let errCount = 0
+
+  // 1. Rooms
+  for (const room of rooms.values()) {
+    try {
+      await putEntityItem('room', `ROOM#${room.id}`, 'METADATA', room)
+      count++
+    } catch {
+      errCount++
+    }
+  }
+
+  // 2. Residents
+  for (const resident of residents.values()) {
+    try {
+      await putEntityItem('resident', `RESIDENT#${resident.id}`, 'METADATA', resident)
+      count++
+    } catch {
+      errCount++
+    }
+  }
+
+  // 3. Care Team
+  for (const member of careTeam.values()) {
+    try {
+      await putEntityItem('care_team', `CARETEAM#${member.id}`, 'METADATA', member)
+      count++
+    } catch {
+      errCount++
+    }
+  }
+
+  // 4. Rules
+  for (const rule of rules.values()) {
+    try {
+      await putEntityItem('rule', `RULE#${rule.id}`, 'METADATA', rule)
+      count++
+    } catch {
+      errCount++
+    }
+  }
+
+  // 5. Assets
+  for (const asset of assets.values()) {
+    try {
+      await putEntityItem('asset', `ASSET#${asset.assetId}`, 'METADATA', asset)
+      count++
+    } catch {
+      errCount++
+    }
+  }
+
+  // 6. Settings & Map
+  try {
+    await putEntityItem('settings', 'HOME#SETTINGS', 'METADATA', systemSettings)
+    await putEntityItem('home_map', 'HOME#MAP', 'METADATA', homeMapConfig)
+    count += 2
+  } catch {
+    errCount += 2
+  }
+
+  return { syncedCount: count, errors: errCount }
+}
+
+export async function syncDynamoDBToLocal(): Promise<{ fetchedCount: number; errors: number }> {
+  let count = 0
+  let errCount = 0
+
+  try {
+    const cloudRooms = await listEntityItems<Room>('room')
+    if (cloudRooms.length > 0) {
+      rooms.clear()
+      cloudRooms.forEach((r) => rooms.set(r.id, r))
+      count += cloudRooms.length
+    }
+
+    const cloudResidents = await listEntityItems<Resident>('resident')
+    if (cloudResidents.length > 0) {
+      residents.clear()
+      cloudResidents.forEach((r) => residents.set(r.id, r))
+      count += cloudResidents.length
+    }
+
+    const cloudCareTeam = await listEntityItems<CareTeamMember>('care_team')
+    if (cloudCareTeam.length > 0) {
+      careTeam.clear()
+      cloudCareTeam.forEach((m) => careTeam.set(m.id, m))
+      count += cloudCareTeam.length
+    }
+
+    const cloudRules = await listEntityItems<AutomationRule>('rule')
+    if (cloudRules.length > 0) {
+      rules.clear()
+      cloudRules.forEach((r) => rules.set(r.id, r))
+      count += cloudRules.length
+    }
+
+    const cloudAssets = await listEntityItems<Asset>('asset')
+    if (cloudAssets.length > 0) {
+      assets.clear()
+      cloudAssets.forEach((a) => assets.set(a.assetId, a))
+      count += cloudAssets.length
+    }
+
+    const cloudMap = await getEntityItem<HomeMapConfig>('HOME#MAP', 'METADATA')
+    if (cloudMap) {
+      homeMapConfig = cloudMap
+      count++
+    }
+  } catch {
+    errCount++
+  }
+
+  return { fetchedCount: count, errors: errCount }
 }
 
 export function resetStore() {
@@ -898,5 +1160,12 @@ export const memoryStore: HestiaRepository = {
   saveNotification,
   listNotifications,
   getRoomStates,
+  saveAsset,
+  getAsset,
+  listAssets,
+  listAssetsByType,
+  listAssetsByResident,
+  listAssetsByTeamMember,
+  deleteAsset,
   resetStore,
 }

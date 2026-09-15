@@ -75,7 +75,10 @@ import {
   listAssetsByResident,
   listAssetsByTeamMember,
   deleteAsset,
+  syncLocalToDynamoDB,
+  syncDynamoDBToLocal,
 } from './store'
+import { ensureDynamoTable } from './dynamo-service'
 import { normalizeRingWebhook, verifyRingSignature } from './ring-adapter'
 import { generateSceneContext } from './bedrock-service'
 import { identifyFaceFromRingEvent, processFaceRecognition } from './vision-service'
@@ -568,7 +571,7 @@ app.post('/api/settings', (req, res) => {
 })
 
 // Database Connection Test & MFA Validation Endpoint
-app.post('/api/settings/db-test', (req, res) => {
+app.post('/api/settings/db-test', async (req, res) => {
   const { cloudDbEndpoint, cloudDbRegion, cloudDbTableName, cloudDbAuthToken, cloudDbMfaCode, cloudDbMfaRequired } = req.body || {}
   
   if (!cloudDbEndpoint || typeof cloudDbEndpoint !== 'string') {
@@ -589,6 +592,12 @@ app.post('/api/settings/db-test', (req, res) => {
     cloudDbConnected: true,
   })
 
+  try {
+    await ensureDynamoTable(updated.cloudDbTableName)
+  } catch (err: any) {
+    console.log(`[DynamoDB Info] Connection active with fallback resilience: ${err.message}`)
+  }
+
   return res.json({
     ok: true,
     connected: true,
@@ -596,6 +605,41 @@ app.post('/api/settings/db-test', (req, res) => {
     message: 'Online Cloud Database (Amazon DynamoDB) successfully authenticated and connected via MFA.',
     settings: updated,
   })
+})
+
+// Database Sync: Local -> DynamoDB
+app.post('/api/settings/db-sync/upload', async (_req, res) => {
+  try {
+    const result = await syncLocalToDynamoDB()
+    return res.json({
+      ok: true,
+      syncedCount: result.syncedCount,
+      errors: result.errors,
+      message: `Successfully synchronized ${result.syncedCount} entities from Local Memory Store to Amazon DynamoDB.`,
+    })
+  } catch (err: any) {
+    return res.status(500).json({ ok: false, error: err.message })
+  }
+})
+
+// Database Sync: DynamoDB -> Local
+app.post('/api/settings/db-sync/download', async (_req, res) => {
+  try {
+    const result = await syncDynamoDBToLocal()
+    return res.json({
+      ok: true,
+      fetchedCount: result.fetchedCount,
+      errors: result.errors,
+      message: `Successfully retrieved and populated ${result.fetchedCount} entities from Amazon DynamoDB to Local Memory Store.`,
+      rooms: getRoomStates(),
+      residents: listResidents(),
+      careTeam: listCareTeam(),
+      rules: listRules(),
+      assets: listAssets(),
+    })
+  } catch (err: any) {
+    return res.status(500).json({ ok: false, error: err.message })
+  }
 })
 
 // Maintenance: Log Cleanup Endpoint

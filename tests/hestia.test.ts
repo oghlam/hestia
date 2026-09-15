@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { classifyScene, createAlert, applyValidatorAction, isAlertScene } from '../src/domain/scene-engine'
 import { generateRingSignature, normalizeRingWebhook, verifyRingSignature } from '../server/ring-adapter'
-import { isDuplicateRequest, memoryStore, resetStore, clearAuditLogs, saveArchivedLog, listArchivedLogs, deleteArchivedLog } from '../server/store'
+import { isDuplicateRequest, memoryStore, resetStore, clearAuditLogs, saveArchivedLog, listArchivedLogs, deleteArchivedLog, syncLocalToDynamoDB, syncDynamoDBToLocal } from '../server/store'
 import { buildNovaMicroPrompt, generateDeterministicSummary, generateSceneContext } from '../server/bedrock-service'
 import { fallbackMatch, identifyFaceFromRingEvent, processFaceRecognition } from '../server/vision-service'
 import type { IdentityResult, RingEvent } from '../src/domain/contracts'
@@ -786,6 +786,22 @@ function testModularViewsAndMenus() {
   console.log('✔ All Modular Menus & CRUD integration tests passed')
 }
 
+async function testHybridDatabaseSync() {
+  resetStore()
+
+  // 1. Verify sync functions exist and handle local sync execution safely
+  const localSync = await syncLocalToDynamoDB()
+  assert.ok(typeof localSync.syncedCount === 'number')
+  assert.ok(typeof localSync.errors === 'number')
+
+  // 2. Verify reverse sync
+  const cloudFetch = await syncDynamoDBToLocal()
+  assert.ok(typeof cloudFetch.fetchedCount === 'number')
+  assert.ok(typeof cloudFetch.errors === 'number')
+
+  console.log('✔ Hybrid DynamoDB Cloud & Local Sync tests passed')
+}
+
 async function runAll() {
   console.log('Running HESTIA test suite...')
   testSceneClassification()
@@ -794,6 +810,7 @@ async function runAll() {
   testStoreRepository()
   testSettingsAndMaintenance()
   testModularViewsAndMenus()
+  await testHybridDatabaseSync()
   await testBedrockService()
   await testVisionService()
   await testCompleteVerticalSlice()

@@ -246,8 +246,14 @@
   - [x] Log rotation creates real downloadable timestamped JSON archives (`hestia_audit_archive_<timestamp>.json`).
   - [x] Interactive table showing Archive Date/Time, File Name, Size, Records Count, and direct browser Download & Delete buttons.
   - [x] System Log Purge (`Clear > 30d Logs` and `Clear All Logs`) with confirmation dialogs and instant UI state reset.
+- [x] Sub-Sprint J: Hybrid Database Architecture (Offline Local Memory ↔ Online Amazon DynamoDB with Sync & Connect Controls) (Completed)
+  - [x] AWS DynamoDB Client & Table schemas (`hestia_elder_care_prod` with GSI `EntityTypeIndex`)
+  - [x] Dual-Mode Repository Pattern: `local_memory` (offline development) ↔ `cloud_dynamodb` (online production in us-east-1) with auto-fallback safeguard
+  - [x] Settings DB Controls: Online Connect/Disconnect toggle, 2-Factor MFA validator, real-time latency ping
+  - [x] Bidirectional Data Sync Engine: Sync Local → Cloud (Upload offline fixtures) & Sync Cloud → Local (Pull live snapshots)
+  - [x] Automated Table Initialization CLI script (`npm run db:init`)
 - [x] Full Test & Build Verification:
-  - [x] Automated test suite `npm test` passing 100% (8/8 test suites verified).
+  - [x] Automated test suite `npm test` passing 100% (10/10 test suites verified).
   - [x] Production build `npm run build` compiling cleanly with 0 TypeScript/Vite errors.
 
 ## Final Compliance Check

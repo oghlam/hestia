@@ -101,9 +101,18 @@ Validator demo: `http://127.0.0.1:5173/?view=validator`.
 8. **Sub-Sprint H — Modular Architecture Refactoring & Full Menu Audit** (Completed):
    - Full hook separation, individual view modularization, dynamic CRUD & modal integrity checks across all 7 menus.
 
+9. **Sub-Sprint I — Audit Log Maintenance & Live Archiving** (Completed):
+   - Real log rotation with timestamped downloadable JSON archives, archive table management, and permanent log purging.
+
+10. **Sub-Sprint J — Hybrid Database Architecture (Local Memory ↔ Amazon DynamoDB Cloud)** (Completed):
+    - Dual-mode data persistence: Offline Local Memory for dev/testing ↔ Online Amazon DynamoDB (us-east-1) for production.
+    - Settings DB interface: Online Connect/Disconnect toggle, 2-Factor MFA authentication, real-time latency ping.
+    - Bidirectional Data Sync Engine: Sync Local → Cloud & Sync Cloud → Local.
+    - Automated Table Initialization script (`npm run db:init`).
+
 ## Next sprint priorities
 
-1. **End-to-End Verification & Final Compliance**: Live Demo Recording, Devpost Submission Prep, and AWS `kurusetra` deployment check.
+1. **End-to-End Verification & Final Compliance**: Live Demo Recording (< 3 menit), Devpost Submission Prep, dan AWS `kurusetra` deployment check.
 
 ## Handoff discipline
 
