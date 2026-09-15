@@ -79,6 +79,12 @@ if (!fs.existsSync(uploadsDir)) {
 app.use(cors())
 app.use('/uploads', express.static(uploadsDir))
 
+// Serve frontend React build
+const distDir = path.resolve(process.cwd(), 'dist')
+if (fs.existsSync(distDir)) {
+  app.use(express.static(distDir))
+}
+
 function persistBase64Image(dataUrl?: string, prefix = 'img'): string | undefined {
   if (!dataUrl || !dataUrl.startsWith('data:image/')) return dataUrl
   try {
@@ -885,6 +891,16 @@ app.post('/demo/events', async (_req, res) => {
     return scene
   }))
   return res.status(201).json({ scenes })
+})
+
+// SPA fallback: serve index.html for all non-API routes
+app.get('*', (req, res) => {
+  const indexPath = path.join(distDir, 'index.html')
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath)
+  } else {
+    res.status(404).json({ error: 'Not found' })
+  }
 })
 
 if (process.env.NODE_ENV !== 'test') {
