@@ -4,7 +4,6 @@ import {
   Download,
   FileText,
   Grid3x3,
-  Images,
   List,
   MapPin,
   Plus,
@@ -27,7 +26,7 @@ export interface AssetsViewProps {
   isLoading: boolean
 }
 
-type ViewMode = 'grid' | 'list'
+type ViewMode = 'list' | 'grid'
 type FilterType = 'all' | 'resident_photo' | 'care_team_photo' | 'floor_plan' | 'training_data'
 
 export const AssetsView: React.FC<AssetsViewProps> = ({
@@ -39,7 +38,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
   onSetAsAvatar,
   isLoading,
 }) => {
-  const [viewMode, setViewMode] = useState<ViewMode>('grid')
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [filterType, setFilterType] = useState<FilterType>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [uploadType, setUploadType] = useState<'resident_photo' | 'care_team_photo' | 'floor_plan' | null>(null)
@@ -73,20 +72,12 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
     }
   }
 
-  const assetStats = {
-    total: assets.length,
-    residentPhotos: assets.filter(a => a.type === 'resident_photo').length,
-    careTeamPhotos: assets.filter(a => a.type === 'care_team_photo').length,
-    floorPlans: assets.filter(a => a.type === 'floor_plan').length,
-    trainingData: assets.filter(a => a.type === 'training_data').length,
-  }
-
   return (
     <div className="page-view">
       <div className="view-header">
         <div>
-          <h1>Assets Library & Media Manager</h1>
-          <p>Manage resident photos, care team avatars, floor plans, and training datasets</p>
+          <h1>Assets & Media Library</h1>
+          <p>Manage resident photos, care team avatars, floor plans, and camera training snapshots</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button
@@ -122,70 +113,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="view-grid-4" style={{ marginBottom: '20px' }}>
-        <div
-          className="card-box"
-          style={{
-            padding: '14px',
-            textAlign: 'center',
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
-          }}
-        >
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#059669', marginBottom: '4px' }}>
-            {assetStats.total}
-          </div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Total Assets</div>
-        </div>
-
-        <div
-          className="card-box"
-          style={{
-            padding: '14px',
-            textAlign: 'center',
-            background: '#fef3c7',
-            border: '1px solid #fde68a',
-          }}
-        >
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#d97706', marginBottom: '4px' }}>
-            {assetStats.residentPhotos}
-          </div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Resident Photos</div>
-        </div>
-
-        <div
-          className="card-box"
-          style={{
-            padding: '14px',
-            textAlign: 'center',
-            background: '#dbeafe',
-            border: '1px solid #bfdbfe',
-          }}
-        >
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2563eb', marginBottom: '4px' }}>
-            {assetStats.careTeamPhotos}
-          </div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Care Team Photos</div>
-        </div>
-
-        <div
-          className="card-box"
-          style={{
-            padding: '14px',
-            textAlign: 'center',
-            background: '#f3e8ff',
-            border: '1px solid #e9d5ff',
-          }}
-        >
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#7c3aed', marginBottom: '4px' }}>
-            {assetStats.floorPlans}
-          </div>
-          <div style={{ fontSize: '12px', color: '#6b7280' }}>Floor Plans</div>
-        </div>
-      </div>
-
-      {/* Search & Filter Controls */}
+      {/* Search & Filter Toolbar */}
       <div className="card-box" style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -202,35 +130,38 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
 
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
-              className={`sim-button ${viewMode === 'grid' ? '' : 'secondary'}`}
-              style={{ padding: '8px 12px' }}
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid3x3 size={14} />
-            </button>
-            <button
               className={`sim-button ${viewMode === 'list' ? '' : 'secondary'}`}
               style={{ padding: '8px 12px' }}
               onClick={() => setViewMode('list')}
+              title="Table List View"
             >
-              <List size={14} />
+              <List size={14} /> Table
+            </button>
+            <button
+              className={`sim-button ${viewMode === 'grid' ? '' : 'secondary'}`}
+              style={{ padding: '8px 12px' }}
+              onClick={() => setViewMode('grid')}
+              title="Thumbnail Grid View"
+            >
+              <Grid3x3 size={14} /> Grid
             </button>
           </div>
         </div>
 
-        {/* Type Filter */}
+        {/* Type Filter Chips */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {['all', 'resident_photo', 'care_team_photo', 'floor_plan'].map(type => (
+          {(['all', 'resident_photo', 'care_team_photo', 'floor_plan', 'training_data'] as FilterType[]).map(type => (
             <button
               key={type}
               className={`sim-button ${filterType === type ? '' : 'secondary'}`}
               style={{ fontSize: '12px', padding: '6px 12px' }}
-              onClick={() => setFilterType(type as FilterType)}
+              onClick={() => setFilterType(type)}
             >
-              {type === 'all' && 'All'}
-              {type === 'resident_photo' && <><User size={12} /> Resident</>}
+              {type === 'all' && 'All Assets'}
+              {type === 'resident_photo' && <><User size={12} /> Resident Photos</>}
               {type === 'care_team_photo' && <><Users size={12} /> Care Team</>}
-              {type === 'floor_plan' && <><MapPin size={12} /> Floor Plan</>}
+              {type === 'floor_plan' && <><MapPin size={12} /> Floor Plans</>}
+              {type === 'training_data' && <><Cloud size={12} /> Training Snapshots</>}
             </button>
           ))}
         </div>
@@ -247,105 +178,138 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
           }}
         >
           <Cloud size={40} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-          <strong>No assets found</strong>
+          <strong>No media assets found</strong>
           <p style={{ fontSize: '13px', margin: '4px 0 0' }}>
-            {searchQuery ? 'Try adjusting your search' : 'Upload photos to get started'}
+            {searchQuery ? 'No assets match your search query.' : 'Upload photos above or capture snapshots from the pipeline camera.'}
           </p>
         </div>
-      ) : viewMode === 'grid' ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '14px' }}>
-          {filteredAssets.map(asset => (
-            <div key={asset.assetId} className="card-box" style={{ padding: '0', overflow: 'hidden' }}>
-              <div
-                style={{
-                  width: '100%',
-                  height: '160px',
-                  background: '#f1f5f9',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                }}
-              >
-                {asset.fileUrl.startsWith('data:') || asset.fileUrl.startsWith('/uploads/') ? (
-                  <img
-                    src={asset.fileUrl}
-                    alt={asset.label}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  <FileText size={40} style={{ color: '#cbd5e1' }} />
-                )}
-              </div>
-
-              <div style={{ padding: '12px' }}>
-                <strong style={{ fontSize: '13px', display: 'block', marginBottom: '4px', color: '#0f172a' }}>
-                  {asset.label}
-                </strong>
-                <small style={{ color: '#64748b', display: 'block', marginBottom: '8px' }}>
-                  {asset.type.replace(/_/g, ' ').toUpperCase()}
-                </small>
-
-                {asset.residentId && (
-                  <small style={{ color: '#3b82f6', display: 'block', marginBottom: '6px' }}>
-                    <User size={10} /> {residents.find(r => r.id === asset.residentId)?.name || 'Unknown'}
-                  </small>
-                )}
-
-                <div style={{ display: 'flex', gap: '6px' }}>
-                  <button
-                    className="sim-button secondary"
-                    style={{ flex: 1, fontSize: '11px', padding: '6px' }}
-                    onClick={() => onDeleteAsset(asset.assetId)}
-                    disabled={isLoading}
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                  <button
-                    className="sim-button"
-                    style={{ flex: 1, fontSize: '11px', padding: '6px' }}
-                    onClick={() => window.open(asset.fileUrl, '_blank')}
-                  >
-                    <Download size={12} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
+      ) : viewMode === 'list' ? (
         <div className="card-box">
           <table className="table-responsive" style={{ width: '100%' }}>
             <thead>
               <tr>
-                <th>Label</th>
-                <th>Type</th>
-                <th>Size</th>
-                <th>Created</th>
+                <th style={{ width: '60px' }}>Preview</th>
+                <th>Asset Label & Filename</th>
+                <th>Category</th>
+                <th>Attached Profile</th>
+                <th>Date Added</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredAssets.map(asset => (
-                <tr key={asset.assetId}>
-                  <td>
-                    <strong>{asset.label}</strong>
-                    <br />
-                    <small style={{ color: '#64748b' }}>{asset.fileName}</small>
-                  </td>
-                  <td>
-                    <span className="badge normal">{asset.type.replace(/_/g, ' ')}</span>
-                  </td>
-                  <td>
-                    <small>{(Math.random() * 5 + 0.5).toFixed(1)} MB</small>
-                  </td>
-                  <td>
-                    <small>{new Date(asset.createdAt).toLocaleDateString()}</small>
-                  </td>
-                  <td style={{ display: 'flex', gap: '6px' }}>
+              {filteredAssets.map(asset => {
+                const isImage = asset.fileUrl && (asset.fileUrl.startsWith('data:image/') || asset.fileUrl.startsWith('/uploads/') || asset.fileUrl.startsWith('http'))
+                const residentName = asset.residentId ? residents.find(r => r.id === asset.residentId)?.name : null
+                const memberName = asset.careTeamMemberId ? careTeam.find(m => m.id === asset.careTeamMemberId)?.name : null
+
+                return (
+                  <tr key={asset.assetId}>
+                    <td>
+                      <div style={{ width: '44px', height: '44px', borderRadius: '6px', overflow: 'hidden', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {isImage ? (
+                          <img src={asset.fileUrl} alt={asset.label} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <FileText size={20} style={{ color: '#94a3b8' }} />
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <strong style={{ fontSize: '13px', color: '#0f172a' }}>{asset.label}</strong>
+                      <small style={{ color: '#64748b', display: 'block', fontSize: '11px', fontFamily: 'monospace' }}>{asset.fileName}</small>
+                    </td>
+                    <td>
+                      <span className="badge normal" style={{ textTransform: 'capitalize' }}>
+                        {asset.type.replace(/_/g, ' ')}
+                      </span>
+                    </td>
+                    <td>
+                      {residentName ? (
+                        <span style={{ fontSize: '12px', color: '#0284c7', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <User size={12} /> {residentName}
+                        </span>
+                      ) : memberName ? (
+                        <span style={{ fontSize: '12px', color: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <Users size={12} /> {memberName}
+                        </span>
+                      ) : (
+                        <small style={{ color: '#94a3b8' }}>Unattached</small>
+                      )}
+                    </td>
+                    <td>
+                      <small style={{ color: '#64748b' }}>{new Date(asset.createdAt).toLocaleDateString()} {new Date(asset.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          className="btn-icon-action primary"
+                          style={{ width: 'auto', padding: '4px 8px', fontSize: '11px', display: 'inline-flex', gap: '4px' }}
+                          onClick={() => {
+                            const link = document.createElement('a')
+                            link.href = asset.fileUrl
+                            link.download = asset.fileName
+                            link.target = '_blank'
+                            link.click()
+                          }}
+                          title="Download Asset"
+                        >
+                          <Download size={12} /> Download
+                        </button>
+                        <button
+                          className="btn-icon-action danger"
+                          onClick={() => onDeleteAsset(asset.assetId)}
+                          disabled={isLoading}
+                          title="Delete Asset"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '14px' }}>
+          {filteredAssets.map(asset => {
+            const isImage = asset.fileUrl && (asset.fileUrl.startsWith('data:image/') || asset.fileUrl.startsWith('/uploads/') || asset.fileUrl.startsWith('http'))
+            return (
+              <div key={asset.assetId} className="card-box" style={{ padding: '0', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    width: '100%',
+                    height: '160px',
+                    background: '#f1f5f9',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {isImage ? (
+                    <img
+                      src={asset.fileUrl}
+                      alt={asset.label}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                  ) : (
+                    <FileText size={40} style={{ color: '#cbd5e1' }} />
+                  )}
+                </div>
+
+                <div style={{ padding: '12px' }}>
+                  <strong style={{ fontSize: '13px', display: 'block', marginBottom: '4px', color: '#0f172a' }}>
+                    {asset.label}
+                  </strong>
+                  <small style={{ color: '#64748b', display: 'block', marginBottom: '8px' }}>
+                    {asset.type.replace(/_/g, ' ').toUpperCase()}
+                  </small>
+
+                  <div style={{ display: 'flex', gap: '6px' }}>
                     <button
                       className="sim-button secondary"
-                      style={{ fontSize: '11px', padding: '4px 8px' }}
+                      style={{ flex: 1, fontSize: '11px', padding: '6px' }}
                       onClick={() => onDeleteAsset(asset.assetId)}
                       disabled={isLoading}
                     >
@@ -353,16 +317,22 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
                     </button>
                     <button
                       className="sim-button"
-                      style={{ fontSize: '11px', padding: '4px 8px' }}
-                      onClick={() => window.open(asset.fileUrl, '_blank')}
+                      style={{ flex: 1, fontSize: '11px', padding: '6px' }}
+                      onClick={() => {
+                        const link = document.createElement('a')
+                        link.href = asset.fileUrl
+                        link.download = asset.fileName
+                        link.target = '_blank'
+                        link.click()
+                      }}
                     >
                       <Download size={12} />
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 

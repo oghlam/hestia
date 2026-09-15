@@ -1,7 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Asset } from '../domain/contracts'
 
-const API_BASE = typeof window !== 'undefined' ? window.location.origin : ''
+const API_BASE =
+  import.meta.env.VITE_API_BASE_URL ??
+  (typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+  window.location.port === '5173'
+    ? 'http://127.0.0.1:8787'
+    : '')
 
 export interface UseAssetsReturn {
   assets: Asset[]

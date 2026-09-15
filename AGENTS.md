@@ -107,6 +107,7 @@ Validator demo: `http://127.0.0.1:5173/?view=validator`.
 
 ## Handoff discipline
 
+- **ATURAN UTAMA GIT & DEPLOYMENT**: JANGAN PERNAH melakukan `git commit`, `git push`, apalagi deploy ke server/cloud kecuali pengguna secara eksplisit meminta instruksi eksekusi tersebut.
 - Pastikan selalu menjalankan `npm test && npm run build` sebelum dan sesudah perubahan kode.
 - Jangan pernah menyertakan, mencetak, atau meng-commit secret, token Ring, atau AWS credentials ke dalam repositori atau log.
 - AWS runtime target: instance `kurusetra` di us-east-1.

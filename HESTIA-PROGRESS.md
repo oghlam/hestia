@@ -241,7 +241,11 @@
   - [x] **Events**: Real-time event stream, multi-filter toolbar (search, scene code S1-S4, date-picker), multi-criteria sort, pagination controls, biometric snapshot modal inspector.
   - [x] **Care Team**: Member CRUD, photo upload/live snapshot capture, primary validator designation, response SLA targets, validator action audit log.
   - [x] **Automation**: Automation rule template builder, 5 elder-care presets, confidence threshold slider, 24/7 window configuration, real-time toggle switches, state machine visualization.
-  - [x] **Settings**: Device pipeline studio (webcam stream & snapshot capture, sandbox simulator, production webhook), Amazon DynamoDB connection test with MFA verification, home address & GPS geolocation detection, audit log archiving/ZIP rotation & version update checks.
+  - [x] **Settings**: Device pipeline studio (webcam stream & snapshot capture, sandbox simulator, production webhook), Amazon DynamoDB connection test with MFA verification, home address & GPS geolocation detection, audit log archiving/ZIP rotation with downloadable file table, and permanent log purge with real-time UI synchronization.
+- [x] Sub-Sprint I: Audit Log Maintenance & Live Archiving (Completed)
+  - [x] Log rotation creates real downloadable timestamped JSON archives (`hestia_audit_archive_<timestamp>.json`).
+  - [x] Interactive table showing Archive Date/Time, File Name, Size, Records Count, and direct browser Download & Delete buttons.
+  - [x] System Log Purge (`Clear > 30d Logs` and `Clear All Logs`) with confirmation dialogs and instant UI state reset.
 - [x] Full Test & Build Verification:
   - [x] Automated test suite `npm test` passing 100% (8/8 test suites verified).
   - [x] Production build `npm run build` compiling cleanly with 0 TypeScript/Vite errors.

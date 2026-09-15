@@ -581,10 +581,31 @@ export function useSystemSettings(): UseSystemSettingsReturn {
   const handlePushPipelineFeed = useCallback(async () => {
     setIsPipelinePushing(true)
     const activeHint = pipelineFaceHint === 'eleanor' ? 'known_target' : pipelineFaceHint
+
+    let snapshotBase64: string | undefined = undefined
+    if (isLocalCameraRunning) {
+      try {
+        const videoEl = document.querySelector('.camera-viewfinder-video') as HTMLVideoElement | null
+        if (videoEl && videoEl.videoWidth > 0 && videoEl.videoHeight > 0) {
+          const canvas = document.createElement('canvas')
+          canvas.width = videoEl.videoWidth
+          canvas.height = videoEl.videoHeight
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.drawImage(videoEl, 0, 0)
+            snapshotBase64 = canvas.toDataURL('image/jpeg', 0.85)
+          }
+        }
+      } catch (e) {
+        console.warn('Canvas snapshot capture error:', e)
+      }
+    }
+
     const payload = {
       roomId: pipelineTargetRoom,
       simulatedSignal: pipelineScenario,
       faceHint: activeHint,
+      snapshotBase64,
     }
 
     try {
@@ -604,7 +625,7 @@ export function useSystemSettings(): UseSystemSettingsReturn {
           time: new Date().toLocaleTimeString(),
           aiProvider: data.aiProvider || 'Nova Micro',
         })
-        setPipelineFeedback(`Event ${data.scene?.scene || 'S1'} ingested to ${pipelineTargetRoom.replace('_', ' ')}`)
+        setPipelineFeedback(`Event ${data.scene?.scene || 'S1'} ingested to ${pipelineTargetRoom.replace('_', ' ')} (Snapshot saved to Assets)`)
       }
     } catch {
       // offline mock result
@@ -621,7 +642,7 @@ export function useSystemSettings(): UseSystemSettingsReturn {
       setIsPipelinePushing(false)
       setTimeout(() => setPipelineFeedback(null), 3500)
     }
-  }, [pipelineTargetRoom, pipelineScenario, pipelineFaceHint])
+  }, [pipelineTargetRoom, pipelineScenario, pipelineFaceHint, isLocalCameraRunning])
 
   return {
     systemSettings,

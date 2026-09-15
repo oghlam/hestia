@@ -924,8 +924,27 @@ app.post('/demo/events', async (_req, res) => {
     const aiContext = await generateSceneContext({ scene: scene.scene, event, identity, signals: scene.signals })
     scene.contextText = aiContext.summary
 
-    saveEvent(event)
-    saveScene(scene)
+  saveEvent(event)
+  saveScene(scene)
+
+  // Save snapshot to Assets media library if an image was captured
+  if (imageSource && typeof imageSource === 'string' && (imageSource.startsWith('data:image/') || imageSource.startsWith('/uploads/'))) {
+    const assetId = `asset_snap_${Date.now()}`
+    const fileUrl = persistBase64Image(imageSource, `snap_${activeRoomId}`)
+    if (fileUrl) {
+      saveAsset({
+        assetId,
+        type: 'training_data',
+        label: `Pipeline Snapshot · ${activeRoomId.replace('_', ' ').toUpperCase()} (${scene.scene})`,
+        fileName: `snapshot_${activeRoomId}_${Date.now()}.jpg`,
+        fileUrl,
+        qualityScore: identity.confidence ?? 0.85,
+        residentId: identity.residentId,
+        createdAt: now,
+        updatedAt: now,
+      })
+    }
+  }
     const alert = createAlert(scene)
     if (alert) {
       saveAlert(alert)
