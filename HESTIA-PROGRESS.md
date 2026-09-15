@@ -260,23 +260,21 @@
 - [x] Verify no secrets or credentials are exposed (.gitignore & zero hardcoded tokens)
 
 ## FINALIZATION & SUBMISSION
-- [ ] Create public GitHub repository
-- [ ] Add open-source license
-- [ ] Add README
-- [ ] Add setup instructions
-- [ ] Add run/test instructions
-- [ ] Add required environment/secret setup instructions without exposing secrets
-- [ ] Add final project documentation
-- [ ] Perform final security/secrets check
-- [ ] Create final commit
-- [ ] Push final project
-- [ ] Create Pull Request
-- [ ] Review Pull Request
-- [ ] Merge Pull Request
-- [ ] Verify public repository
+- [x] Create public GitHub repository (https://github.com/oghlam/hestia)
+- [x] Add open-source license (MIT License)
+- [x] Add README
+- [x] Add setup instructions
+- [x] Add run/test instructions
+- [x] Add required environment/secret setup instructions without exposing secrets
+- [x] Add final project documentation (`docs/`, `HESTIA-SPRINT-MVP.md`)
+- [x] Perform final security/secrets check (.gitignore & secret sanitization)
+- [x] Create final commit
+- [x] Push final project to GitHub (`main` branch)
+- [x] Verify public repository
+- [ ] Record live demo video (< 3 minutes per `HESTIA-DEMO-PLAN.md`)
 - [ ] Prepare final Devpost submission
-- [ ] Add GitHub repository URL
-- [ ] Add demo video URL
-- [ ] Add Product Feedback
-- [ ] Add Friction Log where applicable
+- [ ] Add GitHub repository URL to Devpost
+- [ ] Add demo video URL to Devpost
+- [ ] Add Product Feedback (`PRODUCT-FEEDBACK.md`) to Devpost
+- [ ] Add Friction Log (`FRICTION-LOG.md`) to Devpost
 - [ ] Submit to Devpost
