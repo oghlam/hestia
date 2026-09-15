@@ -894,7 +894,7 @@ app.post('/demo/events', async (_req, res) => {
 })
 
 // SPA fallback: serve index.html for all non-API routes
-app.get('*', (req, res) => {
+app.get(/^\/(?!api\/).*$/, (req, res) => {
   const indexPath = path.join(distDir, 'index.html')
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath)
