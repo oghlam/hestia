@@ -4,6 +4,7 @@ import {
   Camera,
   CameraOff,
   CheckCircle2,
+  Cloud,
   Database,
   HardDrive,
   Lock,
@@ -29,8 +30,8 @@ import type {
 export interface SettingsViewProps {
   systemSettings: SystemSettings
   setSystemSettings: React.Dispatch<React.SetStateAction<SystemSettings>>
-  settingsSubTab: 'pipeline' | 'profile_address' | 'database' | 'maintenance'
-  setSettingsSubTab: (tab: 'pipeline' | 'profile_address' | 'database' | 'maintenance') => void
+  settingsSubTab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets'
+  setSettingsSubTab: (tab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets') => void
   pipelineFeedback: string | null
   maintenanceFeedback: string | null
   // Camera & Pipeline Studio
@@ -130,35 +131,41 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         )}
       </div>
 
-      {/* Sub-Tab Navigation Switcher */}
-      <div className="view-subtabs">
-        <button
-          className={`subtab-btn ${settingsSubTab === 'pipeline' ? 'active' : ''}`}
-          onClick={() => setSettingsSubTab('pipeline')}
-        >
-          <SlidersHorizontal size={14} /> Active Device Pipeline Studio
-        </button>
-        <button
-          className={`subtab-btn ${settingsSubTab === 'database' ? 'active' : ''}`}
-          onClick={() => setSettingsSubTab('database')}
-        >
-          <Database size={14} /> Database Profile
-        </button>
-        <button
-          className={`subtab-btn ${settingsSubTab === 'profile_address' ? 'active' : ''}`}
-          onClick={() => setSettingsSubTab('profile_address')}
-        >
-          <MapPin size={14} /> Home Address Profile
-        </button>
-        <button
-          className={`subtab-btn ${settingsSubTab === 'maintenance' ? 'active' : ''}`}
-          onClick={() => setSettingsSubTab('maintenance')}
-        >
-          <Wrench size={14} /> Maintenance & System Health
-        </button>
-      </div>
+       {/* Sub-Tab Navigation Switcher */}
+       <div className="view-subtabs">
+         <button
+           className={`subtab-btn ${settingsSubTab === 'pipeline' ? 'active' : ''}`}
+           onClick={() => setSettingsSubTab('pipeline')}
+         >
+           <SlidersHorizontal size={14} /> Active Device Pipeline Studio
+         </button>
+         <button
+           className={`subtab-btn ${settingsSubTab === 'database' ? 'active' : ''}`}
+           onClick={() => setSettingsSubTab('database')}
+         >
+           <Database size={14} /> Database Profile
+         </button>
+         <button
+           className={`subtab-btn ${settingsSubTab === 'profile_address' ? 'active' : ''}`}
+           onClick={() => setSettingsSubTab('profile_address')}
+         >
+           <MapPin size={14} /> Home Address Profile
+         </button>
+         <button
+           className={`subtab-btn ${settingsSubTab === 'assets' ? 'active' : ''}`}
+           onClick={() => setSettingsSubTab('assets')}
+         >
+           <Cloud size={14} /> Assets & Media
+         </button>
+         <button
+           className={`subtab-btn ${settingsSubTab === 'maintenance' ? 'active' : ''}`}
+           onClick={() => setSettingsSubTab('maintenance')}
+         >
+           <Wrench size={14} /> Maintenance & System Health
+         </button>
+       </div>
 
-      {/* 1. PIPELINE SUBTAB */}
+       {/* 1. PIPELINE SUBTAB */}
       {settingsSubTab === 'pipeline' && (
         <>
           <div className="pipeline-mode-cards">
@@ -951,6 +958,47 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
         </>
+      )}
+
+      {/* 5. ASSETS SUBTAB */}
+      {settingsSubTab === 'assets' && (
+        <div className="card-box">
+          <h3>Assets & Media Library</h3>
+          <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
+            Manage resident photos for AI training, care team avatars, floor plans, and media assets. Photos captured from the pipeline camera are automatically saved here.
+          </p>
+
+          <div style={{
+            padding: '16px',
+            background: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            fontSize: '13px',
+            color: '#475569',
+            lineHeight: 1.6,
+          }}>
+            <strong>💡 How Assets Work:</strong>
+            <ul style={{ margin: '8px 0 0 20px', paddingLeft: 0 }}>
+              <li><strong>Resident Photos:</strong> Upload or capture real photos from the pipeline camera to use as avatars and AI training data.</li>
+              <li><strong>Care Team Avatars:</strong> Real photos of caregivers replace generic avatars for easier identification.</li>
+              <li><strong>Floor Plans:</strong> Upload your home's layout map for room management and emergency responder reference.</li>
+              <li><strong>Training Data:</strong> Snapshots from the pipeline are automatically saved for continuous AI model improvement.</li>
+            </ul>
+          </div>
+
+          <div style={{
+            padding: '14px 16px',
+            background: '#f0fdf4',
+            border: '1px solid #86efac',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            fontSize: '12px',
+            color: '#166534',
+          }}>
+            ✅ Asset Management UI is available. Upload photos and they'll appear in your library for easy reference and linking to profiles.
+          </div>
+        </div>
       )}
     </div>
   )

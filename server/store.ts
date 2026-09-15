@@ -1,6 +1,8 @@
 import type {
   AccessLogEntry,
   Alert,
+  Asset,
+  AssetType,
   AuditLogEntry,
   AutomationRule,
   CareTeamMember,
@@ -55,6 +57,14 @@ export interface HestiaRepository {
   saveNotification(notification: NotificationItem): Promise<void> | void
   listNotifications(): Promise<NotificationItem[]> | NotificationItem[]
   getRoomStates(): RoomState[]
+  // Assets Management
+  saveAsset(asset: Asset): void
+  getAsset(assetId: string): Asset | undefined
+  listAssets(): Asset[]
+  listAssetsByType(type: AssetType): Asset[]
+  listAssetsByResident(residentId: string): Asset[]
+  listAssetsByTeamMember(memberId: string): Asset[]
+  deleteAsset(assetId: string): boolean
   resetStore(): Promise<void> | void
 }
 
@@ -65,6 +75,7 @@ const rooms = new Map<string, Room>()
 const residents = new Map<string, Resident>()
 const careTeam = new Map<string, CareTeamMember>()
 const rules = new Map<string, AutomationRule>()
+const assets = new Map<string, Asset>()
 const auditLogs: AuditLogEntry[] = []
 const accessLogs: AccessLogEntry[] = []
 const notifications: NotificationItem[] = []
@@ -732,10 +743,48 @@ export function getRoomStates(): RoomState[] {
   })
 }
 
+// Assets Management
+export function saveAsset(asset: Asset) {
+  assets.set(asset.assetId, asset)
+}
+
+export function getAsset(assetId: string): Asset | undefined {
+  return assets.get(assetId)
+}
+
+export function listAssets(): Asset[] {
+  return Array.from(assets.values()).sort((a, b) => 
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  )
+}
+
+export function listAssetsByType(type: AssetType): Asset[] {
+  return Array.from(assets.values())
+    .filter(a => a.type === type)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+export function listAssetsByResident(residentId: string): Asset[] {
+  return Array.from(assets.values())
+    .filter(a => a.residentId === residentId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+export function listAssetsByTeamMember(memberId: string): Asset[] {
+  return Array.from(assets.values())
+    .filter(a => a.careTeamMemberId === memberId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+export function deleteAsset(assetId: string): boolean {
+  return assets.delete(assetId)
+}
+
 export function resetStore() {
   events.clear()
   scenes.clear()
   alerts.clear()
+  assets.clear()
   auditLogs.length = 0
   accessLogs.length = 0
   notifications.length = 0

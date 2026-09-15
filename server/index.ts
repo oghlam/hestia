@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { applyValidatorAction, classifyScene, createAlert } from '../src/domain/scene-engine'
 import type {
+  Asset,
   AutomationRule,
   CareTeamMember,
   CareTeamMemberRole,
@@ -23,47 +24,54 @@ import type {
 } from '../src/domain/contracts'
 import { demoRingEvents } from '../src/domain/demo-events'
 import {
-  isDuplicateRequest,
-  resetStore,
-  saveAlert,
-  saveEvent,
-  saveScene,
-  getAlert,
-  listAlerts,
-  listScenes,
-  listRooms,
-  getRoom,
-  saveRoom,
-  deleteRoom,
-  getHomeMap,
-  saveHomeMap,
-  listResidents,
-  getResident,
-  saveResident,
-  deleteResident,
-  setPrimaryResident,
-  addFaceTemplate,
-  deleteFaceTemplate,
-  listCareTeam,
-  getCareTeamMember,
-  saveCareTeamMember,
-  deleteCareTeamMember,
-  setPrimaryValidator,
-  listRules,
-  getRule,
-  saveRule,
-  toggleRule,
-  deleteRule,
-  resetRules,
-  getSettings,
-  saveSettings,
-  saveAuditLog,
-  listAuditLogs,
-  listAccessLogs,
-  saveNotification,
-  listNotifications,
-  getRoomStates,
-} from './store'
+   isDuplicateRequest,
+   resetStore,
+   saveAlert,
+   saveEvent,
+   saveScene,
+   getAlert,
+   listAlerts,
+   listScenes,
+   listRooms,
+   getRoom,
+   saveRoom,
+   deleteRoom,
+   getHomeMap,
+   saveHomeMap,
+   listResidents,
+   getResident,
+   saveResident,
+   deleteResident,
+   setPrimaryResident,
+   addFaceTemplate,
+   deleteFaceTemplate,
+   listCareTeam,
+   getCareTeamMember,
+   saveCareTeamMember,
+   deleteCareTeamMember,
+   setPrimaryValidator,
+   listRules,
+   getRule,
+   saveRule,
+   toggleRule,
+   deleteRule,
+   resetRules,
+   getSettings,
+   saveSettings,
+   saveAuditLog,
+   listAuditLogs,
+   listAccessLogs,
+   saveNotification,
+   listNotifications,
+   getRoomStates,
+   saveAsset,
+   getAsset,
+   listAssets,
+   listAssetsByType,
+   listAssetsByResident,
+   listAssetsByTeamMember,
+   deleteAsset,
+ } from './store'
 import { normalizeRingWebhook, verifyRingSignature } from './ring-adapter'
 import { generateSceneContext } from './bedrock-service'
 import { identifyFaceFromRingEvent, processFaceRecognition } from './vision-service'
@@ -887,13 +895,118 @@ app.post('/demo/events', async (_req, res) => {
     if (alert) {
       saveAlert(alert)
       dispatchAutomatedAlertNotifications(alert, scene)
-    }
-    return scene
-  }))
-  return res.status(201).json({ scenes })
-})
+     }
+     return scene
+   }))
+   return res.status(201).json({ scenes })
+ })
 
-// SPA fallback: serve index.html for all non-API routes
+ // ===== ASSETS MANAGEMENT =====
+ app.get('/api/assets', (_req, res) => {
+   const allAssets = listAssets()
+   res.json({ assets: allAssets })
+ })
+
+ app.get('/api/assets/type/:type', (req, res) => {
+   const { type } = req.params
+   const typeAssets = listAssetsByType(type as any)
+   res.json({ assets: typeAssets })
+ })
+
+ app.get('/api/assets/resident/:residentId', (req, res) => {
+   const { residentId } = req.params
+   const residentAssets = listAssetsByResident(residentId)
+   res.json({ assets: residentAssets })
+ })
+
+ app.get('/api/assets/team/:memberId', (req, res) => {
+   const { memberId } = req.params
+   const memberAssets = listAssetsByTeamMember(memberId)
+   res.json({ assets: memberAssets })
+ })
+
+ app.get('/api/assets/:assetId', (req, res) => {
+   const { assetId } = req.params
+   const asset = getAsset(assetId)
+   if (!asset) {
+     return res.status(404).json({ error: 'Asset not found' })
+   }
+   res.json(asset)
+ })
+
+ app.post('/api/assets', (req, res) => {
+   const { type, label, fileName, fileUrl, thumbnailUrl, residentId, careTeamMemberId, roomId, description, qualityScore } = req.body
+
+   if (!type || !label || !fileName || !fileUrl) {
+     return res.status(400).json({ error: 'Missing required fields: type, label, fileName, fileUrl' })
+   }
+
+   const assetId = `asset_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+   const now = new Date().toISOString()
+
+   const asset: Asset = {
+     assetId,
+     type,
+     label,
+     fileName,
+     fileUrl,
+     thumbnailUrl,
+     residentId,
+     careTeamMemberId,
+     roomId,
+     description,
+     qualityScore,
+     createdAt: now,
+     updatedAt: now,
+   }
+
+   saveAsset(asset)
+
+   // Link asset to resident's face templates if it's a resident photo
+   if (type === 'resident_photo' && residentId) {
+     const resident = getResident(residentId)
+     if (resident && !resident.faceTemplates.find(t => t.previewUrl === fileUrl)) {
+       const faceTemplate: FaceTemplate = {
+         templateId: `face_${assetId}`,
+         angle: 'front',
+         registeredAt: now,
+         previewUrl: fileUrl,
+         fileName: fileName,
+         qualityScore: qualityScore || 0.85,
+       }
+       addFaceTemplate(residentId, faceTemplate)
+     }
+   }
+
+   res.status(201).json(asset)
+ })
+
+ app.delete('/api/assets/:assetId', (req, res) => {
+   const { assetId } = req.params
+   const asset = getAsset(assetId)
+
+   if (!asset) {
+     return res.status(404).json({ error: 'Asset not found' })
+   }
+
+   // Delete the file from filesystem
+   try {
+     const fileName = asset.fileName
+     const filePath = path.join(uploadsDir, fileName)
+     if (fs.existsSync(filePath)) {
+       fs.unlinkSync(filePath)
+     }
+   } catch (err) {
+     console.error('Error deleting asset file:', err)
+   }
+
+   // Delete asset record
+   const deleted = deleteAsset(assetId)
+
+   res.json({ success: deleted, assetId })
+ })
+
+ // SPA fallback: serve index.html for all non-API routes
 app.get(/^\/(?!api\/).*$/, (req, res) => {
   const indexPath = path.join(distDir, 'index.html')
   if (fs.existsSync(indexPath)) {

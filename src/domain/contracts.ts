@@ -1,5 +1,23 @@
 export type RingEventType = 'motion' | 'doorbell' | 'device_status' | 'snapshot'
 
+export type AssetType = 'resident_photo' | 'care_team_photo' | 'floor_plan' | 'training_data'
+
+export type Asset = {
+  assetId: string
+  type: AssetType
+  label: string
+  fileName: string
+  fileUrl: string
+  thumbnailUrl?: string
+  residentId?: string
+  careTeamMemberId?: string
+  roomId?: string
+  description?: string
+  qualityScore?: number
+  createdAt: string
+  updatedAt: string
+}
+
 export type RingEvent = {
   eventId: string
   deviceId: string
