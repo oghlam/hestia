@@ -80,15 +80,10 @@ jobs:
               git reset --hard origin/main
               git clean -fd
             else
-              echo "Cloning repository..."
-              # Remove directory first if it exists but is not a git repo
-              if [ -d . ] && [ ! -z "$(ls -A .)" ]; then
-                echo "Directory exists with content, backing up..."
-                mv "$DEPLOY_PATH" "$DEPLOY_PATH.backup.$(date +%s)"
-                mkdir -p "$DEPLOY_PATH"
-                cd "$DEPLOY_PATH"
-              fi
-              git clone --branch main https://github.com/oghlam/hestia.git .
+              echo "Cloning repository via SSH..."
+              # Use SSH for clone to avoid HTTPS network issues
+              GIT_SSH_COMMAND="ssh -i ~/.ssh/hestia_deploy_key -o IdentitiesOnly=yes" \
+                git clone --branch main git@github.com:oghlam/hestia.git .
             fi
             
             echo "=== Installing dependencies ==="
