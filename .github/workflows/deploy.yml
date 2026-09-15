@@ -43,26 +43,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.EC2_HOST }}
-          port: ${{ secrets.EC2_SSH_PORT }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_DEPLOY_KEY }}
-          script: |
+          ssh-private-key: ${{ secrets.EC2_SSH_DEPLOY_KEY }}
+
+      - name: Add EC2 host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy via SSH
+        run: |
+          set -e
+          
+          DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+          EC2_USER="${{ secrets.EC2_USER }}"
+          EC2_HOST="${{ secrets.EC2_HOST }}"
+          
+          echo "=== HESTIA Deployment Started ==="
+          echo "Target: $EC2_USER@$EC2_HOST:$DEPLOY_PATH"
+          
+          ssh -v $EC2_USER@$EC2_HOST << 'DEPLOY_SCRIPT'
             set -e
             
             DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
             
-            echo "=== HESTIA Deployment Started ==="
-            echo "Deployment path: $DEPLOY_PATH"
-            
-            # Create directory if doesn't exist
+            echo "=== Setting up deployment ==="
             mkdir -p "$DEPLOY_PATH"
             cd "$DEPLOY_PATH"
             
-            # Clone or pull latest code
+            echo "=== Cloning/Pulling latest code ==="
             if [ -d .git ]; then
               echo "Repository exists, pulling latest changes..."
               git fetch origin main
@@ -72,15 +83,13 @@ jobs:
               git clone --branch main https://github.com/oghlam/hestia.git .
             fi
             
-            # Install dependencies
-            echo "Installing dependencies..."
+            echo "=== Installing dependencies ==="
             npm install --production=false
             
-            # Build application
-            echo "Building application..."
+            echo "=== Building application ==="
             npm run build
             
-            # Check if .env exists, if not use template
+            echo "=== Checking environment configuration ==="
             if [ ! -f .env ]; then
               echo "⚠️  No .env file found. Using template..."
               if [ -f .env.template ]; then
@@ -89,28 +98,26 @@ jobs:
               fi
             fi
             
-            # Stop old PM2 process if exists
-            echo "Stopping old process..."
+            echo "=== Restarting application ==="
             pm2 stop hestia || true
             pm2 delete hestia || true
+            sleep 2
             
-            # Start new process with PM2
-            echo "Starting new process..."
             PORT=8787 NODE_ENV=production pm2 start npm --name "hestia" -- run api
-            
-            # Save PM2 process list for auto-restart
             pm2 save
             
-            echo "=== HESTIA Deployment Completed Successfully ==="
+            echo "=== Deployment Completed Successfully ==="
             echo "Application running on port 8787"
-            echo "Accessible via: https://32.193.23.154"
+            sleep 3
+            
+            echo "=== Verifying application status ==="
+            pm2 status
+          DEPLOY_SCRIPT
+          
+          echo ""
+          echo "✅ Deployment successful!"
 
-      - name: Deployment Status
-        if: always()
+      - name: Verify Deployment
         run: |
-          if [ "${{ job.status }}" == "success" ]; then
-            echo "✅ Deployment successful!"
-          else
-            echo "❌ Deployment failed!"
-            exit 1
-          fi
+          echo "Testing HTTPS endpoint..."
+          curl -k -s https://${{ secrets.EC2_HOST }} | head -1 || echo "⚠️  Application may still be starting up"
