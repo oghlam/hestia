@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { classifyScene, createAlert, applyValidatorAction, isAlertScene } from '../src/domain/scene-engine'
 import { generateRingSignature, normalizeRingWebhook, verifyRingSignature } from '../server/ring-adapter'
-import { isDuplicateRequest, memoryStore, resetStore } from '../server/store'
+import { isDuplicateRequest, memoryStore, resetStore, clearAuditLogs, saveArchivedLog, listArchivedLogs, deleteArchivedLog } from '../server/store'
 import { buildNovaMicroPrompt, generateDeterministicSummary, generateSceneContext } from '../server/bedrock-service'
 import { fallbackMatch, identifyFaceFromRingEvent, processFaceRecognition } from '../server/vision-service'
 import type { IdentityResult, RingEvent } from '../src/domain/contracts'
@@ -610,6 +610,36 @@ function testSettingsAndMaintenance() {
   })
   assert.equal(maintSettings.appVersion, '0.1.0-mvp')
   assert.ok(maintSettings.archivedLogsCount >= 1)
+
+  // 4. Audit Log Purge / Clear and Rotated Archive Management
+  memoryStore.saveAuditLog({
+    logId: 'test_log_to_clear',
+    timestamp: new Date().toISOString(),
+    action: 'SYSTEM_ALERT_CREATED',
+    actorId: 'test',
+    targetId: 'alert_1',
+    newState: 'VALIDATION_PENDING',
+  })
+  assert.ok(memoryStore.listAuditLogs().length > 0)
+  const cleared = clearAuditLogs(0)
+  assert.ok(cleared >= 1)
+  assert.equal(memoryStore.listAuditLogs().length, 0)
+
+  // Test Archive rotation addition & deletion
+  const newArch = {
+    id: 'arch_test_rotate',
+    date: new Date().toISOString(),
+    fileName: 'hestia_audit_archive_test.json',
+    size: '15.2 KB',
+    recordsCount: 30,
+    contentJson: JSON.stringify([{ test: true }]),
+  }
+  saveArchivedLog(newArch)
+  const archives = listArchivedLogs()
+  assert.ok(archives.some((a) => a.id === 'arch_test_rotate'))
+  const deletedArch = deleteArchivedLog('arch_test_rotate')
+  assert.equal(deletedArch, true)
+  assert.ok(!listArchivedLogs().some((a) => a.id === 'arch_test_rotate'))
 
   console.log('✔ Settings, Home Profile & Maintenance tests passed')
 }

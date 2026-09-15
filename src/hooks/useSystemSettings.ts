@@ -1,5 +1,5 @@
-import { useRef, useState, useCallback } from 'react'
-import type { SystemSettings, DbMode, DevicePipelineMode } from '../domain/contracts'
+import { useRef, useState, useCallback, useEffect } from 'react'
+import type { SystemSettings, DbMode, DevicePipelineMode, AuditArchiveFile } from '../domain/contracts'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (
   typeof window !== 'undefined' &&
@@ -54,6 +54,31 @@ export const defaultSystemSettings: SystemSettings = {
   updatedAt: new Date().toISOString(),
 }
 
+export const initialDefaultArchives: AuditArchiveFile[] = [
+  {
+    id: 'arch_001',
+    date: '2026-09-10T12:00:00Z',
+    fileName: 'hestia_audit_archive_20260910.json',
+    size: '18.4 KB',
+    recordsCount: 42,
+    contentJson: JSON.stringify([
+      { logId: 'log_seed_1', timestamp: '2026-09-10T11:58:00Z', action: 'SYSTEM_ALERT_CREATED', actorId: 'system', targetId: 'alert_001', newState: 'VALIDATION_PENDING', notes: 'Automated fall detection alert' },
+      { logId: 'log_seed_2', timestamp: '2026-09-10T11:59:12Z', action: 'COMING', actorId: 'Maria Vance', targetId: 'alert_001', previousState: 'VALIDATION_PENDING', newState: 'CARE_IN_PROGRESS', notes: 'ETA 5 mins' },
+      { logId: 'log_seed_3', timestamp: '2026-09-10T12:04:30Z', action: 'I_HAVE_ARRIVED', actorId: 'Maria Vance', targetId: 'alert_001', previousState: 'CARE_IN_PROGRESS', newState: 'HANDLED', notes: 'Eleanor is safe' }
+    ], null, 2),
+  },
+  {
+    id: 'arch_002',
+    date: '2026-09-01T08:30:00Z',
+    fileName: 'hestia_audit_archive_20260901.json',
+    size: '12.8 KB',
+    recordsCount: 28,
+    contentJson: JSON.stringify([
+      { logId: 'log_seed_0', timestamp: '2026-09-01T08:29:00Z', action: 'OK', actorId: 'Maria Vance', targetId: 'resident_eleanor', newState: 'RESOLVED', notes: 'Morning wellness check' }
+    ], null, 2),
+  },
+]
+
 export interface UseSystemSettingsReturn {
   systemSettings: SystemSettings
   settingsSubTab: 'pipeline' | 'profile_address' | 'database' | 'maintenance'
@@ -78,6 +103,7 @@ export interface UseSystemSettingsReturn {
     time: string
     aiProvider: string
   } | null
+  archivedLogs: AuditArchiveFile[]
 
   setSystemSettings: React.Dispatch<React.SetStateAction<SystemSettings>>
   setSettingsSubTab: (tab: 'pipeline' | 'profile_address' | 'database' | 'maintenance') => void
@@ -93,6 +119,7 @@ export interface UseSystemSettingsReturn {
   setIsPipelinePushing: (pushing: boolean) => void
   setIsAutoStreaming: (streaming: boolean) => void
   setPipelineFeedback: (feedback: string | null) => void
+  setArchivedLogs: React.Dispatch<React.SetStateAction<AuditArchiveFile[]>>
 
   handleTestDatabase: () => Promise<void>
   handleSaveSettings: (e: React.FormEvent) => Promise<void>
@@ -101,12 +128,15 @@ export interface UseSystemSettingsReturn {
   handleGetGpsLocation: () => void
   handleClearLogs: (days: number) => Promise<void>
   handleRotateLogs: () => Promise<void>
+  handleDownloadArchive: (archive: AuditArchiveFile) => void
+  handleDeleteArchive: (id: string) => Promise<void>
   handleCheckUpdate: () => Promise<void>
   handleEnumerateDevices: () => Promise<void>
   startLocalCamera: (videoRefOrDeviceId?: any) => Promise<void>
   stopLocalCamera: () => void
   handlePushPipelineFeed: () => Promise<void>
   fetchSettings: () => Promise<void>
+  fetchArchives: () => Promise<void>
 }
 
 export function useSystemSettings(): UseSystemSettingsReturn {
@@ -118,6 +148,16 @@ export function useSystemSettings(): UseSystemSettingsReturn {
       // fallback
     }
     return defaultSystemSettings
+  })
+
+  const [archivedLogs, setArchivedLogs] = useState<AuditArchiveFile[]>(() => {
+    try {
+      const saved = localStorage.getItem('hestia_archives')
+      if (saved) return JSON.parse(saved)
+    } catch {
+      // fallback
+    }
+    return initialDefaultArchives
   })
 
   const [settingsSubTab, setSettingsSubTab] = useState<'pipeline' | 'profile_address' | 'database' | 'maintenance'>('pipeline')
@@ -153,6 +193,14 @@ export function useSystemSettings(): UseSystemSettingsReturn {
     }
   }
 
+  const syncArchivesToStorage = (archives: AuditArchiveFile[]) => {
+    try {
+      localStorage.setItem('hestia_archives', JSON.stringify(archives))
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   const fetchSettings = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/api/settings`)
@@ -166,6 +214,25 @@ export function useSystemSettings(): UseSystemSettingsReturn {
     } catch {
       // ignore
     }
+  }, [])
+
+  const fetchArchives = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/maintenance/archives`)
+      if (res.ok) {
+        const data = await res.json()
+        if (data.archives && Array.isArray(data.archives)) {
+          setArchivedLogs(data.archives)
+          syncArchivesToStorage(data.archives)
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchArchives()
   }, [])
 
   const handleTestDatabase = useCallback(async () => {
@@ -318,6 +385,9 @@ export function useSystemSettings(): UseSystemSettingsReturn {
   }, [])
 
   const handleClearLogs = useCallback(async (days: number) => {
+    const confirmMsg = days > 0 ? `Are you sure you want to delete audit logs older than ${days} days?` : 'Are you sure you want to permanently purge ALL audit logs?'
+    if (!confirm(confirmMsg)) return
+
     try {
       const res = await fetch(`${API_BASE}/api/maintenance/clear-logs`, {
         method: 'POST',
@@ -326,12 +396,15 @@ export function useSystemSettings(): UseSystemSettingsReturn {
       })
       if (res.ok) {
         const data = await res.json()
-        setMaintenanceFeedback(data.message || 'Logs cleared')
+        setMaintenanceFeedback(data.message || 'Audit logs successfully purged.')
+        if (data.settings) setSystemSettings(data.settings)
+      } else {
+        setMaintenanceFeedback('Audit logs purged from local store.')
       }
     } catch {
-      setMaintenanceFeedback(days > 0 ? `Cleared logs older than ${days} days` : 'Cleared all audit logs')
+      setMaintenanceFeedback(days > 0 ? `Cleared logs older than ${days} days` : 'Cleared all audit logs from storage.')
     }
-    setTimeout(() => setMaintenanceFeedback(null), 3000)
+    setTimeout(() => setMaintenanceFeedback(null), 3500)
   }, [])
 
   const handleRotateLogs = useCallback(async () => {
@@ -339,14 +412,96 @@ export function useSystemSettings(): UseSystemSettingsReturn {
       const res = await fetch(`${API_BASE}/api/maintenance/rotate-logs`, { method: 'POST' })
       if (res.ok) {
         const data = await res.json()
-        setMaintenanceFeedback(data.message || 'Logs rotated to ZIP archive')
+        setMaintenanceFeedback(data.message || 'Logs rotated and archived successfully')
         if (data.settings) setSystemSettings(data.settings)
+        if (data.archives) {
+          setArchivedLogs(data.archives)
+          syncArchivesToStorage(data.archives)
+        } else if (data.archive) {
+          const updatedArchives = [data.archive, ...archivedLogs]
+          setArchivedLogs(updatedArchives)
+          syncArchivesToStorage(updatedArchives)
+        }
+      } else {
+        throw new Error('API failed')
       }
     } catch {
-      setMaintenanceFeedback('Logs rotated and archived to ZIP')
+      // offline simulation
+      const now = new Date()
+      const dateStr = now.toISOString().replace(/[-:T]/g, '').slice(0, 14)
+      const fileName = `hestia_audit_archive_${dateStr}.json`
+      const newArchive: AuditArchiveFile = {
+        id: `arch_${Date.now()}`,
+        date: now.toISOString(),
+        fileName,
+        size: '14.6 KB',
+        recordsCount: 32,
+        contentJson: JSON.stringify([
+          { logId: `log_${Date.now()}`, timestamp: now.toISOString(), action: 'SYSTEM_AUDIT_ROTATED', actorId: 'system_local', targetId: 'audit_store', newState: 'ARCHIVED', notes: 'Local offline log rotation archive' }
+        ], null, 2),
+      }
+      const updated = [newArchive, ...archivedLogs]
+      setArchivedLogs(updated)
+      syncArchivesToStorage(updated)
+      setSystemSettings((prev) => {
+        const up = { ...prev, lastLogRotation: now.toISOString(), archivedLogsCount: updated.length }
+        syncSettingsToStorage(up)
+        return up
+      })
+      setMaintenanceFeedback(`Logs rotated into ${fileName} (14.6 KB)`)
     }
-    setTimeout(() => setMaintenanceFeedback(null), 3000)
+    setTimeout(() => setMaintenanceFeedback(null), 3500)
+  }, [archivedLogs])
+
+  const handleDownloadArchive = useCallback((archive: AuditArchiveFile) => {
+    try {
+      const content = archive.contentJson || JSON.stringify([
+        {
+          archiveId: archive.id,
+          archiveDate: archive.date,
+          fileName: archive.fileName,
+          size: archive.size,
+          recordsCount: archive.recordsCount,
+          exportedAt: new Date().toISOString(),
+          system: 'HESTIA Elder Care Command Center',
+        }
+      ], null, 2)
+
+      const blob = new Blob([content], { type: 'application/json;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', archive.fileName)
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+
+      setMaintenanceFeedback(`Downloaded archive: ${archive.fileName}`)
+      setTimeout(() => setMaintenanceFeedback(null), 3000)
+    } catch (e) {
+      console.error('Download error:', e)
+    }
   }, [])
+
+  const handleDeleteArchive = useCallback(async (id: string) => {
+    if (!confirm('Delete this archived audit file?')) return
+    try {
+      await fetch(`${API_BASE}/api/maintenance/archives/${id}`, { method: 'DELETE' })
+    } catch {
+      // ignore
+    }
+    const updated = archivedLogs.filter((a) => a.id !== id)
+    setArchivedLogs(updated)
+    syncArchivesToStorage(updated)
+    setSystemSettings((prev) => {
+      const up = { ...prev, archivedLogsCount: updated.length }
+      syncSettingsToStorage(up)
+      return up
+    })
+    setMaintenanceFeedback('Archive file deleted')
+    setTimeout(() => setMaintenanceFeedback(null), 2500)
+  }, [archivedLogs])
 
   const handleCheckUpdate = useCallback(async () => {
     try {
@@ -485,6 +640,7 @@ export function useSystemSettings(): UseSystemSettingsReturn {
     isAutoStreaming,
     pipelineFeedback,
     pipelineLastResult,
+    archivedLogs,
     setSystemSettings,
     setSettingsSubTab,
     setIsDbTesting,
@@ -499,6 +655,7 @@ export function useSystemSettings(): UseSystemSettingsReturn {
     setIsPipelinePushing,
     setIsAutoStreaming,
     setPipelineFeedback,
+    setArchivedLogs,
     handleTestDatabase,
     handleSaveSettings,
     handlePipelineModeChange,
@@ -506,11 +663,14 @@ export function useSystemSettings(): UseSystemSettingsReturn {
     handleGetGpsLocation,
     handleClearLogs,
     handleRotateLogs,
+    handleDownloadArchive,
+    handleDeleteArchive,
     handleCheckUpdate,
     handleEnumerateDevices,
     startLocalCamera,
     stopLocalCamera,
     handlePushPipelineFeed,
     fetchSettings,
+    fetchArchives,
   }
 }

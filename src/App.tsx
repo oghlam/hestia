@@ -557,8 +557,19 @@ export function App() {
             handleTestDbConnection={systemSettings.handleTestDatabase}
             isDbTesting={systemSettings.isDbTesting}
             dbTestResult={systemSettings.dbTestResult}
-            handleClearLogs={systemSettings.handleClearLogs}
+            handleClearLogs={async (days) => {
+              await systemSettings.handleClearLogs(days)
+              if (days <= 0) {
+                setAuditLogs([])
+                setAccessLogs([])
+              } else {
+                fetchData()
+              }
+            }}
             handleRotateLogs={systemSettings.handleRotateLogs}
+            archivedLogs={systemSettings.archivedLogs}
+            handleDownloadArchive={systemSettings.handleDownloadArchive}
+            handleDeleteArchive={systemSettings.handleDeleteArchive}
             handleCheckUpdate={systemSettings.handleCheckUpdate}
           />
         )}

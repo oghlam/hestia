@@ -5,6 +5,8 @@ import {
   CameraOff,
   CheckCircle2,
   Database,
+  Download,
+  FileText,
   HardDrive,
   Lock,
   MapPin,
@@ -20,6 +22,7 @@ import {
   Zap,
 } from 'lucide-react'
 import type {
+  AuditArchiveFile,
   DbMode,
   DevicePipelineMode,
   Room,
@@ -72,6 +75,9 @@ export interface SettingsViewProps {
   dbTestResult: { ok: boolean; message: string; latencyMs?: number } | null
   handleClearLogs: (days: number) => Promise<void>
   handleRotateLogs: () => Promise<void>
+  archivedLogs?: AuditArchiveFile[]
+  handleDownloadArchive?: (archive: AuditArchiveFile) => void
+  handleDeleteArchive?: (id: string) => Promise<void>
   handleCheckUpdate: () => Promise<void>
 }
 
@@ -112,6 +118,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   dbTestResult,
   handleClearLogs,
   handleRotateLogs,
+  archivedLogs = [],
+  handleDownloadArchive,
+  handleDeleteArchive,
   handleCheckUpdate,
 }) => {
   const activeFeedback = pipelineFeedback || maintenanceFeedback
@@ -949,6 +958,98 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Box 4: Rotated Log Archives & Download List */}
+          <div className="card-box" style={{ marginTop: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <div>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <RotateCcw size={16} color="#005cf5" />
+                  Rotated Audit Log Archives ({archivedLogs.length})
+                </h3>
+                <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0' }}>
+                  History of rotated system compliance logs ready for local export & download
+                </p>
+              </div>
+              <button
+                type="button"
+                className="sim-button"
+                style={{ fontSize: '12px', padding: '6px 12px' }}
+                onClick={handleRotateLogs}
+              >
+                <RotateCcw size={13} /> Rotate Logs Now
+              </button>
+            </div>
+
+            <table className="table-responsive">
+              <thead>
+                <tr>
+                  <th>Archive Date / Time</th>
+                  <th>Archive File Name</th>
+                  <th>Size</th>
+                  <th>Records</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {archivedLogs.length > 0 ? (
+                  archivedLogs.map((archive) => (
+                    <tr key={archive.id}>
+                      <td>
+                        <strong>{new Date(archive.date).toLocaleDateString()}</strong>
+                        <small style={{ color: '#64748b', display: 'block', fontSize: '11px' }}>
+                          {new Date(archive.date).toLocaleTimeString()}
+                        </small>
+                      </td>
+                      <td>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontFamily: 'monospace', fontSize: '12px', color: '#0f172a' }}>
+                          <FileText size={14} style={{ color: '#0284c7' }} />
+                          {archive.fileName}
+                        </span>
+                      </td>
+                      <td>
+                        <span className="badge normal">{archive.size}</span>
+                      </td>
+                      <td>
+                        <strong>{archive.recordsCount}</strong> events
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {handleDownloadArchive && (
+                            <button
+                              type="button"
+                              className="btn-icon-action primary"
+                              title="Download Archive File"
+                              style={{ width: 'auto', padding: '4px 8px', fontSize: '11px', display: 'inline-flex', gap: '4px' }}
+                              onClick={() => handleDownloadArchive(archive)}
+                            >
+                              <Download size={12} /> Download
+                            </button>
+                          )}
+                          {handleDeleteArchive && (
+                            <button
+                              type="button"
+                              className="btn-icon-action danger"
+                              title="Delete Archive"
+                              onClick={() => handleDeleteArchive(archive.id)}
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', color: '#94a3b8', padding: '24px' }}>
+                      No rotated log archives yet. Click "Rotate & Archive Logs Now" above to generate a new archive bundle.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </>
       )}

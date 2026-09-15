@@ -187,6 +187,16 @@ export type RoomState = {
   roomData?: Room
 }
 
+export type AuditArchiveFile = {
+  id: string
+  date: string
+  fileName: string
+  size: string
+  recordsCount: number
+  downloadUrl?: string
+  contentJson?: string
+}
+
 export type AuditLogEntry = {
   logId: string
   timestamp: string

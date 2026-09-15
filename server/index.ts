@@ -63,6 +63,10 @@ import {
   saveNotification,
   listNotifications,
   getRoomStates,
+  clearAuditLogs,
+  listArchivedLogs,
+  saveArchivedLog,
+  deleteArchivedLog,
 } from './store'
 import { normalizeRingWebhook, verifyRingSignature } from './ring-adapter'
 import { generateSceneContext } from './bedrock-service'
@@ -588,13 +592,9 @@ app.post('/api/settings/db-test', (req, res) => {
 
 // Maintenance: Log Cleanup Endpoint
 app.post('/api/maintenance/clear-logs', (req, res) => {
-  const olderThanDays = typeof req.body?.olderThanDays === 'number' ? req.body.olderThanDays : 30
-  const now = Date.now()
-  const cutoff = olderThanDays > 0 ? now - olderThanDays * 86400 * 1000 : now
-
-  const currentLogs = (listAuditLogs() as AuditLogEntry[]).filter(
-    (log) => new Date(log.timestamp).getTime() >= cutoff
-  )
+  const olderThanDays = typeof req.body?.olderThanDays === 'number' ? req.body.olderThanDays : 0
+  const clearedCount = clearAuditLogs(olderThanDays)
+  const remainingLogs = listAuditLogs()
 
   const updated = saveSettings({
     updatedAt: new Date().toISOString(),
@@ -602,33 +602,68 @@ app.post('/api/maintenance/clear-logs', (req, res) => {
 
   return res.json({
     ok: true,
+    clearedCount,
     clearedDays: olderThanDays,
-    remainingLogs: currentLogs.length,
-    message: olderThanDays > 0 ? `Cleared logs older than ${olderThanDays} days.` : 'Cleared all system logs.',
+    remainingLogs: remainingLogs.length,
+    message: olderThanDays > 0 ? `Cleared ${clearedCount} logs older than ${olderThanDays} days.` : `Purged all ${clearedCount} system audit logs.`,
+    settings: updated,
+    auditLogs: remainingLogs,
+  })
+})
+
+// Maintenance: Log Rotation & Archiving Endpoint
+app.post('/api/maintenance/rotate-logs', (_req, res) => {
+  const currentLogs = listAuditLogs()
+  const now = new Date()
+  const dateStr = now.toISOString().replace(/[-:T]/g, '').slice(0, 14)
+  const archiveFileName = `hestia_audit_archive_${dateStr}.json`
+  const jsonContent = JSON.stringify(currentLogs.length > 0 ? currentLogs : [
+    { logId: `log_${Date.now()}`, timestamp: now.toISOString(), action: 'SYSTEM_AUDIT_ROTATED', actorId: 'system_maintenance', targetId: 'audit_store', newState: 'ARCHIVED', notes: 'Automated log rotation bundle' }
+  ], null, 2)
+  const sizeKb = (Buffer.byteLength(jsonContent, 'utf8') / 1024).toFixed(1)
+
+  const newArchive = {
+    id: `arch_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    date: now.toISOString(),
+    fileName: archiveFileName,
+    size: `${sizeKb} KB`,
+    recordsCount: Math.max(1, currentLogs.length),
+    contentJson: jsonContent,
+  }
+
+  saveArchivedLog(newArchive)
+  const allArchives = listArchivedLogs()
+
+  const updated = saveSettings({
+    lastLogRotation: now.toISOString(),
+    archivedLogsCount: allArchives.length,
+    updatedAt: now.toISOString(),
+  })
+
+  return res.json({
+    ok: true,
+    archive: newArchive,
+    archives: allArchives,
+    archiveFileName,
+    archiveSizeKb: parseFloat(sizeKb),
+    totalArchives: allArchives.length,
+    message: `Logs rotated and bundled into ${archiveFileName} (${sizeKb} KB, ${newArchive.recordsCount} records).`,
     settings: updated,
   })
 })
 
-// Maintenance: Log Rotation & Archiving Endpoint (Simulating 10MB rotation / ZIP creation)
-app.post('/api/maintenance/rotate-logs', (_req, res) => {
-  const currentSettings = getSettings()
-  const newArchivedCount = (currentSettings.archivedLogsCount || 0) + 1
-  const archiveFileName = `hestia_audit_archive_${Date.now()}.zip`
+// Maintenance: List Archives Endpoint
+app.get('/api/maintenance/archives', (_req, res) => {
+  return res.json({ archives: listArchivedLogs() })
+})
 
-  const updated = saveSettings({
-    lastLogRotation: new Date().toISOString(),
-    archivedLogsCount: newArchivedCount,
-    updatedAt: new Date().toISOString(),
-  })
-
-  return res.json({
-    ok: true,
-    archiveFileName,
-    archiveSizeKb: 1420,
-    totalArchives: newArchivedCount,
-    message: `Logs rotated and compressed into ${archiveFileName} (GZIP/ZIP archive).`,
-    settings: updated,
-  })
+// Maintenance: Delete Archive Endpoint
+app.delete('/api/maintenance/archives/:id', (req, res) => {
+  const success = deleteArchivedLog(req.params.id)
+  if (!success) return res.status(404).json({ error: 'Archive not found' })
+  const allArchives = listArchivedLogs()
+  saveSettings({ archivedLogsCount: allArchives.length, updatedAt: new Date().toISOString() })
+  return res.json({ success: true, id: req.params.id, archives: allArchives })
 })
 
 // Maintenance: App Version & Update Check Endpoint

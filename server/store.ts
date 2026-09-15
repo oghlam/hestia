@@ -1,6 +1,7 @@
 import type {
   AccessLogEntry,
   Alert,
+  AuditArchiveFile,
   AuditLogEntry,
   AutomationRule,
   CareTeamMember,
@@ -677,6 +678,63 @@ export function saveSettings(patch: Partial<SystemSettings>): SystemSettings {
     updatedAt: new Date().toISOString(),
   }
   return { ...systemSettings }
+}
+
+const archivedLogFiles: AuditArchiveFile[] = [
+  {
+    id: 'arch_001',
+    date: '2026-09-10T12:00:00Z',
+    fileName: 'hestia_audit_archive_20260910.json',
+    size: '18.4 KB',
+    recordsCount: 42,
+    contentJson: JSON.stringify([
+      { logId: 'log_seed_1', timestamp: '2026-09-10T11:58:00Z', action: 'SYSTEM_ALERT_CREATED', actorId: 'system', targetId: 'alert_001', newState: 'VALIDATION_PENDING', notes: 'Automated fall detection alert' },
+      { logId: 'log_seed_2', timestamp: '2026-09-10T11:59:12Z', action: 'COMING', actorId: 'Maria Vance', targetId: 'alert_001', previousState: 'VALIDATION_PENDING', newState: 'CARE_IN_PROGRESS', notes: 'ETA 5 mins' },
+      { logId: 'log_seed_3', timestamp: '2026-09-10T12:04:30Z', action: 'I_HAVE_ARRIVED', actorId: 'Maria Vance', targetId: 'alert_001', previousState: 'CARE_IN_PROGRESS', newState: 'HANDLED', notes: 'Eleanor is fine' }
+    ], null, 2),
+  },
+  {
+    id: 'arch_002',
+    date: '2026-09-01T08:30:00Z',
+    fileName: 'hestia_audit_archive_20260901.json',
+    size: '12.8 KB',
+    recordsCount: 28,
+    contentJson: JSON.stringify([
+      { logId: 'log_seed_0', timestamp: '2026-09-01T08:29:00Z', action: 'OK', actorId: 'Maria Vance', targetId: 'resident_eleanor', newState: 'RESOLVED', notes: 'Morning wellness check' }
+    ], null, 2),
+  },
+]
+
+export function clearAuditLogs(olderThanDays = 0): number {
+  if (olderThanDays <= 0) {
+    const count = auditLogs.length
+    auditLogs.length = 0
+    accessLogs.length = 0
+    return count
+  }
+  const cutoff = Date.now() - olderThanDays * 86400 * 1000
+  const initial = auditLogs.length
+  const filtered = auditLogs.filter((log) => new Date(log.timestamp).getTime() >= cutoff)
+  auditLogs.length = 0
+  auditLogs.push(...filtered)
+  return initial - filtered.length
+}
+
+export function listArchivedLogs(): AuditArchiveFile[] {
+  return [...archivedLogFiles]
+}
+
+export function saveArchivedLog(archive: AuditArchiveFile) {
+  archivedLogFiles.unshift(archive)
+}
+
+export function deleteArchivedLog(id: string): boolean {
+  const index = archivedLogFiles.findIndex((a) => a.id === id)
+  if (index >= 0) {
+    archivedLogFiles.splice(index, 1)
+    return true
+  }
+  return false
 }
 
 export function saveAuditLog(entry: AuditLogEntry) {
