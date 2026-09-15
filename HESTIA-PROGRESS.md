@@ -252,6 +252,12 @@
   - [x] Settings DB Controls: Online Connect/Disconnect toggle, 2-Factor MFA validator, real-time latency ping
   - [x] Bidirectional Data Sync Engine: Sync Local → Cloud (Upload offline fixtures) & Sync Cloud → Local (Pull live snapshots)
   - [x] Automated Table Initialization CLI script (`npm run db:init`)
+- [x] Sub-Sprint K: Ring Sandbox Simulator Studio & Live Webhook Diagnostics (Completed)
+  - [x] Interactive 3-column human-centric controls (Target Room, Activity Scenario, Person Recognized)
+  - [x] Live Automation Rule evaluation banner & calm elder-care reassurance notes
+  - [x] Self-diagnostic Webhook connection test with latency & HMAC signature verification (`POST /webhooks/ring`)
+  - [x] Production Ring Hardware guide with public live webhook endpoint (`https://32-193-23-154.nip.io/webhooks/ring`)
+  - [x] CI/CD automated build, test, and EC2 deployment verification (100% green passing)
 - [x] Full Test & Build Verification:
   - [x] Automated test suite `npm test` passing 100% (10/10 test suites verified).
   - [x] Production build `npm run build` compiling cleanly with 0 TypeScript/Vite errors.
