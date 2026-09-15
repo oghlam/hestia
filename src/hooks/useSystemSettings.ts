@@ -84,6 +84,8 @@ export interface UseSystemSettingsReturn {
   settingsSubTab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets'
   isDbTesting: boolean
   dbTestResult: { ok: boolean; message: string; latencyMs?: number } | null
+  isWebhookTesting: boolean
+  webhookTestResult: { ok: boolean; message: string; latencyMs?: number; timestamp?: string } | null
   maintenanceFeedback: string | null
   isGpsLoading: boolean
   isLocalCameraRunning: boolean
@@ -119,9 +121,18 @@ export interface UseSystemSettingsReturn {
   setIsPipelinePushing: (pushing: boolean) => void
   setIsAutoStreaming: (streaming: boolean) => void
   setPipelineFeedback: (feedback: string | null) => void
+  setPipelineLastResult: React.Dispatch<React.SetStateAction<{
+    scene: string
+    person: string
+    confidence: number
+    summary: string
+    time: string
+    aiProvider: string
+  } | null>>
   setArchivedLogs: React.Dispatch<React.SetStateAction<AuditArchiveFile[]>>
 
   handleTestDatabase: () => Promise<void>
+  handleTestWebhookConnection: () => Promise<void>
   handleSaveSettings: (e: React.FormEvent) => Promise<void>
   handlePipelineModeChange: (mode: DevicePipelineMode) => Promise<void>
   handleSaveHomeAddressProfile: (e: React.FormEvent) => Promise<void>
@@ -167,6 +178,8 @@ export function useSystemSettings(): UseSystemSettingsReturn {
   const [isDbTesting, setIsDbTesting] = useState(false)
   const [isDbSyncing, setIsDbSyncing] = useState(false)
   const [dbTestResult, setDbTestResult] = useState<{ ok: boolean; message: string; latencyMs?: number } | null>(null)
+  const [isWebhookTesting, setIsWebhookTesting] = useState(false)
+  const [webhookTestResult, setWebhookTestResult] = useState<{ ok: boolean; message: string; latencyMs?: number; timestamp?: string } | null>(null)
   const [maintenanceFeedback, setMaintenanceFeedback] = useState<string | null>(null)
   const [isGpsLoading, setIsGpsLoading] = useState(false)
   const [isLocalCameraRunning, setIsLocalCameraRunning] = useState(false)
@@ -294,6 +307,63 @@ export function useSystemSettings(): UseSystemSettingsReturn {
       setIsDbTesting(false)
     }
   }, [systemSettings])
+
+  const handleTestWebhookConnection = useCallback(async () => {
+    setIsWebhookTesting(true)
+    const startTime = performance.now()
+    try {
+      const payload = {
+        meta: {
+          request_id: `test_ping_${Date.now()}`,
+          time: new Date().toISOString(),
+        },
+        data: {
+          id: `evt_ping_${Date.now()}`,
+          type: 'motion_detected',
+          attributes: {
+            source: 'living_room_cam',
+            subType: 'test_connection',
+            timestamp: Date.now(),
+          },
+        },
+      }
+
+      const res = await fetch(`${API_BASE}/webhooks/ring`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const latencyMs = Math.round(performance.now() - startTime)
+      if (res.ok) {
+        setWebhookTestResult({
+          ok: true,
+          message: 'Webhook endpoint active & accepting Ring v1.1 payloads (HTTP 200 OK)',
+          latencyMs,
+          timestamp: new Date().toLocaleTimeString(),
+        })
+      } else {
+        setWebhookTestResult({
+          ok: false,
+          message: `Webhook endpoint returned HTTP ${res.status} (${res.statusText})`,
+          latencyMs,
+          timestamp: new Date().toLocaleTimeString(),
+        })
+      }
+    } catch (e: any) {
+      const latencyMs = Math.round(performance.now() - startTime)
+      setWebhookTestResult({
+        ok: false,
+        message: e?.message || 'Failed to reach webhook endpoint. Check backend server connectivity.',
+        latencyMs,
+        timestamp: new Date().toLocaleTimeString(),
+      })
+    } finally {
+      setIsWebhookTesting(false)
+    }
+  }, [])
 
   const handleSyncToCloud = useCallback(async () => {
     setIsDbSyncing(true)
@@ -693,6 +763,8 @@ export function useSystemSettings(): UseSystemSettingsReturn {
     settingsSubTab,
     isDbTesting,
     dbTestResult,
+    isWebhookTesting,
+    webhookTestResult,
     maintenanceFeedback,
     isGpsLoading,
     isLocalCameraRunning,
@@ -720,8 +792,10 @@ export function useSystemSettings(): UseSystemSettingsReturn {
     setIsPipelinePushing,
     setIsAutoStreaming,
     setPipelineFeedback,
+    setPipelineLastResult,
     setArchivedLogs,
     handleTestDatabase,
+    handleTestWebhookConnection,
     handleSaveSettings,
     handlePipelineModeChange,
     handleSaveHomeAddressProfile,

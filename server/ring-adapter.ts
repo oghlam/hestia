@@ -36,7 +36,7 @@ const DEFAULT_DEVICE_ROOMS: Record<string, string> = {
 export function verifyRingSignature(
   rawBody: Buffer | string,
   receivedSignature?: string | null,
-  signingKey = process.env.RING_HMAC_SIGNING_KEY
+  signingKey = process.env.RING_HMAC_SIGNING_KEY || process.env.RING_WEBHOOK_SECRET
 ): boolean {
   if (!signingKey) return true // Dev/test bypass if signing key is not set
   if (!receivedSignature) return false

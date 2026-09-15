@@ -737,7 +737,7 @@ app.post('/api/maintenance/check-update', (_req, res) => {
 
 app.post('/api/pipeline/feed', async (req, res) => {
   const { snapshotUrl, snapshotBase64, roomId, simulatedSignal, faceHint } = req.body || {}
-  const activeRoomId = typeof roomId === 'string' && roomId ? roomId : 'living_room'
+  const activeRoomId = typeof roomId === 'string' && roomId ? roomId : (listRooms()[0]?.id ?? 'living_room')
   const isDistress = simulatedSignal === 'distress'
   const isRepeatedMotion = simulatedSignal === 'repeated_motion'
   const isDoorbell = simulatedSignal === 'doorbell'
@@ -751,14 +751,15 @@ app.post('/api/pipeline/feed', async (req, res) => {
 
   const now = new Date().toISOString()
   const eventId = `evt_pipe_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
-  const currentRoom = getRoom(activeRoomId)
+  const currentRoom = getRoom(activeRoomId) || listRooms()[0]
+  const resolvedRoomId = currentRoom?.id ?? activeRoomId
 
   const event: RingEvent = {
     eventId,
-    deviceId: currentRoom?.deviceId ?? `cam_${activeRoomId}`,
+    deviceId: currentRoom?.deviceId ?? `cam_${resolvedRoomId}`,
     eventType: isDoorbell ? 'doorbell' : 'motion',
     occurredAt: now,
-    roomId: activeRoomId,
+    roomId: resolvedRoomId,
     snapshotUrl: typeof snapshotUrl === 'string' ? snapshotUrl : undefined,
     metadata: {
       source: 'device_pipeline',

@@ -1,6 +1,8 @@
 import React from 'react'
 import {
+  Activity,
   AlertTriangle,
+  Bell,
   Camera,
   CameraOff,
   CheckCircle2,
@@ -8,6 +10,7 @@ import {
   Database,
   Download,
   FileText,
+  Flame,
   HardDrive,
   Lock,
   MapPin,
@@ -25,6 +28,7 @@ import {
 import type {
   Asset,
   AuditArchiveFile,
+  AutomationRule,
   DbMode,
   DevicePipelineMode,
   Room,
@@ -68,6 +72,7 @@ export interface SettingsViewProps {
   } | null
   triggerRoomSimulation: (roomId: string, scenario: 'normal' | 'distress') => Promise<void>
   handlePipelineModeChange: (mode: DevicePipelineMode) => Promise<void>
+  rules?: AutomationRule[]
   // Handlers
   handleSaveSystemSettings: (e: React.FormEvent) => Promise<void>
   handleSaveHomeAddressProfile: (e: React.FormEvent) => Promise<void>
@@ -76,6 +81,9 @@ export interface SettingsViewProps {
   handleTestDbConnection: () => Promise<void>
   isDbTesting: boolean
   dbTestResult: { ok: boolean; message: string; latencyMs?: number } | null
+  handleTestWebhookConnection?: () => Promise<void>
+  isWebhookTesting?: boolean
+  webhookTestResult?: { ok: boolean; message: string; latencyMs?: number; timestamp?: string } | null
   handleSyncToCloud?: () => Promise<void>
   handleSyncFromCloud?: () => Promise<void>
   isDbSyncing?: boolean
@@ -123,6 +131,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   pipelineLastResult,
   triggerRoomSimulation,
   handlePipelineModeChange,
+  rules = [],
   handleSaveSystemSettings,
   handleSaveHomeAddressProfile,
   handleGetGpsLocation,
@@ -130,6 +139,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   handleTestDbConnection,
   isDbTesting,
   dbTestResult,
+  handleTestWebhookConnection,
+  isWebhookTesting = false,
+  webhookTestResult,
   handleSyncToCloud,
   handleSyncFromCloud,
   isDbSyncing = false,
@@ -414,41 +426,302 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           ) : systemSettings.pipelineMode === 'ring_simulator' ? (
             <div className="card-box">
-              <h3>Ring Sandbox Simulator Active</h3>
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, marginBottom: '16px' }}>
-                HESTIA is currently receiving events from the Ring Official Developer Sandbox environment. All payloads are normalized into HESTIA contract v1.1.
-              </p>
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <button className="sim-button" onClick={() => triggerRoomSimulation('living_room', 'normal')}>
-                  <Play size={13} /> Trigger Sandbox Motion (Living Room)
-                </button>
-                <button className="sim-button secondary" onClick={() => triggerRoomSimulation('bedroom', 'distress')}>
-                  <AlertTriangle size={13} /> Trigger Sandbox Distress (Bedroom)
-                </button>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '15px', color: '#0f172a' }}>Ring Sandbox Event Simulator</h3>
+                  <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                    Simulate elder activities and safety scenarios across rooms to test caregiver alerts and rules.
+                  </p>
+                </div>
+                <span className="badge normal" style={{ fontSize: '11px', fontWeight: 600 }}>
+                  Ring Sandbox v1.1
+                </span>
               </div>
+
+              {/* Symmetrical 3-Column Inputs */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '14px' }}>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 600, color: '#334155', marginBottom: '6px', display: 'block', fontSize: '12px' }}>
+                    Room Location
+                  </label>
+                  <select
+                    className="form-select"
+                    value={pipelineTargetRoom}
+                    onChange={(e) => setPipelineTargetRoom(e.target.value)}
+                  >
+                    {displayRooms.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name} · {r.deviceType || 'Ring Cam'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 600, color: '#334155', marginBottom: '6px', display: 'block', fontSize: '12px' }}>
+                    Activity Scenario
+                  </label>
+                  <select
+                    className="form-select"
+                    value={pipelineScenario}
+                    onChange={(e) => setPipelineScenario(e.target.value as any)}
+                  >
+                    <option value="normal">Routine Activity (Walking, resting)</option>
+                    <option value="distress">Fall / Distress (Needs help)</option>
+                    <option value="doorbell">Visitor Doorbell (Guest arrival)</option>
+                    <option value="repeated_motion">Night Inactivity (Unusual absence)</option>
+                  </select>
+                </div>
+
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <label className="form-label" style={{ fontWeight: 600, color: '#334155', marginBottom: '6px', display: 'block', fontSize: '12px' }}>
+                    Person Recognized
+                  </label>
+                  <select
+                    className="form-select"
+                    value={pipelineFaceHint}
+                    onChange={(e) => setPipelineFaceHint(e.target.value as any)}
+                  >
+                    <option value="known_target">Eleanor Vance (Target Resident)</option>
+                    <option value="unknown">Visitor / Guest (Non-Resident)</option>
+                    <option value="no_face">Motion Only (No face)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Human-Friendly Scenario Context & Rule Note */}
+              {(() => {
+                const targetSceneCode = pipelineScenario === 'distress' ? 'S3_HELP' : pipelineScenario === 'doorbell' ? 'S2_WATCH' : pipelineScenario === 'repeated_motion' ? 'S4_CRITICAL' : 'S1_NORMAL'
+                const matchedRule = rules.find(
+                  (r) => r.enabled && (r.triggerZone === 'all' || r.triggerZone === pipelineTargetRoom) && r.targetScene === targetSceneCode
+                )
+                const currentRoomObj = displayRooms.find((r) => r.id === pipelineTargetRoom) || displayRooms[0]
+                const isUrgent = pipelineScenario === 'distress' || pipelineScenario === 'repeated_motion'
+                const isDoorbell = pipelineScenario === 'doorbell'
+
+                return (
+                  <div>
+                    <div
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        backgroundColor: isUrgent ? '#fef2f2' : isDoorbell ? '#fefce8' : '#f0fdf4',
+                        border: `1px solid ${isUrgent ? '#fee2e2' : isDoorbell ? '#fef08a' : '#dcfce7'}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '12px',
+                        marginBottom: '16px',
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#1e293b' }}>
+                        {isUrgent ? (
+                          <Flame size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
+                        ) : isDoorbell ? (
+                          <Bell size={16} style={{ color: '#d97706', flexShrink: 0 }} />
+                        ) : (
+                          <ShieldCheck size={16} style={{ color: '#16a34a', flexShrink: 0 }} />
+                        )}
+                        <span>
+                          {isUrgent ? (
+                            <>
+                              <strong>Emergency Alert:</strong> Triggers immediate caregiver validation alert (
+                              {matchedRule ? `${matchedRule.slaTimeoutMinutes}-min SLA` : '3-min SLA'}).
+                            </>
+                          ) : isDoorbell ? (
+                            <>
+                              <strong>Visitor Arrival:</strong> Logs guest arrival in access history without false alarms.
+                            </>
+                          ) : (
+                            <>
+                              <strong>Routine Reassurance:</strong> Confirms normal activity and updates home feed.
+                            </>
+                          )}
+                        </span>
+                      </div>
+                      <span className={`badge ${targetSceneCode === 'S1_NORMAL' ? 'normal' : targetSceneCode === 'S2_WATCH' ? 'watch' : 'critical'}`} style={{ fontSize: '11px' }}>
+                        {targetSceneCode}
+                      </span>
+                    </div>
+
+                    {/* Action Execution Buttons */}
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        className="sim-button"
+                        style={{ padding: '10px 18px', fontWeight: 600 }}
+                        disabled={isPipelinePushing}
+                        onClick={() => handlePushPipelineFeed()}
+                      >
+                        <Play size={14} /> {isPipelinePushing ? 'Sending Event...' : `Send Test Event (${currentRoomObj?.name || 'Selected Room'})`}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="sim-button secondary"
+                        disabled={isPipelinePushing}
+                        onClick={() => {
+                          const bedroom = displayRooms.find((r) => r.id === 'bedroom') || displayRooms[1] || displayRooms[0]
+                          if (bedroom) setPipelineTargetRoom(bedroom.id)
+                          setPipelineScenario('distress')
+                          setPipelineFaceHint('known_target')
+                          triggerRoomSimulation(bedroom?.id || 'bedroom', 'distress')
+                        }}
+                      >
+                        <Flame size={13} style={{ color: '#ef4444' }} /> Fall Alert (Bedroom)
+                      </button>
+
+                      <button
+                        type="button"
+                        className="sim-button secondary"
+                        disabled={isPipelinePushing}
+                        onClick={() => {
+                          const living = displayRooms.find((r) => r.id === 'living_room') || displayRooms[0]
+                          if (living) setPipelineTargetRoom(living.id)
+                          setPipelineScenario('normal')
+                          setPipelineFaceHint('known_target')
+                          triggerRoomSimulation(living?.id || 'living_room', 'normal')
+                        }}
+                      >
+                        <Activity size={13} style={{ color: '#0284c7' }} /> Morning Routine (Living Room)
+                      </button>
+
+                      <button
+                        type="button"
+                        className="sim-button secondary"
+                        disabled={isPipelinePushing}
+                        onClick={() => {
+                          const door = displayRooms.find((r) => r.id === 'front_door' || r.id === 'front_porch') || displayRooms[0]
+                          if (door) setPipelineTargetRoom(door.id)
+                          setPipelineScenario('doorbell')
+                          setPipelineFaceHint('unknown')
+                          triggerRoomSimulation(door?.id || 'front_door', 'normal')
+                        }}
+                      >
+                        <Bell size={13} style={{ color: '#d97706' }} /> Doorbell (Front Door)
+                      </button>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* Flash / Ingested Result Card */}
+              {pipelineLastResult && (
+                <div className="pipeline-result-card" style={{ marginTop: '16px', padding: '14px 16px', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CheckCircle2 size={16} style={{ color: '#10b981' }} />
+                      <strong style={{ fontSize: '13px', color: '#0f172a' }}>Event Sent & Evaluated Successfully</strong>
+                    </div>
+                    <span className={`badge ${pipelineLastResult.scene === 'S1_NORMAL' ? 'normal' : pipelineLastResult.scene === 'S2_WATCH' ? 'watch' : 'critical'}`}>
+                      {pipelineLastResult.scene}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#334155', lineHeight: 1.6 }}>
+                    <div><strong>Person / Subject:</strong> {pipelineLastResult.person} ({Math.round(pipelineLastResult.confidence * 100)}% confidence)</div>
+                    <div><strong>Care Assessment:</strong> {pipelineLastResult.summary}</div>
+                    <small style={{ color: '#94a3b8', display: 'block', marginTop: '6px', fontSize: '11px' }}>
+                      Processed at {pipelineLastResult.time} via {pipelineLastResult.aiProvider}
+                    </small>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="card-box">
-              <h3>Production Ring Hardware Active</h3>
-              <p style={{ fontSize: '13px', color: '#475569', lineHeight: 1.6, marginBottom: '16px' }}>
-                Direct webhook integration with live Ring devices. Ensure Ring Appstore partner app points to the webhook URL below with HMAC signing key configured.
-              </p>
-              <table className="table-responsive">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '15px', color: '#0f172a' }}>Production Ring Hardware Ingestion</h3>
+                  <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                    Direct webhook integration with physical Ring devices via HMAC-SHA256 signature validation.
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  {handleTestWebhookConnection && (
+                    <button
+                      type="button"
+                      className="sim-button"
+                      disabled={isWebhookTesting}
+                      onClick={handleTestWebhookConnection}
+                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                    >
+                      <RefreshCw size={12} className={isWebhookTesting ? 'spin' : ''} />
+                      {isWebhookTesting ? 'Testing Webhook...' : 'Test Webhook Connection'}
+                    </button>
+                  )}
+                  <span className="badge normal" style={{ fontSize: '11px', fontWeight: 600 }}>
+                    Ring Live v1.1
+                  </span>
+                </div>
+              </div>
+
+              {/* Webhook Connection Test Diagnostic Feedback */}
+              {webhookTestResult && (
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    marginBottom: '14px',
+                    background: webhookTestResult.ok ? '#ecfdf5' : '#fef2f2',
+                    border: `1px solid ${webhookTestResult.ok ? '#a7f3d0' : '#fecaca'}`,
+                    color: webhookTestResult.ok ? '#065f46' : '#991b1b',
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {webhookTestResult.ok ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                    <div>
+                      <strong>{webhookTestResult.ok ? 'Webhook Test: VALID' : 'Webhook Test: ERROR'}</strong> — {webhookTestResult.message}
+                      {webhookTestResult.latencyMs && <span> (Latency: {webhookTestResult.latencyMs}ms)</span>}
+                    </div>
+                  </div>
+                  {webhookTestResult.timestamp && (
+                    <span style={{ fontSize: '11px', opacity: 0.8 }}>Tested at {webhookTestResult.timestamp}</span>
+                  )}
+                </div>
+              )}
+
+              <table className="table-responsive" style={{ marginTop: '12px' }}>
                 <tbody>
                   <tr>
-                    <td><strong>Live Webhook URL:</strong></td>
-                    <td><code>{typeof window !== 'undefined' ? window.location.origin : ''}/webhooks/ring</code></td>
+                    <td style={{ width: '220px' }}><strong>Live Webhook Endpoint:</strong></td>
+                    <td>
+                      <code>{typeof window !== 'undefined' && window.location.port === '5173' ? 'http://localhost:8787/webhooks/ring' : `${typeof window !== 'undefined' ? window.location.origin : ''}/webhooks/ring`}</code>
+                      <span style={{ fontSize: '12px', color: '#64748b', marginLeft: '10px' }}>(Proxied via Vite & Express Backend)</span>
+                    </td>
                   </tr>
                   <tr>
-                    <td><strong>Header Requirement:</strong></td>
-                    <td><code>X-Signature: sha256=&lt;hmac_hex&gt;</code></td>
+                    <td><strong>Signature Header:</strong></td>
+                    <td><code>X-Signature: sha256=&lt;hmac_sha256_hex&gt;</code> (Constant-time verification)</td>
                   </tr>
                   <tr>
-                    <td><strong>Payload Version:</strong></td>
-                    <td>Ring Webhook Schema v1.1 (Human Motion, Doorbell, Telemetry)</td>
+                    <td><strong>Signing Secret (HMAC):</strong></td>
+                    <td>
+                      <code>{systemSettings.ringHmacSigningKey ? '••••••••••••••••' : 'Default Dev Key (Configurable in Settings)'}</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Payload Schema:</strong></td>
+                    <td>Ring Appstore Webhook v1.1 (Human Motion, Video Doorbell, Telemetry)</td>
                   </tr>
                 </tbody>
               </table>
+
+              {/* Quick Setup Guide Checklist */}
+              <div style={{ marginTop: '16px', padding: '12px 14px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                <strong style={{ fontSize: '12px', color: '#334155', display: 'block', marginBottom: '6px' }}>
+                  📋 Ring Developer Integration Guide:
+                </strong>
+                <ol style={{ fontSize: '12px', color: '#64748b', margin: 0, paddingLeft: '18px', lineHeight: 1.6 }}>
+                  <li>Copy the <strong>Live Webhook Endpoint</strong> URL above into your <strong>Ring Developer Console → Webhooks</strong> configuration.</li>
+                  <li>Ensure your <code>.env</code> file contains matching <code>RING_HMAC_SIGNING_KEY</code> from the Ring Portal.</li>
+                  <li>Click <strong>Test Webhook Connection</strong> above or trigger an event in the Ring Console Playground to verify end-to-end receipt.</li>
+                </ol>
+              </div>
             </div>
           )}
         </>

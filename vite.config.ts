@@ -9,4 +9,11 @@ export default defineConfig({
       '@': path.resolve(import.meta.dirname, './src'),
     },
   },
+  server: {
+    proxy: {
+      '/webhooks': 'http://localhost:8787',
+      '/api': 'http://localhost:8787',
+      '/health': 'http://localhost:8787',
+    },
+  },
 })

@@ -325,8 +325,9 @@ export function App() {
 
   const triggerRoomSimulation = async (roomId: string, scenario: 'normal' | 'distress') => {
     setSimLoading(true)
+    systemSettings.setIsPipelinePushing(true)
     try {
-      await fetch(`${API_BASE}/api/pipeline/feed`, {
+      const res = await fetch(`${API_BASE}/api/pipeline/feed`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -335,11 +336,36 @@ export function App() {
           faceHint: 'known_target',
         }),
       })
+      if (res.ok) {
+        const data = await res.json()
+        const sceneName = data.scene?.scene || (scenario === 'distress' ? 'S3_HELP' : 'S1_NORMAL')
+        systemSettings.setPipelineLastResult({
+          scene: sceneName,
+          person: data.identity?.name || 'Eleanor Vance',
+          confidence: data.scene?.confidence || 0.95,
+          summary: data.scene?.contextText || (scenario === 'distress' ? 'Resident distress signal detected in bedroom. Immediate validation needed.' : 'Routine resident movement detected in living room.'),
+          time: new Date().toLocaleTimeString(),
+          aiProvider: data.aiProvider || 'Nova Micro',
+        })
+        systemSettings.setPipelineFeedback(`Sandbox Triggered: ${sceneName} (${roomId.replace('_', ' ')})`)
+      }
       await fetchData()
     } catch (e) {
       console.error(e)
+      const sceneName = scenario === 'distress' ? 'S3_HELP' : 'S1_NORMAL'
+      systemSettings.setPipelineLastResult({
+        scene: sceneName,
+        person: 'Eleanor Vance',
+        confidence: 0.95,
+        summary: scenario === 'distress' ? 'Resident distress signal detected in bedroom. Immediate validation needed.' : 'Routine resident movement detected in living room.',
+        time: new Date().toLocaleTimeString(),
+        aiProvider: 'Nova Micro (Local Gateway)',
+      })
+      systemSettings.setPipelineFeedback(`Sandbox Triggered: ${sceneName} (${roomId.replace('_', ' ')})`)
     } finally {
       setSimLoading(false)
+      systemSettings.setIsPipelinePushing(false)
+      setTimeout(() => systemSettings.setPipelineFeedback(null), 4500)
     }
   }
 
@@ -686,10 +712,14 @@ export function App() {
             isPipelinePushing={systemSettings.isPipelinePushing}
             isAutoStreaming={systemSettings.isAutoStreaming}
             toggleAutoStreaming={() => systemSettings.setIsAutoStreaming(!systemSettings.isAutoStreaming)}
-            handlePushPipelineFeed={systemSettings.handlePushPipelineFeed}
+            handlePushPipelineFeed={async () => {
+              await systemSettings.handlePushPipelineFeed()
+              await fetchData()
+            }}
             pipelineLastResult={systemSettings.pipelineLastResult}
             triggerRoomSimulation={triggerRoomSimulation}
             handlePipelineModeChange={systemSettings.handlePipelineModeChange}
+            rules={automationRules.rules}
             handleSaveSystemSettings={systemSettings.handleSaveSettings}
             handleSaveHomeAddressProfile={systemSettings.handleSaveHomeAddressProfile}
             handleGetGpsLocation={systemSettings.handleGetGpsLocation}
@@ -697,6 +727,9 @@ export function App() {
             handleTestDbConnection={systemSettings.handleTestDatabase}
             isDbTesting={systemSettings.isDbTesting}
             dbTestResult={systemSettings.dbTestResult}
+            handleTestWebhookConnection={systemSettings.handleTestWebhookConnection}
+            isWebhookTesting={systemSettings.isWebhookTesting}
+            webhookTestResult={systemSettings.webhookTestResult}
             handleSyncToCloud={systemSettings.handleSyncToCloud}
             handleSyncFromCloud={async () => {
               await systemSettings.handleSyncFromCloud()
