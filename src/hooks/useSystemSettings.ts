@@ -56,7 +56,7 @@ export const defaultSystemSettings: SystemSettings = {
 
 export interface UseSystemSettingsReturn {
   systemSettings: SystemSettings
-  settingsSubTab: 'pipeline' | 'profile_address' | 'database' | 'maintenance'
+  settingsSubTab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets'
   isDbTesting: boolean
   dbTestResult: { ok: boolean; message: string; latencyMs?: number } | null
   maintenanceFeedback: string | null
@@ -120,7 +120,7 @@ export function useSystemSettings(): UseSystemSettingsReturn {
     return defaultSystemSettings
   })
 
-  const [settingsSubTab, setSettingsSubTab] = useState<'pipeline' | 'profile_address' | 'database' | 'maintenance'>('pipeline')
+  const [settingsSubTab, setSettingsSubTab] = useState<'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets'>('pipeline')
   const [isDbTesting, setIsDbTesting] = useState(false)
   const [dbTestResult, setDbTestResult] = useState<{ ok: boolean; message: string; latencyMs?: number } | null>(null)
   const [maintenanceFeedback, setMaintenanceFeedback] = useState<string | null>(null)
