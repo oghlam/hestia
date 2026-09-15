@@ -576,7 +576,7 @@ export function App() {
              // Assets props
              assets={assetsHook.assets}
              residents={residents.residents}
-             careTeam={careTeam.careTeamMembers}
+             careTeam={careTeam.careTeam}
              onUploadAsset={assetsHook.uploadAsset}
              onDeleteAsset={assetsHook.deleteAsset}
              onSetAsAvatar={assetsHook.setResidentAvatar}

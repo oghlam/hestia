@@ -82,6 +82,14 @@ export interface SettingsViewProps {
   handleDownloadArchive?: (archive: AuditArchiveFile) => void
   handleDeleteArchive?: (id: string) => Promise<void>
   handleCheckUpdate: () => Promise<void>
+  // Assets Management
+  assets?: Asset[]
+  residents?: any[]
+  careTeam?: any[]
+  onUploadAsset?: (formData: FormData, type: string) => Promise<void>
+  onDeleteAsset?: (assetId: string) => Promise<void>
+  onSetAsAvatar?: (assetId: string, residentId?: string, memberId?: string) => Promise<void>
+  isAssetsLoading?: boolean
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -125,6 +133,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   handleDownloadArchive,
   handleDeleteArchive,
   handleCheckUpdate,
+  // Assets
+  assets = [],
+  residents = [],
+  careTeam = [],
+  onUploadAsset,
+  onDeleteAsset,
+  onSetAsAvatar,
+  isAssetsLoading = false,
 }) => {
   const activeFeedback = pipelineFeedback || maintenanceFeedback
 
@@ -1065,43 +1081,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* 5. ASSETS SUBTAB */}
       {settingsSubTab === 'assets' && (
-        <div className="card-box">
-          <h3>Assets & Media Library</h3>
-          <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '16px' }}>
-            Manage resident photos for AI training, care team avatars, floor plans, and media assets. Photos captured from the pipeline camera are automatically saved here.
-          </p>
-
-          <div style={{
-            padding: '16px',
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
-            borderRadius: '8px',
-            marginBottom: '16px',
-            fontSize: '13px',
-            color: '#475569',
-            lineHeight: 1.6,
-          }}>
-            <strong>💡 How Assets Work:</strong>
-            <ul style={{ margin: '8px 0 0 20px', paddingLeft: 0 }}>
-              <li><strong>Resident Photos:</strong> Upload or capture real photos from the pipeline camera to use as avatars and AI training data.</li>
-              <li><strong>Care Team Avatars:</strong> Real photos of caregivers replace generic avatars for easier identification.</li>
-              <li><strong>Floor Plans:</strong> Upload your home's layout map for room management and emergency responder reference.</li>
-              <li><strong>Training Data:</strong> Snapshots from the pipeline are automatically saved for continuous AI model improvement.</li>
-            </ul>
-          </div>
-
-          <div style={{
-            padding: '14px 16px',
-            background: '#f0fdf4',
-            border: '1px solid #86efac',
-            borderRadius: '8px',
-            marginBottom: '16px',
-            fontSize: '12px',
-            color: '#166534',
-          }}>
-            ✅ Asset Management UI is available. Upload photos and they'll appear in your library for easy reference and linking to profiles.
-          </div>
-        </div>
+        <AssetsView
+          assets={assets}
+          residents={residents}
+          careTeam={careTeam}
+          onUploadAsset={onUploadAsset || (async () => {})}
+          onDeleteAsset={onDeleteAsset || (async () => {})}
+          onSetAsAvatar={onSetAsAvatar || (async () => {})}
+          isLoading={isAssetsLoading}
+        />
       )}
     </div>
   )
