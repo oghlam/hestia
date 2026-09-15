@@ -54,13 +54,14 @@ import {
   useSceneEvents,
   useSystemSettings,
   useAssets,
+  useRingDevices,
 } from '@/hooks'
 
 import {
-  eleanorPortrait,
-  mariaPortrait,
-  johnPortrait,
-  sarahPortrait,
+  elderPortrait,
+  caregiverPortrait,
+  familyPortrait,
+  nursePortrait,
   type TabKey,
   type Scene,
 } from './domain/mock-data'
@@ -89,6 +90,7 @@ export function App() {
   const sceneEvents = useSceneEvents()
   const systemSettings = useSystemSettings()
   const assetsHook = useAssets()
+  const ringDevicesHook = useRingDevices()
 
   // ============================================================================
   // UI & APPLICATION STATE
@@ -266,8 +268,8 @@ export function App() {
 
   const displayRooms = rooms.rawRooms || []
   const primaryResidentObj = residents.residents?.find((r) => r.primaryTarget) || residents.residents?.[0] || null
-  const mariaMember = careTeam.careTeam?.find((m) => m.name?.includes('Maria') || m.isPrimaryValidator) || null
-  const mariaAvatarUrl = mariaMember?.avatarUrl || mariaPortrait
+  const mariaMember = careTeam.careTeam?.find((m) => m.name?.includes('Caregiver') || m.isPrimaryValidator) || null
+  const mariaAvatarUrl = mariaMember?.avatarUrl || caregiverPortrait
 
   const roomStates = rooms.roomStates || []
   const apiScenes = sceneEvents.apiScenes || []
@@ -279,13 +281,15 @@ export function App() {
   const criticalCount = apiScenes.filter((s) => s.scene === 'S4_CRITICAL').length
 
   const recentEvent = apiScenes[0] || null
+  const matchedRoom = displayRooms.find((r) => r.id === recentEvent?.roomId)
+  const roomLabel = matchedRoom ? matchedRoom.name : recentEvent?.roomId ? recentEvent.roomId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Living Room'
   const recentEventTitle = recentEvent
-    ? `${recentEvent.identity?.name || (recentEvent.identity?.identity === 'unknown' ? 'Unknown Visitor' : 'Motion')} in ${recentEvent.roomId.replace('_', ' ')}`
+    ? `${recentEvent.identity?.name || (recentEvent.identity?.identity === 'unknown' ? 'Unknown Visitor' : 'Motion')} in ${roomLabel}`
     : 'No recent events'
   const recentEventTime = recentEvent?.createdAt
     ? new Date(recentEvent.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
     : 'N/A'
-  const recentEventRoom = recentEvent?.roomId ? recentEvent.roomId.replace('_', ' ') : 'Living Room'
+  const recentEventRoom = roomLabel
   const recentEventScene = (recentEvent?.scene === 'S1_NORMAL' ? 'Normal' : recentEvent?.scene === 'S2_WATCH' ? 'Watch' : recentEvent?.scene === 'S3_HELP' ? 'Help' : 'Critical') as Scene
   const recentEventContext = recentEvent?.contextText || 'All systems nominal.'
 
@@ -341,7 +345,7 @@ export function App() {
         const sceneName = data.scene?.scene || (scenario === 'distress' ? 'S3_HELP' : 'S1_NORMAL')
         systemSettings.setPipelineLastResult({
           scene: sceneName,
-          person: data.identity?.name || 'Eleanor Vance',
+          person: data.identity?.name || 'Elder',
           confidence: data.scene?.confidence || 0.95,
           summary: data.scene?.contextText || (scenario === 'distress' ? 'Resident distress signal detected in bedroom. Immediate validation needed.' : 'Routine resident movement detected in living room.'),
           time: new Date().toLocaleTimeString(),
@@ -355,7 +359,7 @@ export function App() {
       const sceneName = scenario === 'distress' ? 'S3_HELP' : 'S1_NORMAL'
       systemSettings.setPipelineLastResult({
         scene: sceneName,
-        person: 'Eleanor Vance',
+        person: 'Elder',
         confidence: 0.95,
         summary: scenario === 'distress' ? 'Resident distress signal detected in bedroom. Immediate validation needed.' : 'Routine resident movement detected in living room.',
         time: new Date().toLocaleTimeString(),
@@ -509,15 +513,7 @@ export function App() {
             <span>Search people, rooms, events...</span>
           </div>
           <div className="top-right">
-            <a
-              href="/?view=validator"
-              target="_blank"
-              rel="noreferrer"
-              className="sim-button secondary"
-              style={{ padding: '6px 12px', textDecoration: 'none', gap: '4px' }}
-            >
-              <ExternalLink size={14} /> Validator PWA
-            </a>
+
             <span className="online">
               <i /> All Systems Online
             </span>
@@ -761,7 +757,12 @@ export function App() {
              onUploadAsset={assetsHook.uploadAsset}
              onDeleteAsset={assetsHook.deleteAsset}
              onSetAsAvatar={assetsHook.setResidentAvatar}
+             onRefreshAssets={assetsHook.refreshAssets}
              isAssetsLoading={assetsHook.isLoading}
+             // Master Ring Devices props
+             masterDevices={ringDevicesHook.devices}
+             onAddMasterDevice={ringDevicesHook.addDevice}
+             onDeleteMasterDevice={ringDevicesHook.deleteDevice}
            />
          )}
 
@@ -773,6 +774,7 @@ export function App() {
             rooms.setEditingRoom(null)
           }}
           editingRoom={rooms.editingRoom}
+          masterDevices={ringDevicesHook.devices}
           roomFormData={rooms.roomFormData}
           setRoomFormData={rooms.setRoomFormData}
           handleSaveRoomSubmit={rooms.handleSaveRoomSubmit}

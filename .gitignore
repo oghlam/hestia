@@ -20,7 +20,9 @@ aws-credentials
 credentials
 aws_credentials
 
-# Database files & local data
+# Uploaded test snapshots & temp captures
+public/uploads/
+uploads/
 *.db
 *.sqlite
 *.sqlite3

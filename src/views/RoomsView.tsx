@@ -80,19 +80,17 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
           <p>Live camera preview feed, resident presence, and Ring hardware telemetry per zone</p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="sim-button" onClick={openAddRoom}>
+            <Plus size={14} /> Pair Ring Camera / Room
+          </button>
           {roomsSubTab === 'preview' ? (
-            <>
-              <button className="sim-button" onClick={openAddRoom}>
-                <Plus size={14} /> Add New Room
-              </button>
-              <button className="sim-button secondary" onClick={fetchData}>
-                <RefreshCw size={14} /> Refresh Rooms
-              </button>
-            </>
+            <button className="sim-button secondary" onClick={fetchData}>
+              <RefreshCw size={14} /> Refresh Rooms
+            </button>
           ) : (
             <>
-              <button className="sim-button" onClick={() => setIsMapModalOpen(true)}>
-                <Upload size={14} /> Change Blueprint / Upload
+              <button className="sim-button secondary" onClick={() => setIsMapModalOpen(true)}>
+                <Upload size={14} /> Change Blueprint
               </button>
               <button className="sim-button secondary" onClick={fetchData}>
                 <RefreshCw size={14} /> Refresh Map
@@ -147,9 +145,19 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                 </h3>
                 <div
                   className={`room-image ${imgKey}`}
-                  style={{ height: '160px', borderRadius: '10px', marginBottom: '14px' }}
+                  style={{
+                    width: '100%',
+                    aspectRatio: '4 / 3',
+                    minHeight: '260px',
+                    borderRadius: '10px',
+                    marginBottom: '14px',
+                    backgroundImage: liveRoom?.snapshotUrl ? `url(${liveRoom.snapshotUrl})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    position: 'relative',
+                  }}
                 >
-                  <span>● Live Feed</span>
+                  <span style={{ position: 'absolute', top: '10px', left: '10px' }}>● Live Feed</span>
                 </div>
                 <table className="table-responsive">
                   <tbody>
@@ -447,7 +455,17 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                     <Wifi size={13} />
                     <span className="pin-label-tag">{room.name}</span>
                     {(isHovered || isPinning || isDragging) && (
-                      <div className="device-tooltip" style={{ display: 'block' }}>
+                      <div
+                        className="device-tooltip"
+                        style={{
+                          display: 'block',
+                          left: coord.x > 75 ? 'auto' : coord.x < 25 ? '0' : '50%',
+                          right: coord.x > 75 ? '0' : 'auto',
+                          bottom: coord.y < 35 ? 'auto' : 'calc(100% + 10px)',
+                          top: coord.y < 35 ? 'calc(100% + 10px)' : 'auto',
+                          transform: coord.x >= 25 && coord.x <= 75 ? 'translateX(-50%)' : 'none',
+                        }}
+                      >
                         <strong>{room.deviceName || `Ring ${room.name}`}</strong>
                         <small>
                           {room.deviceType || 'Indoor Cam'} · {room.floor || 'Floor 1'}
@@ -513,13 +531,30 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                         <span className={`badge ${status.toLowerCase()}`}>{status}</span>
                       </td>
                       <td>
-                        <button
-                          className={`btn-icon-action ${isPinning ? 'primary' : ''}`}
-                          onClick={() => setPinningRoomId(isPinning ? null : room.id)}
-                        >
-                          <Crosshair size={13} />{' '}
-                          {isPinning ? 'Click on Blueprint...' : 'Calibrate Position'}
-                        </button>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            className={`btn-icon-action ${isPinning ? 'primary' : ''}`}
+                            onClick={() => setPinningRoomId(isPinning ? null : room.id)}
+                            title="Calibrate marker position on blueprint"
+                          >
+                            <Crosshair size={13} />{' '}
+                            {isPinning ? 'Click on Blueprint...' : 'Calibrate'}
+                          </button>
+                          <button
+                            className="btn-icon-action"
+                            onClick={() => openEditRoom(room)}
+                            title="Edit Device & Signal Telemetry"
+                          >
+                            <Edit3 size={13} /> Edit
+                          </button>
+                          <button
+                            className="btn-icon-action danger"
+                            onClick={() => handleDeleteRoom(room.id, room.name)}
+                            title="Delete Room & Ring Device"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   )

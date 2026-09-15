@@ -24,6 +24,7 @@ export { useAutomationRules, type UseAutomationRulesReturn, type AutomationRuleF
 export { useSceneEvents, type UseSceneEventsReturn, type EventsFilterState } from './useSceneEvents'
 export { useSystemSettings, type UseSystemSettingsReturn } from './useSystemSettings'
 export { useAssets, type UseAssetsReturn } from "./useAssets"
+export { useRingDevices } from "./useRingDevices"
 
 // Utility hooks
 export { useLocalStorage } from './useLocalStorage'

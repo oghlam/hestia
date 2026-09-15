@@ -8,9 +8,9 @@ export interface VisionMatchOptions {
   snapshotUrl?: string
 }
 
-// Canonical registered template for resident Eleanor in Node fallback
-const REGISTERED_ELEANOR_ID = 'resident_eleanor'
-const REGISTERED_ELEANOR_NAME = 'Eleanor'
+// Canonical registered template for resident Elder in Node fallback
+const REGISTERED_ELDER_ID = 'resident_elder'
+const REGISTERED_ELDER_NAME = 'Elder'
 
 export async function processFaceRecognition(options: VisionMatchOptions = {}): Promise<IdentityResult> {
   const pythonScript = path.resolve(process.cwd(), 'vision', 'face_service.py')
@@ -59,11 +59,11 @@ export function identifyFaceFromRingEvent(event: RingEvent): Promise<IdentityRes
 
 /** Deterministic in-process fallback adhering strictly to HESTIA product rules */
 export function fallbackMatch(options: VisionMatchOptions = {}): IdentityResult {
-  if (options.hint === 'eleanor' || options.hint === 'known_target' || options.hint === 'resident_eleanor') {
+  if (options.hint === 'elder' || options.hint === 'known_target' || options.hint === 'resident_elder') {
     return {
       identity: 'known_target',
-      residentId: REGISTERED_ELEANOR_ID,
-      name: REGISTERED_ELEANOR_NAME,
+      residentId: REGISTERED_ELDER_ID,
+      name: REGISTERED_ELDER_NAME,
       confidence: 0.92,
       faceCount: 1,
       source: 'ring_snapshot',

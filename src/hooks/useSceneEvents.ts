@@ -21,7 +21,7 @@ export const defaultDemoScenes: SceneEvent[] = [
     identity: {
       identity: 'known_target',
       residentId: 'resident_eleanor',
-      name: 'Eleanor Vance',
+      name: 'Elder',
       confidence: 0.96,
       faceCount: 1,
       source: 'ring_snapshot',
@@ -55,7 +55,7 @@ export const defaultDemoScenes: SceneEvent[] = [
     identity: {
       identity: 'known_target',
       residentId: 'resident_eleanor',
-      name: 'Eleanor Vance',
+      name: 'Elder',
       confidence: 0.93,
       faceCount: 1,
       source: 'ring_snapshot',

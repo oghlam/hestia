@@ -32,7 +32,7 @@ Provide only the summary statement. Do not add conversational fluff or panic.`
  * Deterministic fallback generator for when AWS Bedrock is in standby/offline.
  */
 export function generateDeterministicSummary(req: BedrockContextRequest): string {
-  const subject = req.identity?.identity === 'known_target' ? req.identity.name ?? 'Eleanor' : 'An unknown visitor'
+  const subject = req.identity?.identity === 'known_target' ? req.identity.name ?? 'Elder' : 'An unknown visitor'
   const roomName = req.event.roomId.replaceAll('_', ' ')
 
   switch (req.scene) {

@@ -32,15 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
           <span>Search people, rooms, events...</span>
         </div>
         <div className="top-right">
-          <a
-            href="/?view=validator"
-            target="_blank"
-            rel="noreferrer"
-            className="sim-button secondary"
-            style={{ padding: '6px 12px', textDecoration: 'none', gap: '4px' }}
-          >
-            <ExternalLink size={14} /> Validator PWA
-          </a>
+
           <span className="online">
             <i /> All Systems Online
           </span>

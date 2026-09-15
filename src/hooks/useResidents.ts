@@ -35,7 +35,7 @@ function generateFacePoseThumbnail(angle: FaceAngle): string {
 export const defaultResidents: Resident[] = [
   {
     id: 'resident_eleanor',
-    name: 'Eleanor Vance',
+    name: 'Elder',
     age: 78,
     gender: 'female',
     primaryTarget: true,
@@ -145,10 +145,10 @@ const defaultResidentFormData: ResidentFormData = {
   healthConditions: 'Fall Risk, Hypertension',
   mobilityStatus: 'Independent with walking cane',
   notes: '',
-  emergencyName: 'Maria Vance',
+  emergencyName: 'Caregiver',
   emergencyRelation: 'Daughter / Primary Caregiver',
   emergencyPhone: '+1 (555) 234-5678',
-  doctorName: 'Dr. Robert Chen, MD',
+  doctorName: 'Care Doctor',
   doctorClinic: 'St. Jude Geriatric Care',
   doctorPhone: '+1 (555) 345-9012',
   doctorSpecialty: 'Geriatric Medicine',
@@ -377,7 +377,36 @@ export function useResidents(): UseResidentsReturn {
       setIsCapturingFace(true)
       setFaceCaptureNotice(`Extracting 64-dimensional feature vector for ${angle.toUpperCase()} angle...`)
 
-      const previewUrl = generateFacePoseThumbnail(angle)
+      let previewUrl = generateFacePoseThumbnail(angle)
+
+      // If active video viewfinder is running, capture actual video frame from video element
+      const videoEls = document.querySelectorAll('video')
+      let videoEl: HTMLVideoElement | null = null
+      for (let i = 0; i < videoEls.length; i++) {
+        if (videoEls[i].readyState >= 2 && videoEls[i].srcObject) {
+          videoEl = videoEls[i] as HTMLVideoElement
+          break
+        }
+      }
+      if (!videoEl) {
+        videoEl = document.querySelector('.face-studio-camera-box video') as HTMLVideoElement | null
+      }
+
+      if (videoEl && videoEl.readyState >= 2) {
+        try {
+          const canvas = document.createElement('canvas')
+          canvas.width = 320
+          canvas.height = 320
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.drawImage(videoEl, 0, 0, 320, 320)
+            previewUrl = canvas.toDataURL('image/jpeg', 0.9)
+          }
+        } catch (err) {
+          console.warn('Could not grab frame from video element, using pose thumbnail:', err)
+        }
+      }
+
       const templateId = `tmpl_${selectedResidentForFace.id}_${angle}_${Date.now().toString(36)}`
 
       const payload = {

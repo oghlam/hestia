@@ -258,6 +258,13 @@
   - [x] Self-diagnostic Webhook connection test with latency & HMAC signature verification (`POST /webhooks/ring`)
   - [x] Production Ring Hardware guide with public live webhook endpoint (`https://32-193-23-154.nip.io/webhooks/ring`)
   - [x] CI/CD automated build, test, and EC2 deployment verification (100% green passing)
+- [x] Sub-Sprint L: Master Ring Hardware Registry, Unified Device Locking & Real Camera Ingestion (Completed)
+  - [x] Master Ring Hardware Registry (`/api/ring-devices` in Settings): Vendor, series, model, MAC address identifier, and room pairing.
+  - [x] Strict hardware model and ID locking in Room Modal.
+  - [x] Real-time OBS/webcam frame capture streaming into live room background feeds, recent events, and Assets Media Library.
+  - [x] Generic neutral entity naming standard (*Elder*, *Caregiver*, *Resident Family*, *Nurse*, *Doctor*) across entire backend, database, and UI.
+  - [x] Multi-angle Face Studio real frame grab & automatic JPEG asset cataloging.
+  - [x] Adaptive device tooltip positioning and responsive Overview grid layout.
 - [x] Full Test & Build Verification:
   - [x] Automated test suite `npm test` passing 100% (10/10 test suites verified).
   - [x] Production build `npm run build` compiling cleanly with 0 TypeScript/Vite errors.

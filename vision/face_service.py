@@ -23,9 +23,9 @@ def _generate_canonical_embedding(seed: int = 42, dim: int = 64) -> np.ndarray:
     return vec / np.linalg.norm(vec)
 
 REGISTERED_RESIDENTS = {
-    "resident_eleanor": {
-        "residentId": "resident_eleanor",
-        "name": "Eleanor",
+    "resident_elder": {
+        "residentId": "resident_elder",
+        "name": "Elder",
         "embedding": _generate_canonical_embedding(42, 64).tolist(),
         "meta": {"registeredAt": "2026-09-01T00:00:00Z", "role": "primary_resident"}
     }
@@ -46,8 +46,8 @@ def extract_synthetic_features(image_bytes: Optional[bytes] = None, seed_hint: O
     Supports seed hints for deterministic testing.
     """
     if seed_hint:
-        if seed_hint == "eleanor" or seed_hint == "known_target":
-            base = np.array(REGISTERED_RESIDENTS["resident_eleanor"]["embedding"], dtype=np.float32)
+        if seed_hint == "elder" or seed_hint == "known_target" or seed_hint == "resident_elder":
+            base = np.array(REGISTERED_RESIDENTS["resident_elder"]["embedding"], dtype=np.float32)
             # Add small realistic variance (e.g., lighting/angle)
             noise = np.random.RandomState(101).randn(64).astype(np.float32) * 0.05
             emb = base + noise

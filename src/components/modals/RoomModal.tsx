@@ -1,11 +1,12 @@
 import React from 'react'
 import { X } from 'lucide-react'
-import type { RingDeviceType, Room } from '../../domain/contracts'
+import type { RingDeviceType, RingMasterDevice, Room } from '../../domain/contracts'
 
 export interface RoomModalProps {
   isOpen: boolean
   onClose: () => void
   editingRoom: Room | null
+  masterDevices?: RingMasterDevice[]
   roomFormData: {
     name: string
     floor: string
@@ -35,6 +36,7 @@ export const RoomModal: React.FC<RoomModalProps> = ({
   isOpen,
   onClose,
   editingRoom,
+  masterDevices = [],
   roomFormData,
   setRoomFormData,
   handleSaveRoomSubmit,
@@ -45,7 +47,7 @@ export const RoomModal: React.FC<RoomModalProps> = ({
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{editingRoom ? 'Edit Room & Ring Device' : 'Add New Room & Pair Ring Camera'}</h2>
+          <h2>{editingRoom ? 'Edit Room & Paired Device' : 'Add New Room & Pair Hardware'}</h2>
           <button onClick={onClose} aria-label="Close modal">
             <X size={18} />
           </button>
@@ -58,11 +60,12 @@ export const RoomModal: React.FC<RoomModalProps> = ({
                 type="text"
                 className="form-input"
                 required
-                placeholder="e.g. Patio & Backyard, Dining Room, Guest Suite"
+                placeholder="e.g. Living Room, Bedroom, Patio, Main Entrance"
                 value={roomFormData.name}
                 onChange={(e) => setRoomFormData({ ...roomFormData, name: e.target.value })}
               />
             </div>
+
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Floor / Zone</label>
@@ -77,46 +80,63 @@ export const RoomModal: React.FC<RoomModalProps> = ({
                   <option value="Basement">Basement</option>
                 </select>
               </div>
+
               <div className="form-group">
-                <label className="form-label">Ring Device Type</label>
+                <label className="form-label">Select Master Ring Device (Hardware Lock) *</label>
                 <select
                   className="form-select"
-                  value={roomFormData.deviceType}
-                  onChange={(e) =>
-                    setRoomFormData({ ...roomFormData, deviceType: e.target.value as RingDeviceType })
-                  }
+                  value={roomFormData.deviceId}
+                  onChange={(e) => {
+                    const devId = e.target.value
+                    const dev = masterDevices.find((d) => d.id === devId || d.macAddress === devId)
+                    if (dev) {
+                      setRoomFormData({
+                        ...roomFormData,
+                        deviceId: dev.id,
+                        deviceType: dev.model,
+                        deviceName: roomFormData.deviceName || `${dev.vendor} ${dev.model} (${dev.series})`,
+                        signalDbm: dev.signalDbm || roomFormData.signalDbm,
+                      })
+                    } else {
+                      setRoomFormData({ ...roomFormData, deviceId: devId })
+                    }
+                  }}
                 >
-                  <option value="Indoor Cam">Indoor Cam</option>
-                  <option value="Stick Up Cam">Stick Up Cam</option>
-                  <option value="Video Doorbell">Video Doorbell</option>
-                  <option value="Floodlight Cam">Floodlight Cam</option>
+                  <option value="">-- Choose Registered Master Device --</option>
+                  {masterDevices.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.vendor} {d.model} [{d.series}] · MAC: {d.macAddress} ({d.modelCode})
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
+
             <div className="form-row">
               <div className="form-group">
-                <label className="form-label">Ring Device Name</label>
+                <label className="form-label">Custom Room Device Label</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. Ring Backyard Stick Up"
+                  placeholder="e.g. Ring Living Room Cam"
                   value={roomFormData.deviceName}
                   onChange={(e) => setRoomFormData({ ...roomFormData, deviceName: e.target.value })}
                 />
               </div>
               <div className="form-group">
-                <label className="form-label">Ring Hardware Device ID</label>
+                <label className="form-label">Device Type</label>
                 <input
                   type="text"
                   className="form-input"
-                  placeholder="e.g. cam_patio_01"
-                  value={roomFormData.deviceId}
-                  onChange={(e) => setRoomFormData({ ...roomFormData, deviceId: e.target.value })}
+                  readOnly
+                  style={{ background: '#f8fafc', color: '#64748b' }}
+                  value={roomFormData.deviceType}
                 />
               </div>
             </div>
+
             <div className="form-group">
-              <label className="form-label">Signal Strength (dBm)</label>
+              <label className="form-label">Signal Strength Telemetry</label>
               <select
                 className="form-select"
                 value={roomFormData.signalDbm}
@@ -128,6 +148,7 @@ export const RoomModal: React.FC<RoomModalProps> = ({
                 <option value="Weak · -78 dBm">Weak · -78 dBm</option>
               </select>
             </div>
+
             <div className="form-row">
               <div className="form-group">
                 <label className="form-label">Floor Plan Position X: {roomFormData.mapX}%</label>
@@ -158,7 +179,7 @@ export const RoomModal: React.FC<RoomModalProps> = ({
               Cancel
             </button>
             <button type="submit" className="sim-button">
-              {editingRoom ? 'Update Room' : 'Create Room'}
+              {editingRoom ? 'Update Room Pairing' : 'Pair & Save Room'}
             </button>
           </div>
         </form>

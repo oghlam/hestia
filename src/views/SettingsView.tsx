@@ -9,6 +9,7 @@ import {
   Cloud,
   Database,
   Download,
+  ExternalLink,
   FileText,
   Flame,
   HardDrive,
@@ -31,6 +32,7 @@ import type {
   AutomationRule,
   DbMode,
   DevicePipelineMode,
+  RingMasterDevice,
   Room,
   SystemSettings,
 } from '../domain/contracts'
@@ -39,8 +41,8 @@ import { AssetsView } from './AssetsView'
 export interface SettingsViewProps {
   systemSettings: SystemSettings
   setSystemSettings: React.Dispatch<React.SetStateAction<SystemSettings>>
-  settingsSubTab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets'
-  setSettingsSubTab: (tab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets') => void
+  settingsSubTab: 'pipeline' | 'devices' | 'profile_address' | 'database' | 'maintenance' | 'assets'
+  setSettingsSubTab: (tab: 'pipeline' | 'devices' | 'profile_address' | 'database' | 'maintenance' | 'assets') => void
   pipelineFeedback: string | null
   maintenanceFeedback: string | null
   // Camera & Pipeline Studio
@@ -73,6 +75,10 @@ export interface SettingsViewProps {
   triggerRoomSimulation: (roomId: string, scenario: 'normal' | 'distress') => Promise<void>
   handlePipelineModeChange: (mode: DevicePipelineMode) => Promise<void>
   rules?: AutomationRule[]
+  // Master Ring Devices
+  masterDevices?: RingMasterDevice[]
+  onAddMasterDevice?: (dev: Partial<RingMasterDevice>) => Promise<void>
+  onDeleteMasterDevice?: (id: string) => Promise<void>
   // Handlers
   handleSaveSystemSettings: (e: React.FormEvent) => Promise<void>
   handleSaveHomeAddressProfile: (e: React.FormEvent) => Promise<void>
@@ -100,6 +106,7 @@ export interface SettingsViewProps {
   onUploadAsset?: any
   onDeleteAsset?: any
   onSetAsAvatar?: any
+  onRefreshAssets?: () => Promise<void>
   isAssetsLoading?: boolean
 }
 
@@ -151,6 +158,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   handleDownloadArchive,
   handleDeleteArchive,
   handleCheckUpdate,
+  // Master Devices
+  masterDevices = [],
+  onAddMasterDevice,
+  onDeleteMasterDevice,
   // Assets
   assets = [],
   residents = [],
@@ -158,6 +169,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onUploadAsset,
   onDeleteAsset,
   onSetAsAvatar,
+  onRefreshAssets,
   isAssetsLoading = false,
 }) => {
   const activeFeedback = pipelineFeedback || maintenanceFeedback
@@ -183,6 +195,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
            onClick={() => setSettingsSubTab('pipeline')}
          >
            <SlidersHorizontal size={14} /> Active Device Pipeline Studio
+         </button>
+         <button
+           className={`subtab-btn ${settingsSubTab === 'devices' ? 'active' : ''}`}
+           onClick={() => setSettingsSubTab('devices')}
+         >
+           <Radio size={14} /> Master Ring Devices
          </button>
          <button
            className={`subtab-btn ${settingsSubTab === 'database' ? 'active' : ''}`}
@@ -359,11 +377,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         value={pipelineTargetRoom}
                         onChange={(e) => setPipelineTargetRoom(e.target.value)}
                       >
-                        {displayRooms.map((r) => (
-                          <option key={r.id} value={r.id}>
-                            {r.name} ({r.deviceType || 'Ring Cam'})
-                          </option>
-                        ))}
+                        {displayRooms.map((r) => {
+                          const pairedDev = masterDevices.find((d) => d.id === r.deviceId || d.macAddress === r.deviceId)
+                          const devInfo = pairedDev ? `${pairedDev.vendor} ${pairedDev.model} (${pairedDev.series} · MAC: ${pairedDev.macAddress})` : (r.deviceName || r.deviceType || 'Ring Camera')
+                          return (
+                            <option key={r.id} value={r.id}>
+                              {r.name} ➔ [{devInfo}]
+                            </option>
+                          )
+                        })}
                       </select>
                     </div>
                     <div className="form-group">
@@ -388,7 +410,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       value={pipelineFaceHint}
                       onChange={(e) => setPipelineFaceHint(e.target.value as any)}
                     >
-                      <option value="known_target">Known Resident (Eleanor / Primary Target)</option>
+                      <option value="known_target">Known Resident (Elder / Primary Target)</option>
                       <option value="unknown">Unknown Visitor (Access Log Only, No False Siren)</option>
                       <option value="no_face">No Face Detected (Routine Room Motion)</option>
                     </select>
@@ -482,7 +504,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     value={pipelineFaceHint}
                     onChange={(e) => setPipelineFaceHint(e.target.value as any)}
                   >
-                    <option value="known_target">Eleanor Vance (Target Resident)</option>
+                    <option value="known_target">Elder (Target Resident)</option>
                     <option value="unknown">Visitor / Guest (Non-Resident)</option>
                     <option value="no_face">Motion Only (No face)</option>
                   </select>
@@ -637,23 +659,32 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     Direct webhook integration with physical Ring devices via HMAC-SHA256 signature validation.
                   </p>
                 </div>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {handleTestWebhookConnection && (
-                    <button
-                      type="button"
-                      className="sim-button"
-                      disabled={isWebhookTesting}
-                      onClick={handleTestWebhookConnection}
-                      style={{ padding: '6px 12px', fontSize: '12px' }}
-                    >
-                      <RefreshCw size={12} className={isWebhookTesting ? 'spin' : ''} />
-                      {isWebhookTesting ? 'Testing Webhook...' : 'Test Webhook Connection'}
-                    </button>
-                  )}
-                  <span className="badge normal" style={{ fontSize: '11px', fontWeight: 600 }}>
-                    Ring Live v1.1
-                  </span>
-                </div>
+                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                   <a
+                     href="/?view=validator"
+                     target="_blank"
+                     rel="noreferrer"
+                     className="sim-button secondary"
+                     style={{ padding: '5px 10px', fontSize: '12px', textDecoration: 'none', gap: '4px', display: 'inline-flex', alignItems: 'center' }}
+                   >
+                     <ExternalLink size={12} /> Validator PWA
+                   </a>
+                   {handleTestWebhookConnection && (
+                     <button
+                       type="button"
+                       className="sim-button"
+                       disabled={isWebhookTesting}
+                       onClick={handleTestWebhookConnection}
+                       style={{ padding: '6px 12px', fontSize: '12px' }}
+                     >
+                       <RefreshCw size={12} className={isWebhookTesting ? 'spin' : ''} />
+                       {isWebhookTesting ? 'Testing Webhook...' : 'Test Webhook Connection'}
+                     </button>
+                   )}
+                   <span className="badge normal" style={{ fontSize: '11px', fontWeight: 600 }}>
+                     Ring Live v1.1
+                   </span>
+                 </div>
               </div>
 
               {/* Webhook Connection Test Diagnostic Feedback */}
@@ -725,6 +756,115 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           )}
         </>
+      )}
+
+      {/* 2. MASTER RING DEVICES SUBTAB */}
+      {settingsSubTab === 'devices' && (
+        <div className="card-box">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a' }}>Master Ring Device Registry</h3>
+              <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
+                Hardware catalog of registered Ring cameras, doorbells, and perimeter sensors (Vendor, Model, MAC Address).
+              </p>
+            </div>
+            <button
+              type="button"
+              className="sim-button"
+              onClick={() => {
+                const mac = prompt('Enter Device MAC Address (e.g. 9C:76:13:A1:B2:C3):')
+                if (!mac) return
+                const model = prompt('Enter Device Model (Indoor Cam, Stick Up Cam, Video Doorbell, Floodlight Cam):', 'Indoor Cam') as any
+                if (!model) return
+                const series = prompt('Enter Series (Plus, Pro, Elite, Standard):', 'Plus') as any
+                onAddMasterDevice?.({
+                  macAddress: mac.trim(),
+                  vendor: 'Ring',
+                  model,
+                  series: series || 'Plus',
+                  modelCode: `RING-${model.toUpperCase().replace(/\s+/g, '-')}`,
+                  signalDbm: 'Good · -55 dBm',
+                  status: 'online',
+                })
+              }}
+            >
+              + Register Master Device
+            </button>
+          </div>
+
+          <table className="table-responsive">
+            <thead>
+              <tr>
+                <th>Hardware Device</th>
+                <th>Model Code & Series</th>
+                <th>MAC Address</th>
+                <th>Paired Room</th>
+                <th>Signal Telemetry</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {masterDevices.length === 0 ? (
+                <tr>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
+                    No master Ring devices registered. Click "+ Register Master Device" above to add hardware.
+                  </td>
+                </tr>
+              ) : (
+                masterDevices.map((dev) => {
+                  const pairedRoom = displayRooms.find((r) => r.deviceId === dev.id || r.id === dev.assignedRoomId)
+                  return (
+                    <tr key={dev.id}>
+                      <td>
+                        <strong style={{ color: '#0f172a' }}>{dev.vendor} {dev.model}</strong>
+                        <small style={{ display: 'block', color: '#64748b', fontSize: '11px' }}>Firmware: {dev.firmwareVersion}</small>
+                      </td>
+                      <td>
+                        <span className="badge normal" style={{ fontSize: '11px' }}>{dev.series}</span>
+                        <code style={{ marginLeft: '6px', fontSize: '11px' }}>{dev.modelCode}</code>
+                      </td>
+                      <td>
+                        <code style={{ fontWeight: 600 }}>{dev.macAddress}</code>
+                      </td>
+                      <td>
+                        {pairedRoom ? (
+                          <span style={{ fontWeight: 600, color: '#0284c7' }}>
+                            📍 {pairedRoom.name}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '12px' }}>Unassigned (Available)</span>
+                        )}
+                      </td>
+                      <td>
+                        <span className="coord-badge" style={{ fontSize: '11px' }}>{dev.signalDbm || 'Good · -55 dBm'}</span>
+                      </td>
+                      <td>
+                        <span className={`badge ${dev.status === 'paired' || dev.status === 'online' ? 'normal' : 'watch'}`}>
+                          {dev.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className="btn-icon-action danger"
+                          title="Delete Device"
+                          onClick={() => {
+                            if (confirm(`Remove device ${dev.macAddress}?`)) {
+                              onDeleteMasterDevice?.(dev.id)
+                            }
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {/* 2. DATABASE SUBTAB */}
@@ -1315,6 +1455,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           onUploadAsset={onUploadAsset || (async () => {})}
           onDeleteAsset={onDeleteAsset || (async () => {})}
           onSetAsAvatar={onSetAsAvatar || (async () => {})}
+          onRefreshAssets={onRefreshAssets}
           isLoading={isAssetsLoading}
         />
       )}

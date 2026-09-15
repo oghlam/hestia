@@ -8,7 +8,7 @@ export interface FaceStudioModalProps {
   selectedResidentForFace: Resident | null
   faceStudioVideoRef: React.RefObject<HTMLVideoElement | null>
   isLocalCameraRunning: boolean
-  startLocalCamera: () => Promise<void>
+  startLocalCamera: (videoRef?: any) => Promise<void>
   stopLocalCamera: () => void
   faceCaptureNotice: string | null
   setFaceCaptureNotice: (notice: string | null) => void
@@ -117,7 +117,7 @@ export const FaceStudioModal: React.FC<FaceStudioModalProps> = ({
               type="button"
               className="sim-button secondary"
               style={{ padding: '4px 10px', fontSize: '11px' }}
-              onClick={() => (isLocalCameraRunning ? stopLocalCamera() : startLocalCamera())}
+              onClick={() => (isLocalCameraRunning ? stopLocalCamera() : startLocalCamera(faceStudioVideoRef))}
             >
               {isLocalCameraRunning ? (
                 <>

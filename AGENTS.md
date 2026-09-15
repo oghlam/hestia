@@ -110,6 +110,14 @@ Validator demo: `http://127.0.0.1:5173/?view=validator`.
     - Bidirectional Data Sync Engine: Sync Local → Cloud & Sync Cloud → Local.
     - Automated Table Initialization script (`npm run db:init`).
 
+11. **Sub-Sprint L — Master Ring Hardware Registry, Unified Device Locking & Real Camera Ingestion** (Completed):
+    - Master Ring Device Registry (`/api/ring-devices` in Settings): Vendor, series (Plus/Pro/Elite), model, and unique MAC address identifier.
+    - Strict room hardware pairing & locking in Room Modal.
+    - Live video stream & snapshot auto-capture from webcam/OBS Cam directly populating room background feeds and Assets Media Library.
+    - Generic neutral entity naming standard (*Elder*, *Caregiver*, *Resident Family*, *Nurse*, *Doctor*) across entire backend, database, and UI.
+    - Multi-angle Face Studio real frame grab & automatic JPEG asset cataloging.
+    - Adaptive device tooltip positioning and responsive Overview grid layout.
+
 ## Next sprint priorities
 
 1. **End-to-End Verification & Final Compliance**: Live Demo Recording (< 3 menit), Devpost Submission Prep, dan AWS `kurusetra` deployment check.

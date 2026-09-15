@@ -81,6 +81,7 @@ const events = new Map<string, RingEvent>()
 const scenes = new Map<string, SceneEvent>()
 const alerts = new Map<string, Alert>()
 const rooms = new Map<string, Room>()
+const masterDevices = new Map<string, RingMasterDevice>()
 const residents = new Map<string, Resident>()
 const careTeam = new Map<string, CareTeamMember>()
 const rules = new Map<string, AutomationRule>()
@@ -119,7 +120,7 @@ let systemSettings: SystemSettings = {
     lat: 44.0462,
     lon: -123.022,
   },
-  emergencyAccessNotes: 'Side entrance lockbox code: 4821. Master physical key with Maria Vance.',
+    emergencyAccessNotes: 'Side entrance lockbox code: 4821. Master physical key with Caregiver.',
 
   // Database Profile
   dbMode: 'local_memory',
@@ -243,62 +244,62 @@ function seedDefaultCareTeam() {
   careTeam.clear()
   const defaults: CareTeamMember[] = [
     {
-      id: 'member_maria',
-      name: 'Maria Vance',
+      id: 'member_caregiver',
+      name: 'Caregiver',
       role: 'primary_caregiver',
-      relation: 'Daughter / Primary Validator',
+      relation: 'Primary Validator',
       phone: '+1 (555) 234-5678',
-      email: 'maria.vance@example.com',
+      email: 'caregiver@example.com',
       channel: 'push_sms',
       slaMinutes: 2,
       isPrimaryValidator: true,
       shiftSchedule: '24/7 Primary Response',
-      notes: 'Lives 4 minutes away. Holds spare physical key and emergency access.',
+      notes: 'Primary on-site responder.',
       createdAt: '2026-09-01T00:00:00Z',
       updatedAt: '2026-09-01T00:00:00Z',
     },
     {
-      id: 'member_sarah',
-      name: 'Nurse Sarah Jenkins, RN',
+      id: 'member_nurse',
+      name: 'Nurse',
       role: 'professional_nurse',
-      relation: 'Registered Home Nurse (St. Jude)',
+      relation: 'Home Nurse',
       phone: '+1 (555) 432-8765',
-      email: 's.jenkins@stjudehealth.org',
+      email: 'nurse@example.com',
       channel: 'phone_call',
       slaMinutes: 3,
       isPrimaryValidator: false,
       shiftSchedule: 'Weekdays 08:00 - 16:00',
-      notes: 'Administers morning vitals and medication checks.',
+      notes: 'Home nurse check.',
       createdAt: '2026-09-01T00:00:00Z',
       updatedAt: '2026-09-01T00:00:00Z',
     },
     {
-      id: 'member_john',
-      name: 'John Vance',
+      id: 'member_family',
+      name: 'Resident Family',
       role: 'family_member',
-      relation: 'Son / Secondary Contact',
+      relation: 'Secondary Contact',
       phone: '+1 (555) 876-5432',
-      email: 'john.vance@example.com',
+      email: 'family@example.com',
       channel: 'whatsapp',
       slaMinutes: 5,
       isPrimaryValidator: false,
       shiftSchedule: 'Evening Backup Response',
-      notes: 'Available for secondary escalation and weekend visits.',
+      notes: 'Family emergency contact.',
       createdAt: '2026-09-01T00:00:00Z',
       updatedAt: '2026-09-01T00:00:00Z',
     },
     {
-      id: 'member_robert',
-      name: 'Dr. Robert Chen, MD',
+      id: 'member_doctor',
+      name: 'Care Doctor',
       role: 'physician',
-      relation: 'Attending Geriatrician',
+      relation: 'Attending Physician',
       phone: '+1 (555) 345-9012',
-      email: 'dr.chen@stjudegeriatric.org',
+      email: 'doctor@example.com',
       channel: 'phone_call',
       slaMinutes: 10,
       isPrimaryValidator: false,
       shiftSchedule: 'On-Call Medical Escalation',
-      notes: 'Primary physician overseeing cardiovascular and fall-risk care plans.',
+      notes: 'Medical supervision.',
       createdAt: '2026-09-01T00:00:00Z',
       updatedAt: '2026-09-01T00:00:00Z',
     },
@@ -318,19 +319,19 @@ function seedDefaultScenes() {
       eventId: 'evt_living_001',
       scene: 'S1_NORMAL',
       confidence: 0.96,
-      residentId: 'resident_eleanor',
+      residentId: 'resident_elder',
       roomId: 'living_room',
       signals: ['Human motion vector', 'Seated relaxing posture', 'Normal ambient lighting'],
       identity: {
         identity: 'known_target',
-        residentId: 'resident_eleanor',
-        name: 'Eleanor',
+        residentId: 'resident_elder',
+        name: 'Elder',
         confidence: 0.96,
         faceCount: 1,
         source: 'ring_snapshot',
       },
       contextText:
-        'Eleanor is sitting comfortably on the sofa reading a book. Routine mobility and vitals appear calm and safe.',
+        'Elder is sitting comfortably on the sofa reading a book. Routine mobility and vitals appear calm and safe.',
       createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
     },
     {
@@ -354,19 +355,19 @@ function seedDefaultScenes() {
       eventId: 'evt_bedroom_001',
       scene: 'S3_HELP',
       confidence: 0.92,
-      residentId: 'resident_eleanor',
+      residentId: 'resident_elder',
       roomId: 'bedroom',
       signals: ['Floor-level posture', 'Sudden height transition', 'Vocal acoustic distress spike'],
       identity: {
         identity: 'known_target',
-        residentId: 'resident_eleanor',
-        name: 'Eleanor',
+        residentId: 'resident_elder',
+        name: 'Elder',
         confidence: 0.95,
         faceCount: 1,
         source: 'ring_snapshot',
       },
       contextText:
-        'Eleanor experienced an unexpected fall near the bedside. Immediate caregiver assistance recommended.',
+        'Elder experienced an unexpected fall near the bedside. Immediate caregiver assistance recommended.',
       createdAt: new Date(Date.now() - 58 * 60 * 1000).toISOString(),
     },
     {
@@ -374,18 +375,18 @@ function seedDefaultScenes() {
       eventId: 'evt_corridor_001',
       scene: 'S1_NORMAL',
       confidence: 0.91,
-      residentId: 'resident_eleanor',
+      residentId: 'resident_elder',
       roomId: 'corridor',
       signals: ['Upright cane-assisted walking', 'Hallway transit vector'],
       identity: {
         identity: 'known_target',
-        residentId: 'resident_eleanor',
-        name: 'Eleanor',
+        residentId: 'resident_elder',
+        name: 'Elder',
         confidence: 0.93,
         faceCount: 1,
         source: 'ring_snapshot',
       },
-      contextText: 'Eleanor walked through the central corridor with walking cane towards the kitchen. Normal pace.',
+      contextText: 'Elder walked through the central corridor with walking cane towards the kitchen. Normal pace.',
       createdAt: new Date(Date.now() - 95 * 60 * 1000).toISOString(),
     },
   ]
@@ -397,9 +398,9 @@ function seedDefaultScenes() {
 
 function seedDefaultResidents() {
   residents.clear()
-  const eleanor: Resident = {
-    id: 'resident_eleanor',
-    name: 'Eleanor',
+  const resident: Resident = {
+    id: 'resident_elder',
+    name: 'Elder',
     age: 78,
     gender: 'female',
     primaryTarget: true,
@@ -424,7 +425,122 @@ function seedDefaultResidents() {
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',
   }
-  residents.set(eleanor.id, eleanor)
+  residents.set(resident.id, resident)
+}
+
+function seedDefaultMasterDevices() {
+  masterDevices.clear()
+  const defaults: RingMasterDevice[] = [
+    {
+      id: 'dev_ring_living_01',
+      macAddress: '9C:76:13:B4:91:A1',
+      vendor: 'Ring',
+      series: 'Plus',
+      model: 'Indoor Cam',
+      modelCode: 'RING-INDOOR-PLUS-2K',
+      firmwareVersion: 'v2.14.8',
+      ipAddress: '192.168.1.101',
+      assignedRoomId: 'living_room',
+      signalDbm: 'Excellent · -39 dBm',
+      status: 'paired',
+      createdAt: '2026-09-01T00:00:00Z',
+      updatedAt: '2026-09-01T00:00:00Z',
+    },
+    {
+      id: 'dev_ring_bed_02',
+      macAddress: '9C:76:13:C8:22:B4',
+      vendor: 'Ring',
+      series: 'Plus',
+      model: 'Indoor Cam',
+      modelCode: 'RING-INDOOR-PLUS-2K',
+      firmwareVersion: 'v2.14.8',
+      ipAddress: '192.168.1.102',
+      assignedRoomId: 'bedroom',
+      signalDbm: 'Excellent · -42 dBm',
+      status: 'paired',
+      createdAt: '2026-09-01T00:00:00Z',
+      updatedAt: '2026-09-01T00:00:00Z',
+    },
+    {
+      id: 'dev_ring_corridor_03',
+      macAddress: '9C:76:13:D1:44:C7',
+      vendor: 'Ring',
+      series: 'Pro',
+      model: 'Stick Up Cam',
+      modelCode: 'RING-STICKUP-PRO-HD',
+      firmwareVersion: 'v3.08.1',
+      ipAddress: '192.168.1.103',
+      assignedRoomId: 'corridor',
+      signalDbm: 'Good · -58 dBm',
+      status: 'paired',
+      createdAt: '2026-09-01T00:00:00Z',
+      updatedAt: '2026-09-01T00:00:00Z',
+    },
+    {
+      id: 'dev_ring_doorbell_04',
+      macAddress: '9C:76:13:E5:99:D9',
+      vendor: 'Ring',
+      series: 'Pro',
+      model: 'Video Doorbell',
+      modelCode: 'RING-DOORBELL-PRO-2',
+      firmwareVersion: 'v4.01.2',
+      ipAddress: '192.168.1.104',
+      assignedRoomId: 'entry',
+      signalDbm: 'Good · -61 dBm',
+      status: 'paired',
+      createdAt: '2026-09-01T00:00:00Z',
+      updatedAt: '2026-09-01T00:00:00Z',
+    },
+    {
+      id: 'dev_ring_floodlight_05',
+      macAddress: '9C:76:13:FA:11:E3',
+      vendor: 'Ring',
+      series: 'Pro',
+      model: 'Floodlight Cam',
+      modelCode: 'RING-FLOODLIGHT-PRO-4K',
+      firmwareVersion: 'v3.22.0',
+      ipAddress: '192.168.1.105',
+      signalDbm: 'Good · -64 dBm',
+      status: 'online',
+      createdAt: '2026-09-01T00:00:00Z',
+      updatedAt: '2026-09-01T00:00:00Z',
+    },
+    {
+      id: 'dev_ring_spotlight_06',
+      macAddress: '9C:76:13:0F:77:F8',
+      vendor: 'Ring',
+      series: 'Plus',
+      model: 'Spotlight Cam',
+      modelCode: 'RING-SPOTLIGHT-PLUS-2K',
+      firmwareVersion: 'v2.19.4',
+      ipAddress: '192.168.1.106',
+      signalDbm: 'Fair · -70 dBm',
+      status: 'online',
+      createdAt: '2026-09-01T00:00:00Z',
+      updatedAt: '2026-09-01T00:00:00Z',
+    },
+  ]
+
+  for (const d of defaults) {
+    masterDevices.set(d.id, d)
+  }
+}
+
+// Master Devices CRUD
+export function listMasterDevices(): RingMasterDevice[] {
+  return Array.from(masterDevices.values())
+}
+
+export function getMasterDevice(id: string): RingMasterDevice | undefined {
+  return masterDevices.get(id)
+}
+
+export function saveMasterDevice(device: RingMasterDevice) {
+  masterDevices.set(device.id, device)
+}
+
+export function deleteMasterDevice(id: string): boolean {
+  return masterDevices.delete(id)
 }
 
 function seedDefaultRooms() {
@@ -485,12 +601,78 @@ function seedDefaultRooms() {
   }
 }
 
+function seedDefaultAssets() {
+  assets.clear()
+  const defaults: Asset[] = [
+    {
+      assetId: 'asset_seed_elder_front',
+      type: 'resident_photo',
+      label: 'Elder Face Angle · FRONT',
+      fileName: 'elder_front_a8f921.png',
+      fileUrl: '/logo/hestia_logo.png',
+      qualityScore: 0.98,
+      residentId: 'resident_elder',
+      createdAt: '2026-09-01T10:00:00Z',
+      updatedAt: '2026-09-01T10:00:00Z',
+    },
+    {
+      assetId: 'asset_seed_elder_left',
+      type: 'resident_photo',
+      label: 'Elder Face Angle · LEFT',
+      fileName: 'elder_left_b3c791.png',
+      fileUrl: '/logo/hestia_logo.png',
+      qualityScore: 0.94,
+      residentId: 'resident_elder',
+      createdAt: '2026-09-01T10:02:00Z',
+      updatedAt: '2026-09-01T10:02:00Z',
+    },
+    {
+      assetId: 'asset_seed_elder_right',
+      type: 'resident_photo',
+      label: 'Elder Face Angle · RIGHT',
+      fileName: 'elder_right_c4d812.png',
+      fileUrl: '/logo/hestia_logo.png',
+      qualityScore: 0.95,
+      residentId: 'resident_elder',
+      createdAt: '2026-09-01T10:04:00Z',
+      updatedAt: '2026-09-01T10:04:00Z',
+    },
+    {
+      assetId: 'asset_seed_cg_avatar',
+      type: 'care_team_photo',
+      label: 'Caregiver Avatar',
+      fileName: 'caregiver_avatar.png',
+      fileUrl: '/logo/hestia_logo.png',
+      qualityScore: 0.99,
+      careTeamMemberId: 'member_caregiver',
+      createdAt: '2026-09-01T00:00:00Z',
+      updatedAt: '2026-09-01T00:00:00Z',
+    },
+    {
+      assetId: 'asset_seed_floorplan',
+      type: 'floor_plan',
+      label: 'Greenwood Residence 2D Floor Plan',
+      fileName: 'floorplan_greenwood.png',
+      fileUrl: '/logo/hestia_logo.png',
+      qualityScore: 1.0,
+      createdAt: '2026-09-01T00:00:00Z',
+      updatedAt: '2026-09-01T00:00:00Z',
+    },
+  ]
+
+  for (const a of defaults) {
+    assets.set(a.assetId, a)
+  }
+}
+
 // Initialize seed
 seedDefaultRooms()
 seedDefaultResidents()
 seedDefaultCareTeam()
 seedDefaultRules()
 seedDefaultScenes()
+seedDefaultAssets()
+seedDefaultMasterDevices()
 
 export function isDuplicateRequest(requestId?: string): boolean {
   if (!requestId) return false
@@ -796,21 +978,21 @@ const archivedLogFiles: AuditArchiveFile[] = [
           logId: 'log_seed_2',
           timestamp: '2026-09-10T11:59:12Z',
           action: 'COMING',
-          actorId: 'Maria Vance',
+          actorId: 'Caregiver',
           targetId: 'alert_001',
           previousState: 'VALIDATION_PENDING',
-          newState: 'CARE_IN_PROGRESS',
+          newState: 'CARE_IN_RESPONSE',
           notes: 'ETA 5 mins',
         },
         {
           logId: 'log_seed_3',
           timestamp: '2026-09-10T12:04:30Z',
           action: 'I_HAVE_ARRIVED',
-          actorId: 'Maria Vance',
+          actorId: 'Caregiver',
           targetId: 'alert_001',
           previousState: 'CARE_IN_PROGRESS',
           newState: 'HANDLED',
-          notes: 'Eleanor is fine',
+          notes: 'Elder is safe',
         },
       ],
       null,
@@ -829,8 +1011,8 @@ const archivedLogFiles: AuditArchiveFile[] = [
           logId: 'log_seed_0',
           timestamp: '2026-09-01T08:29:00Z',
           action: 'OK',
-          actorId: 'Maria Vance',
-          targetId: 'resident_eleanor',
+          actorId: 'Caregiver',
+          targetId: 'resident_elder',
           newState: 'RESOLVED',
           notes: 'Morning wellness check',
         },
@@ -931,6 +1113,7 @@ export function getRoomStates(): RoomState[] {
       lastActivityTime,
       deviceStatus: status === 'S4_CRITICAL' ? 'warning' : status === 'S3_HELP' ? 'active' : 'normal',
       roomData: room,
+      snapshotUrl: latestForRoom?.snapshotUrl,
     }
   })
 }
@@ -1114,6 +1297,7 @@ export function resetStore() {
   seedDefaultCareTeam()
   seedDefaultRules()
   seedDefaultScenes()
+  seedDefaultAssets()
   homeMapConfig = {
     mapUrl: '',
     updatedAt: new Date().toISOString(),

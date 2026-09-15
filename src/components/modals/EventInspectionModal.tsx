@@ -40,29 +40,43 @@ export const EventInspectionModal: React.FC<EventInspectionModalProps> = ({
                   </span>
                 </div>
 
-                {/* Room Snapshot SVG Illustration */}
-                <svg className="snapshot-frame-bg" viewBox="0 0 640 400" preserveAspectRatio="xMidYMid slice">
-                  <defs>
-                    <linearGradient id="cam-bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#1e293b" />
-                      <stop offset="100%" stopColor="#0f172a" />
-                    </linearGradient>
-                  </defs>
-                  <rect width="100%" height="100%" fill="url(#cam-bg-grad)" />
+                {/* Room Snapshot Live Image or SVG Silhouette */}
+                {selectedEventForInspection.snapshotUrl ? (
+                  <img
+                    src={selectedEventForInspection.snapshotUrl}
+                    alt="Recorded Event Snapshot"
+                    style={{
+                      width: '100%',
+                      height: '240px',
+                      objectFit: 'cover',
+                      borderRadius: '8px',
+                      display: 'block',
+                    }}
+                  />
+                ) : (
+                  <svg className="snapshot-frame-bg" viewBox="0 0 640 400" preserveAspectRatio="xMidYMid slice">
+                    <defs>
+                      <linearGradient id="cam-bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#1e293b" />
+                        <stop offset="100%" stopColor="#0f172a" />
+                      </linearGradient>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#cam-bg-grad)" />
 
-                  {/* Floor Perspective Lines */}
-                  <line x1="0" y1="280" x2="640" y2="280" stroke="#334155" strokeWidth="2" />
-                  <line x1="120" y1="280" x2="0" y2="400" stroke="#1e293b" strokeWidth="2" />
-                  <line x1="520" y1="280" x2="640" y2="400" stroke="#1e293b" strokeWidth="2" />
+                    {/* Floor Perspective Lines */}
+                    <line x1="0" y1="280" x2="640" y2="280" stroke="#334155" strokeWidth="2" />
+                    <line x1="120" y1="280" x2="0" y2="400" stroke="#1e293b" strokeWidth="2" />
+                    <line x1="520" y1="280" x2="640" y2="400" stroke="#1e293b" strokeWidth="2" />
 
-                  {/* Furniture Silhouette */}
-                  <rect x="60" y="220" width="160" height="70" rx="8" fill="#334155" opacity="0.6" />
-                  <rect x="420" y="210" width="160" height="80" rx="8" fill="#334155" opacity="0.6" />
+                    {/* Furniture Silhouette */}
+                    <rect x="60" y="220" width="160" height="70" rx="8" fill="#334155" opacity="0.6" />
+                    <rect x="420" y="210" width="160" height="80" rx="8" fill="#334155" opacity="0.6" />
 
-                  {/* Person Silhouette */}
-                  <circle cx="320" cy="180" r="28" fill="#64748b" opacity="0.8" />
-                  <path d="M 280 280 C 280 220, 360 220, 360 280 Z" fill="#64748b" opacity="0.8" />
-                </svg>
+                    {/* Person Silhouette */}
+                    <circle cx="320" cy="180" r="28" fill="#64748b" opacity="0.8" />
+                    <path d="M 280 280 C 280 220, 360 220, 360 280 Z" fill="#64748b" opacity="0.8" />
+                  </svg>
+                )}
 
                 {/* Biometric Face / Person Bounding Box Reticle */}
                 {selectedEventForInspection.identity?.identity === 'known_target' ? (

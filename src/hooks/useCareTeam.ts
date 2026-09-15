@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import type { CareTeamMember, CareTeamMemberRole, NotificationChannel } from '../domain/contracts'
-import { mariaPortrait, johnPortrait, sarahPortrait, robertPortrait } from '../domain/mock-data'
+import { caregiverPortrait, familyPortrait, nursePortrait, doctorPortrait } from '../domain/mock-data'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (
   typeof window !== 'undefined' &&
@@ -12,66 +12,66 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (
 
 export const defaultCareTeam: CareTeamMember[] = [
   {
-    id: 'member_maria',
-    name: 'Maria Vance',
+    id: 'member_caregiver',
+    name: 'Caregiver',
     role: 'primary_caregiver',
-    relation: 'Daughter / Primary Validator',
+    relation: 'Primary Validator',
     phone: '+1 (555) 234-5678',
-    email: 'maria.vance@example.com',
+    email: 'caregiver@example.com',
     channel: 'push_sms',
     slaMinutes: 2,
     isPrimaryValidator: true,
-    avatarUrl: mariaPortrait,
+    avatarUrl: caregiverPortrait,
     shiftSchedule: '24/7 Primary Response',
-    notes: 'Holds spare house key. First recipient of S3/S4 validation requests.',
+    notes: 'Primary on-site responder.',
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',
   },
   {
-    id: 'member_john',
-    name: 'John Vance',
+    id: 'member_family',
+    name: 'Resident Family',
     role: 'family_member',
-    relation: 'Son / Secondary Family Contact',
+    relation: 'Secondary Family Contact',
     phone: '+1 (555) 345-6789',
-    email: 'john.vance@example.com',
+    email: 'family@example.com',
     channel: 'whatsapp',
     slaMinutes: 5,
     isPrimaryValidator: false,
-    avatarUrl: johnPortrait,
+    avatarUrl: familyPortrait,
     shiftSchedule: 'Evening & Weekend On-Call',
-    notes: 'Lives 10 mins away. Backup driver for emergency visits.',
+    notes: 'Family backup contact.',
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',
   },
   {
-    id: 'member_sarah',
-    name: 'Sarah Jenkins, RN',
+    id: 'member_nurse',
+    name: 'Nurse',
     role: 'professional_nurse',
     relation: 'Visiting Geriatric Nurse',
-    phone: '+1 (555) 456-7890',
-    email: 'sarah.rn@stjudecare.org',
-    channel: 'push_sms',
+    phone: '+1 (555) 432-8765',
+    email: 'nurse@example.com',
+    channel: 'phone_call',
     slaMinutes: 3,
     isPrimaryValidator: false,
-    avatarUrl: sarahPortrait,
-    shiftSchedule: 'Tue & Thu 09:00 - 14:00',
-    notes: 'Conducts weekly wellness checkups and vitals monitoring.',
+    avatarUrl: nursePortrait,
+    shiftSchedule: 'Weekdays 08:00 - 16:00',
+    notes: 'Home nurse check.',
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',
   },
   {
-    id: 'member_robert',
-    name: 'Dr. Robert Chen, MD',
+    id: 'member_doctor',
+    name: 'Care Doctor',
     role: 'physician',
-    relation: 'Attending Geriatric Physician',
-    phone: '+1 (555) 345-9012',
-    email: 'dr.chen@stjudecare.org',
+    relation: 'Attending Geriatrician',
+    phone: '+1 (555) 567-8901',
+    email: 'doctor@example.com',
     channel: 'phone_call',
     slaMinutes: 10,
     isPrimaryValidator: false,
-    avatarUrl: robertPortrait,
-    shiftSchedule: 'Clinic Hours 08:00 - 17:00',
-    notes: 'Emergency medical consultation and medication adjustments.',
+    avatarUrl: doctorPortrait,
+    shiftSchedule: 'On-Call Medical Escalation',
+    notes: 'Attending physician.',
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',
   },
@@ -321,14 +321,33 @@ export function useCareTeam(): UseCareTeamReturn {
   }, [])
 
   const handleCareMemberPhotoCapture = useCallback(async () => {
-    // Generate SVG placeholder portrait if no camera
-    const initial = memberFormData.name ? memberFormData.name.charAt(0).toUpperCase() : 'C'
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-      <rect width="100" height="100" rx="50" fill="#0284c7"/>
-      <text x="50" y="62" fill="#ffffff" font-size="36" font-weight="bold" text-anchor="middle" font-family="sans-serif">${initial}</text>
-    </svg>`
-    const dataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-    setMemberFormData((prev) => ({ ...prev, avatarUrl: dataUrl }))
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 320 } })
+      const video = document.createElement('video')
+      video.srcObject = stream
+      await video.play()
+
+      const canvas = document.createElement('canvas')
+      canvas.width = 160
+      canvas.height = 160
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, 160, 160)
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.9)
+        setMemberFormData((prev) => ({ ...prev, avatarUrl: dataUrl }))
+      }
+
+      stream.getTracks().forEach((track) => track.stop())
+    } catch {
+      // Fallback to high-quality generated avatar if camera is unavailable or permission denied
+      const initial = memberFormData.name ? memberFormData.name.charAt(0).toUpperCase() : 'C'
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+        <rect width="100" height="100" rx="50" fill="#0284c7"/>
+        <text x="50" y="62" fill="#ffffff" font-size="36" font-weight="bold" text-anchor="middle" font-family="sans-serif">${initial}</text>
+      </svg>`
+      const dataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+      setMemberFormData((prev) => ({ ...prev, avatarUrl: dataUrl }))
+    }
   }, [memberFormData.name])
 
   return {

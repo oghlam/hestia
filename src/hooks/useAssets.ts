@@ -46,6 +46,11 @@ export function useAssets(): UseAssetsReturn {
 
   useEffect(() => {
     fetchAssets()
+    // Auto-poll assets every 3 seconds to keep table up to date without manual page refresh
+    const interval = setInterval(() => {
+      fetchAssets()
+    }, 3000)
+    return () => clearInterval(interval)
   }, [fetchAssets])
 
   const uploadAsset = useCallback(
@@ -60,12 +65,44 @@ export function useAssets(): UseAssetsReturn {
 
         if (!file) throw new Error('No file selected')
 
-        // Read file as base64
+        // Read file as base64 with auto-compression for high-res images
         const reader = new FileReader()
         return new Promise((resolve, reject) => {
           reader.onload = async () => {
             try {
-              const base64 = reader.result as string
+              let base64 = reader.result as string
+
+              // Compress large images in browser before upload
+              if (file.size > 1024 * 1024) {
+                try {
+                  const img = new Image()
+                  img.src = base64
+                  await new Promise((r) => (img.onload = r))
+                  const canvas = document.createElement('canvas')
+                  const maxDim = 1280
+                  let width = img.width
+                  let height = img.height
+                  if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                      height = Math.round((height * maxDim) / width)
+                      width = maxDim
+                    } else {
+                      width = Math.round((width * maxDim) / height)
+                      height = maxDim
+                    }
+                  }
+                  canvas.width = width
+                  canvas.height = height
+                  const ctx = canvas.getContext('2d')
+                  if (ctx) {
+                    ctx.drawImage(img, 0, 0, width, height)
+                    base64 = canvas.toDataURL('image/jpeg', 0.85)
+                  }
+                } catch (cErr) {
+                  console.warn('Image auto-compression skipped:', cErr)
+                }
+              }
+
               const response = await fetch(`${API_BASE}/api/assets`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -78,9 +115,12 @@ export function useAssets(): UseAssetsReturn {
                 }),
               })
 
-              if (!response.ok) throw new Error(`Upload failed: ${response.statusText}`)
+              if (!response.ok) {
+                const errJson = await response.json().catch(() => null)
+                throw new Error(errJson?.error || `Upload failed (${response.status}: ${response.statusText})`)
+              }
               const asset = await response.json()
-              setAssets(prev => [asset, ...prev])
+              setAssets((prev) => [asset, ...prev])
               resolve(asset)
             } catch (err) {
               reject(err)

@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict'
+import type { Server } from 'node:http'
+import type { AddressInfo } from 'node:net'
+import { app } from '../server/index'
 import { classifyScene, createAlert, applyValidatorAction, isAlertScene } from '../src/domain/scene-engine'
 import { generateRingSignature, normalizeRingWebhook, verifyRingSignature } from '../server/ring-adapter'
 import { isDuplicateRequest, memoryStore, resetStore, clearAuditLogs, saveArchivedLog, listArchivedLogs, deleteArchivedLog, syncLocalToDynamoDB, syncDynamoDBToLocal } from '../server/store'
@@ -16,7 +19,7 @@ function testSceneClassification() {
   }
   const knownResident: IdentityResult = {
     identity: 'known_target',
-    residentId: 'resident_eleanor',
+    residentId: 'resident_elder',
     name: 'Eleanor',
     confidence: 0.95,
     faceCount: 1,
@@ -26,7 +29,7 @@ function testSceneClassification() {
   // 1. Normal motion
   const scene1 = classifyScene(normalEvent, knownResident, {})
   assert.equal(scene1.scene, 'S1_NORMAL')
-  assert.equal(scene1.residentId, 'resident_eleanor')
+  assert.equal(scene1.residentId, 'resident_elder')
   assert.equal(isAlertScene(scene1), false)
   assert.equal(createAlert(scene1), null)
 
@@ -74,7 +77,7 @@ function testValidatorStateMachine() {
     scene: 'S3_HELP' as const,
     confidence: 0.88,
     roomId: 'living_room',
-    residentId: 'resident_eleanor',
+    residentId: 'resident_elder',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
@@ -234,7 +237,7 @@ function testStoreRepository() {
   // Sub-Sprint B: Resident Profile & Multi-Angle Face Registration
   const initialResidents = memoryStore.listResidents()
   assert.equal(initialResidents.length, 1)
-  assert.equal(initialResidents[0].name, 'Eleanor')
+  assert.equal(initialResidents[0].name, 'Elder')
   assert.equal(initialResidents[0].primaryTarget, true)
   assert.equal(initialResidents[0].faceTemplates.length, 3)
 
@@ -276,7 +279,7 @@ function testStoreRepository() {
   // Switch primary target resident
   memoryStore.setPrimaryResident('resident_arthur')
   assert.equal(memoryStore.getResident('resident_arthur')?.primaryTarget, true)
-  assert.equal(memoryStore.getResident('resident_eleanor')?.primaryTarget, false)
+  assert.equal(memoryStore.getResident('resident_elder')?.primaryTarget, false)
 
   // Delete face template
   memoryStore.deleteFaceTemplate('resident_arthur', 'tmpl_art_left')
@@ -290,7 +293,7 @@ function testStoreRepository() {
   const team = memoryStore.listCareTeam()
   assert.equal(team.length, 4)
   const primaryValidator = team.find((m) => m.isPrimaryValidator)
-  assert.equal(primaryValidator?.name, 'Maria Vance')
+  assert.equal(primaryValidator?.name, 'Caregiver')
   assert.equal(primaryValidator?.role, 'primary_caregiver')
 
   // Add new nurse
@@ -308,10 +311,10 @@ function testStoreRepository() {
   })
   assert.equal(memoryStore.listCareTeam().length, 5)
 
-  // Switch primary validator
-  memoryStore.setPrimaryValidator('member_david')
-  assert.equal(memoryStore.getCareTeamMember('member_david')?.isPrimaryValidator, true)
-  assert.equal(memoryStore.getCareTeamMember('member_maria')?.isPrimaryValidator, false)
+   // Switch primary validator
+   memoryStore.setPrimaryValidator('member_david')
+   assert.equal(memoryStore.getCareTeamMember('member_david')?.isPrimaryValidator, true)
+   assert.equal(memoryStore.getCareTeamMember('member_caregiver')?.isPrimaryValidator, false)
 
   // Delete member
   memoryStore.deleteCareTeamMember('member_david')
@@ -382,7 +385,7 @@ async function testBedrockService() {
     },
     identity: {
       identity: 'known_target' as const,
-      residentId: 'resident_eleanor',
+      residentId: 'resident_elder',
       name: 'Eleanor',
       confidence: 0.94,
       faceCount: 1,
@@ -411,11 +414,11 @@ async function testBedrockService() {
 }
 
 async function testVisionService() {
-  // 1. Target resident Eleanor recognition
-  const targetRes = await processFaceRecognition({ hint: 'eleanor' })
+  // 1. Target resident Elder recognition
+  const targetRes = await processFaceRecognition({ hint: 'elder' })
   assert.equal(targetRes.identity, 'known_target')
-  assert.equal(targetRes.residentId, 'resident_eleanor')
-  assert.equal(targetRes.name, 'Eleanor')
+  assert.equal(targetRes.residentId, 'resident_elder')
+  assert.equal(targetRes.name, 'Elder')
   assert.ok((targetRes.confidence ?? 0) >= 0.75)
   assert.equal(targetRes.faceCount, 1)
 
@@ -442,7 +445,7 @@ async function testVisionService() {
   }
   const extractedIdentity = await identifyFaceFromRingEvent(ringEventKnown)
   assert.equal(extractedIdentity.identity, 'known_target')
-  assert.equal(extractedIdentity.residentId, 'resident_eleanor')
+  assert.equal(extractedIdentity.residentId, 'resident_elder')
 
   // 5. Fallback pure matcher unit checks
   const fallbackTarget = fallbackMatch({ hint: 'known_target' })
@@ -487,8 +490,8 @@ async function testCompleteVerticalSlice() {
   // 3. Biometric face & identity matching
   const identity = await identifyFaceFromRingEvent(normalized)
   assert.equal(identity.identity, 'known_target')
-  assert.equal(identity.residentId, 'resident_eleanor')
-  assert.equal(identity.name, 'Eleanor')
+  assert.equal(identity.residentId, 'resident_elder')
+  assert.equal(identity.name, 'Elder')
 
   // 4. Scene Engine Classification
   const scene = classifyScene(normalized, identity, {
@@ -502,7 +505,7 @@ async function testCompleteVerticalSlice() {
   const aiContext = await generateSceneContext({ scene: scene.scene, event: normalized, identity, signals: scene.signals })
   scene.contextText = aiContext.summary
   assert.ok(scene.contextText.length > 0)
-  assert.ok(scene.contextText.toLowerCase().includes('eleanor'))
+  assert.ok(scene.contextText.toLowerCase().includes('elder'))
 
   // 6. Persistence to Store Repository
   memoryStore.saveEvent(normalized)
@@ -517,7 +520,7 @@ async function testCompleteVerticalSlice() {
     id: `notif_cg_${Date.now()}`,
     recipient: 'caregiver',
     type: 'alert',
-    title: `CARE ACTION REQUIRED: Eleanor`,
+    title: `CARE ACTION REQUIRED: Elder`,
     body: `Distress detected in LIVING ROOM. 3m SLA active.`,
     sentAt: alert.createdAt,
   })
@@ -525,21 +528,21 @@ async function testCompleteVerticalSlice() {
     id: `notif_fam_${Date.now()}`,
     recipient: 'family',
     type: 'alert',
-    title: `🚨 Emergency Auto-Alert: Eleanor (LIVING ROOM)`,
-    body: `Auto-push to Maria & John Vance: Eleanor experienced an unexpected fall near bedside.`,
+    title: `🚨 Emergency Auto-Alert: Elder (LIVING ROOM)`,
+    body: `Auto-push to Resident Family: Elder experienced an unexpected fall near bedside.`,
     sentAt: alert.createdAt,
   })
   const notifs = memoryStore.listNotifications() as any[]
   assert.ok(notifs.length >= 2)
 
   // 8. Caregiver acknowledges & dispatches (VALIDATION_PENDING -> CARE_IN_PROGRESS)
-  const inProgress = applyValidatorAction(alert, 'COMING', 'Maria Vance', 5)
+  const inProgress = applyValidatorAction(alert, 'COMING', 'Caregiver', 5)
   assert.equal(inProgress.state, 'CARE_IN_PROGRESS')
   assert.equal(inProgress.etaMinutes, 5)
   memoryStore.saveAlert(inProgress)
 
   // 9. Caregiver arrives & handles incident (CARE_IN_PROGRESS -> HANDLED)
-  const handled = applyValidatorAction(inProgress, 'I_HAVE_ARRIVED', 'Maria Vance')
+  const handled = applyValidatorAction(inProgress, 'I_HAVE_ARRIVED', 'Caregiver')
   assert.equal(handled.state, 'HANDLED')
   memoryStore.saveAlert(handled)
 
@@ -549,18 +552,18 @@ async function testCompleteVerticalSlice() {
     recipient: 'family',
     type: 'reassurance',
     title: 'Resident Checked & Safe',
-    body: `Maria Vance checked Eleanor in LIVING ROOM. All clear.`,
+    body: `Caregiver checked Elder in LIVING ROOM. All clear.`,
     sentAt: new Date().toISOString(),
   })
   memoryStore.saveAuditLog({
     logId: `log_e2e_${Date.now()}`,
     timestamp: new Date().toISOString(),
     action: 'I_HAVE_ARRIVED',
-    actorId: 'Maria Vance',
+    actorId: 'Caregiver',
     targetId: alert.alertId,
     previousState: 'CARE_IN_PROGRESS',
     newState: 'HANDLED',
-    notes: 'Handled by Maria Vance. Eleanor is safe.',
+    notes: 'Handled by Caregiver. Elder is safe.',
   })
 
   const auditLogs = memoryStore.listAuditLogs() as any[]
@@ -670,34 +673,34 @@ function testModularViewsAndMenus() {
 
   // 2. People & Residents Menu CRUD + Face Templates
   const resident1 = {
-    id: 'resident_eleanor',
-    name: 'Eleanor Vance',
+    id: 'resident_elder',
+    name: 'Elder',
     age: 78,
     gender: 'female' as const,
     primaryTarget: true,
     healthConditions: ['Fall Risk', 'Hypertension'],
     mobilityStatus: 'Independent with cane',
-    emergencyContacts: [{ id: 'c1', name: 'Maria Vance', relation: 'Daughter', phone: '+1-555-0100', isPrimary: true }],
-    doctorContact: { name: 'Dr. Chen', clinic: 'St. Jude', phone: '+1-555-0200' },
+    emergencyContacts: [{ id: 'c1', name: 'Resident Family', relation: 'Relative', phone: '+1-555-0100', isPrimary: true }],
+    doctorContact: { name: 'Care Doctor', clinic: 'St. Jude', phone: '+1-555-0200' },
     faceTemplates: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }
   memoryStore.saveResident(resident1)
-  assert.equal(memoryStore.getResident('resident_eleanor')?.name, 'Eleanor Vance')
-  assert.equal(memoryStore.getResident('resident_eleanor')?.primaryTarget, true)
+  assert.equal(memoryStore.getResident('resident_elder')?.name, 'Elder')
+  assert.equal(memoryStore.getResident('resident_elder')?.primaryTarget, true)
 
   // Add 3 Face Angle Templates
-  memoryStore.addFaceTemplate('resident_eleanor', { templateId: 'ft_front', angle: 'front', registeredAt: new Date().toISOString(), qualityScore: 0.98 })
-  memoryStore.addFaceTemplate('resident_eleanor', { templateId: 'ft_left', angle: 'left', registeredAt: new Date().toISOString(), qualityScore: 0.94 })
-  memoryStore.addFaceTemplate('resident_eleanor', { templateId: 'ft_right', angle: 'right', registeredAt: new Date().toISOString(), qualityScore: 0.95 })
-  const updatedResident = memoryStore.getResident('resident_eleanor')
+  memoryStore.addFaceTemplate('resident_elder', { templateId: 'ft_front', angle: 'front', registeredAt: new Date().toISOString(), qualityScore: 0.98 })
+  memoryStore.addFaceTemplate('resident_elder', { templateId: 'ft_left', angle: 'left', registeredAt: new Date().toISOString(), qualityScore: 0.94 })
+  memoryStore.addFaceTemplate('resident_elder', { templateId: 'ft_right', angle: 'right', registeredAt: new Date().toISOString(), qualityScore: 0.95 })
+  const updatedResident = memoryStore.getResident('resident_elder')
   assert.equal(updatedResident?.faceTemplates.length, 3)
 
   // 3. Care Team Menu CRUD & Validator Priority
   const member1 = {
-    id: 'member_maria',
-    name: 'Maria Vance',
+    id: 'member_caregiver',
+    name: 'Caregiver',
     role: 'primary_caregiver' as const,
     relation: 'Daughter / Primary Validator',
     phone: '+1 (555) 234-5678',
@@ -708,8 +711,8 @@ function testModularViewsAndMenus() {
     updatedAt: new Date().toISOString(),
   }
   const member2 = {
-    id: 'member_john',
-    name: 'John Vance',
+    id: 'member_family',
+    name: 'Resident Family',
     role: 'family_member' as const,
     relation: 'Son',
     phone: '+1 (555) 345-6789',
@@ -722,9 +725,9 @@ function testModularViewsAndMenus() {
   memoryStore.saveCareTeamMember(member1)
   memoryStore.saveCareTeamMember(member2)
   assert.ok(memoryStore.listCareTeam().length >= 2)
-  memoryStore.setPrimaryValidator('member_john')
-  assert.equal(memoryStore.getCareTeamMember('member_john')?.isPrimaryValidator, true)
-  assert.equal(memoryStore.getCareTeamMember('member_maria')?.isPrimaryValidator, false)
+  memoryStore.setPrimaryValidator('member_family')
+  assert.equal(memoryStore.getCareTeamMember('member_family')?.isPrimaryValidator, true)
+  assert.equal(memoryStore.getCareTeamMember('member_caregiver')?.isPrimaryValidator, false)
 
   // 4. Automation Rules Menu CRUD & Toggles
   const rule1 = {
@@ -759,7 +762,7 @@ function testModularViewsAndMenus() {
   }
   const testIdentity: IdentityResult = {
     identity: 'known_target',
-    residentId: 'resident_eleanor',
+    residentId: 'resident_elder',
     name: 'Eleanor Vance',
     confidence: 0.96,
     faceCount: 1,
@@ -802,6 +805,67 @@ async function testHybridDatabaseSync() {
   console.log('✔ Hybrid DynamoDB Cloud & Local Sync tests passed')
 }
 
+async function testPipelineFeedFlow() {
+  resetStore()
+
+  const server: Server = app.listen(0)
+  await new Promise((resolve) => server.once('listening', resolve))
+  const port = (server.address() as AddressInfo).port
+  const baseUrl = `http://127.0.0.1:${port}`
+
+  try {
+    const base64Pixel =
+      'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA='
+
+    // 1. Post image payload to /api/pipeline/feed
+    const feedRes = await fetch(`${baseUrl}/api/pipeline/feed`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        roomId: 'living_room',
+        simulatedSignal: 'normal',
+        snapshotBase64: base64Pixel,
+        faceHint: 'known_target',
+      }),
+    })
+    assert.equal(feedRes.status, 200)
+    const feedJson = await feedRes.json()
+    assert.ok(feedJson.ok)
+    assert.ok(feedJson.event?.snapshotUrl)
+
+    // 2. Fetch GET /api/rooms & verify snapshotUrl and activePerson
+    const roomsRes = await fetch(`${baseUrl}/api/rooms`)
+    assert.equal(roomsRes.status, 200)
+    const roomsJson = await roomsRes.json()
+    const livingRoom = roomsJson.rooms?.find((r: any) => r.roomId === 'living_room')
+    assert.ok(livingRoom)
+    assert.ok(livingRoom.snapshotUrl)
+    assert.ok(livingRoom.activePerson)
+
+    // 3. Verify snapshot image is served properly
+    const imageRes = await fetch(`${baseUrl}${livingRoom.snapshotUrl}`)
+    assert.equal(imageRes.status, 200)
+    const imageBuffer = await imageRes.arrayBuffer()
+    assert.ok(imageBuffer.byteLength > 0)
+
+    // 4. Verify GET /api/assets has type 'training_data' and matching roomId
+    const assetsRes = await fetch(`${baseUrl}/api/assets`)
+    assert.equal(assetsRes.status, 200)
+    const assetsJson = await assetsRes.json()
+    const asset = assetsJson.assets?.find(
+      (a: any) => a.type === 'training_data' && a.roomId === 'living_room'
+    )
+    assert.ok(asset)
+    assert.equal(asset.type, 'training_data')
+    assert.equal(asset.roomId, 'living_room')
+    assert.equal(asset.fileUrl, livingRoom.snapshotUrl)
+
+    console.log('✔ Pipeline feed ingestion, Room snapshot update & Asset sync tests passed')
+  } finally {
+    server.close()
+  }
+}
+
 async function runAll() {
   console.log('Running HESTIA test suite...')
   testSceneClassification()
@@ -813,6 +877,7 @@ async function runAll() {
   await testHybridDatabaseSync()
   await testBedrockService()
   await testVisionService()
+  await testPipelineFeedFlow()
   await testCompleteVerticalSlice()
   console.log('\nAll tests completed successfully!')
 }

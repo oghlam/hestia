@@ -75,6 +75,10 @@ import {
   listAssetsByResident,
   listAssetsByTeamMember,
   deleteAsset,
+  listMasterDevices,
+  getMasterDevice,
+  saveMasterDevice,
+  deleteMasterDevice,
   syncLocalToDynamoDB,
   syncDynamoDBToLocal,
 } from './store'
@@ -118,11 +122,12 @@ function persistBase64Image(dataUrl?: string, prefix = 'img'): string | undefine
 
 // Use raw body capture for webhook signature verification while parsing JSON for other routes
 app.use(express.json({
-  limit: '512kb',
+  limit: '50mb',
   verify: (req, _res, buf) => {
     ;(req as express.Request & { rawBody?: Buffer }).rawBody = buf
   },
 }))
+app.use(express.urlencoded({ limit: '50mb', extended: true }))
 
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'hestia-api' }))
 app.get('/api/scenes', (_req, res) => res.json({ scenes: listScenes() }))
@@ -318,6 +323,24 @@ app.post('/api/residents/:id/faces', (req, res) => {
     qualityScore,
   }
 
+  // Also save to Assets media library
+  try {
+    const assetId = `asset_face_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`
+    saveAsset({
+      assetId,
+      type: 'resident_photo',
+      label: `${resident.name} Face Angle · ${angle.toUpperCase()}`,
+      fileName: `face_${req.params.id}_${angle}_${Date.now()}.jpg`,
+      fileUrl: previewUrl,
+      qualityScore,
+      residentId: req.params.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    })
+  } catch (err) {
+    console.warn('Could not save face template to assets library:', err)
+  }
+
   addFaceTemplate(req.params.id, template)
   const updated = getResident(req.params.id)
   return res.status(201).json({ template, resident: updated, residents: listResidents() })
@@ -370,6 +393,26 @@ app.post('/api/care-team', (req, res) => {
   }
 
   saveCareTeamMember(newMember)
+
+  // Also save care member avatar to Assets media library if an image was provided
+  if (savedAvatarUrl) {
+    try {
+      const assetId = `asset_team_${id}`
+      saveAsset({
+        assetId,
+        type: 'care_team_photo',
+        label: `${newMember.name} Avatar (${newMember.role})`,
+        fileName: `avatar_${id}.jpg`,
+        fileUrl: savedAvatarUrl,
+        qualityScore: 0.95,
+        careTeamMemberId: id,
+        createdAt: now,
+        updatedAt: now,
+      })
+    } catch (err) {
+      console.warn('Could not save care member avatar to assets library:', err)
+    }
+  }
   saveAuditLog({
     logId: `log_${Date.now()}`,
     timestamp: now,
@@ -408,6 +451,27 @@ app.put('/api/care-team/:id', (req, res) => {
   }
 
   saveCareTeamMember(updated)
+
+  // Also sync updated avatar to Assets library if changed
+  if (savedAvatarUrl && savedAvatarUrl !== existing.avatarUrl) {
+    try {
+      const assetId = `asset_team_${req.params.id}_${Date.now().toString(36)}`
+      saveAsset({
+        assetId,
+        type: 'care_team_photo',
+        label: `${updated.name} Avatar (${updated.role})`,
+        fileName: `avatar_${req.params.id}_${Date.now()}.jpg`,
+        fileUrl: savedAvatarUrl,
+        qualityScore: 0.95,
+        careTeamMemberId: req.params.id,
+        createdAt: now,
+        updatedAt: now,
+      })
+    } catch (err) {
+      console.warn('Could not sync updated care member avatar to assets library:', err)
+    }
+  }
+
   return res.json({ member: updated, careTeam: listCareTeam() })
 })
 
@@ -424,9 +488,10 @@ app.post('/api/care-team/:id/set-primary', (req, res) => {
 })
 
 function dispatchAutomatedAlertNotifications(alert: Alert, scene: SceneEvent) {
-  const resident = getResident(alert.residentId ?? 'resident_eleanor')
-  const residentName = resident?.name ?? 'Eleanor'
-  const roomName = alert.roomId.replace('_', ' ').toUpperCase()
+  const resident = getResident(alert.residentId ?? 'resident_elder')
+  const residentName = resident?.name ?? 'Elder'
+  const room = getRoom(alert.roomId)
+  const roomName = room ? room.name : alert.roomId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
   const nowIso = alert.createdAt || new Date().toISOString()
 
   // 1. Primary Caregiver Notification
@@ -439,20 +504,19 @@ function dispatchAutomatedAlertNotifications(alert: Alert, scene: SceneEvent) {
     sentAt: nowIso,
   })
 
-  // 2. Automatic Emergency Push to Family Contacts (Backup in case caregiver is busy)
+  // 2. Broadcast Emergency Push Notification to ALL Care Team Members upon S3/S4 distress
   if (alert.scene === 'S4_CRITICAL' || alert.scene === 'S3_HELP') {
-    const familyMembers = listCareTeam().filter((m) => m.role === 'family_member')
-    const familyNames =
-      familyMembers.length > 0 ? familyMembers.map((m) => m.name).join(' & ') : 'Maria Vance & John Vance'
-
-    saveNotification({
-      id: `notif_fam_${Date.now()}_${Math.random().toString(36).slice(2, 5)}`,
-      recipient: 'family',
-      type: 'alert',
-      title: `🚨 Emergency Auto-Alert: ${residentName} (${roomName})`,
-      body: `Automatic push to ${familyNames}: ${scene.contextText || 'Distress detected near bedside.'} Primary caregiver notified.`,
-      sentAt: nowIso,
-    })
+    const allMembers = listCareTeam()
+    for (const member of allMembers) {
+      saveNotification({
+        id: `notif_team_${member.id}_${Date.now()}`,
+        recipient: member.role === 'family_member' ? 'family' : 'caregiver',
+        type: 'alert',
+        title: `🚨 Emergency Auto-Alert: ${residentName} (${roomName})`,
+        body: `Broadcast to ${member.name} (${member.relation}): ${scene.contextText || `Fall/Distress detected in ${roomName}. Immediate care required.`}`,
+        sentAt: nowIso,
+      })
+    }
   }
 }
 
@@ -754,13 +818,19 @@ app.post('/api/pipeline/feed', async (req, res) => {
   const currentRoom = getRoom(activeRoomId) || listRooms()[0]
   const resolvedRoomId = currentRoom?.id ?? activeRoomId
 
+  // Persist live snapshot from pipeline to local file & get URL
+  let persistentSnapshotUrl: string | undefined = undefined
+  if (typeof imageSource === 'string' && (imageSource.startsWith('data:image/') || imageSource.startsWith('/uploads/'))) {
+    persistentSnapshotUrl = persistBase64Image(imageSource, `snap_${resolvedRoomId}`)
+  }
+
   const event: RingEvent = {
     eventId,
     deviceId: currentRoom?.deviceId ?? `cam_${resolvedRoomId}`,
     eventType: isDoorbell ? 'doorbell' : 'motion',
     occurredAt: now,
     roomId: resolvedRoomId,
-    snapshotUrl: typeof snapshotUrl === 'string' ? snapshotUrl : undefined,
+    snapshotUrl: persistentSnapshotUrl ?? (typeof snapshotUrl === 'string' ? snapshotUrl : undefined),
     metadata: {
       source: 'device_pipeline',
       signal: isDistress ? 'distress' : isRepeatedMotion ? 'repeated_motion' : undefined,
@@ -775,6 +845,7 @@ app.post('/api/pipeline/feed', async (req, res) => {
     repeatedMotion: isRepeatedMotion,
     targetActive: identity.identity === 'known_target',
   })
+  scene.snapshotUrl = persistentSnapshotUrl ?? (typeof snapshotUrl === 'string' ? snapshotUrl : undefined)
 
   // Nova Micro / Smart deterministic context summary
   const aiContext = await generateSceneContext({ scene: scene.scene, event, identity, signals: scene.signals })
@@ -782,6 +853,23 @@ app.post('/api/pipeline/feed', async (req, res) => {
 
   saveEvent(event)
   saveScene(scene)
+
+  // Save snapshot to Assets media library if an image was captured
+  if (persistentSnapshotUrl) {
+    const assetId = `asset_snap_${Date.now()}`
+    saveAsset({
+      assetId,
+      type: 'training_data',
+      label: `Pipeline Snapshot · ${resolvedRoomId.replace('_', ' ').toUpperCase()} (${scene.scene})`,
+      fileName: `snapshot_${resolvedRoomId}_${Date.now()}.jpg`,
+      fileUrl: persistentSnapshotUrl,
+      qualityScore: identity.confidence ?? 0.85,
+      residentId: identity.residentId,
+      roomId: resolvedRoomId,
+      createdAt: now,
+      updatedAt: now,
+    })
+  }
 
   const alert = createAlert(scene)
   if (alert) {
@@ -845,7 +933,7 @@ app.post('/api/alerts/:alertId/actions', (req, res) => {
         recipient: 'family',
         type: 'reassurance',
         title: 'Resident Checked & Safe',
-        body: `${actorId} checked Eleanor in ${alert.roomId.replace('_', ' ')}. All clear.`,
+        body: `${actorId} checked Elder in ${alert.roomId.replace('_', ' ')}. All clear.`,
         sentAt: new Date().toISOString(),
       })
     } else if (action === 'COMING') {
@@ -879,8 +967,8 @@ app.post('/api/alerts/:alertId/escalate-sla', (req, res) => {
   const alert = getAlert(req.params.alertId)
   if (!alert) return res.status(404).json({ error: 'Alert not found' })
 
-  const resident = getResident(alert.residentId ?? 'resident_eleanor')
-  const residentName = resident?.name ?? 'Eleanor'
+  const resident = getResident(alert.residentId ?? 'resident_elder')
+  const residentName = resident?.name ?? 'Elder'
   const roomName = alert.roomId.replace('_', ' ').toUpperCase()
   const nowIso = new Date().toISOString()
 
@@ -896,9 +984,9 @@ app.post('/api/alerts/:alertId/escalate-sla', (req, res) => {
   })
 
   // Urgent Family Circle Auto-Push
-  const familyMembers = listCareTeam().filter((m) => m.role === 'family_member')
-  const familyNames =
-    familyMembers.length > 0 ? familyMembers.map((m) => m.name).join(' & ') : 'Maria Vance & John Vance'
+    const familyMembers = listCareTeam().filter((m) => m.role === 'family_member')
+    const familyNames =
+      familyMembers.length > 0 ? familyMembers.map((m) => m.name).join(' & ') : 'Resident Family'
 
   saveNotification({
     id: `notif_sla_${Date.now()}`,
@@ -1000,7 +1088,69 @@ app.post('/demo/events', async (_req, res) => {
    return res.status(201).json({ scenes })
  })
 
- // ===== ASSETS MANAGEMENT =====
+ // ===== MASTER RING DEVICES ENDPOINTS =====
+app.get('/api/ring-devices', (_req, res) => {
+  res.json({ devices: listMasterDevices() })
+})
+
+app.post('/api/ring-devices', (req, res) => {
+  const { macAddress, vendor, series, model, modelCode, firmwareVersion, ipAddress, assignedRoomId, signalDbm, status } = req.body || {}
+  if (!macAddress || !model) {
+    return res.status(400).json({ error: 'MAC address and model are required' })
+  }
+
+  const id = `dev_ring_${Date.now().toString(36)}`
+  const now = new Date().toISOString()
+  const newDevice: RingMasterDevice = {
+    id,
+    macAddress: macAddress.trim(),
+    vendor: vendor || 'Ring',
+    series: series || 'Plus',
+    model,
+    modelCode: modelCode || `RING-${model.toUpperCase().replace(/\s+/g, '-')}`,
+    firmwareVersion: firmwareVersion || 'v2.14.8',
+    ipAddress,
+    assignedRoomId,
+    signalDbm: signalDbm || 'Good · -55 dBm',
+    status: status || 'online',
+    createdAt: now,
+    updatedAt: now,
+  }
+
+  saveMasterDevice(newDevice)
+  res.status(201).json({ device: newDevice, devices: listMasterDevices() })
+})
+
+app.put('/api/ring-devices/:id', (req, res) => {
+  const existing = getMasterDevice(req.params.id)
+  if (!existing) return res.status(404).json({ error: 'Device not found' })
+
+  const { macAddress, vendor, series, model, modelCode, firmwareVersion, ipAddress, assignedRoomId, signalDbm, status } = req.body || {}
+  const now = new Date().toISOString()
+  const updated: RingMasterDevice = {
+    ...existing,
+    macAddress: typeof macAddress === 'string' ? macAddress.trim() : existing.macAddress,
+    vendor: typeof vendor === 'string' ? vendor : existing.vendor,
+    series: typeof series === 'string' ? series : existing.series,
+    model: typeof model === 'string' ? model : existing.model,
+    modelCode: typeof modelCode === 'string' ? modelCode : existing.modelCode,
+    firmwareVersion: typeof firmwareVersion === 'string' ? firmwareVersion : existing.firmwareVersion,
+    ipAddress: typeof ipAddress === 'string' ? ipAddress : existing.ipAddress,
+    assignedRoomId: typeof assignedRoomId === 'string' ? assignedRoomId : existing.assignedRoomId,
+    signalDbm: typeof signalDbm === 'string' ? signalDbm : existing.signalDbm,
+    status: typeof status === 'string' ? status : existing.status,
+    updatedAt: now,
+  }
+
+  saveMasterDevice(updated)
+  res.json({ device: updated, devices: listMasterDevices() })
+})
+
+app.delete('/api/ring-devices/:id', (req, res) => {
+  const success = deleteMasterDevice(req.params.id)
+  if (!success) return res.status(404).json({ error: 'Device not found' })
+  res.json({ deleted: true, id: req.params.id, devices: listMasterDevices() })
+})
  app.get('/api/assets', (_req, res) => {
    const allAssets = listAssets()
    res.json({ assets: allAssets })

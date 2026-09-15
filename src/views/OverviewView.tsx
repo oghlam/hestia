@@ -26,13 +26,14 @@ import type {
   SceneEvent,
 } from '../domain/contracts'
 import {
-  eleanorPortrait,
-  johnPortrait,
-  mariaPortrait,
-  sarahPortrait,
+  elderPortrait,
+  caregiverPortrait,
+  familyPortrait,
+  nursePortrait,
+  doctorPortrait,
   sceneLabels,
-  type Scene,
   type TabKey,
+  type Scene,
 } from '../domain/mock-data'
 
 export interface OverviewViewProps {
@@ -98,19 +99,35 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   triggerSimulation,
   setIsAlertSimulatorOpen,
 }) => {
-  const eleanorAvatarUrl = primaryResidentObj?.faceTemplates?.[0]?.previewUrl || eleanorPortrait
-  const mariaAvatarUrl = careTeam.find((m) => m.id === 'member_maria')?.avatarUrl || mariaPortrait
-  const johnAvatarUrl = careTeam.find((m) => m.id === 'member_john')?.avatarUrl || johnPortrait
-  const sarahAvatarUrl = careTeam.find((m) => m.id === 'member_sarah')?.avatarUrl || sarahPortrait
+  const elderAvatarUrl = primaryResidentObj?.faceTemplates?.[0]?.previewUrl || elderPortrait
+  const caregiverAvatarUrl = careTeam.find((m) => m.id === 'member_caregiver')?.avatarUrl || caregiverPortrait
+  const familyAvatarUrl = careTeam.find((m) => m.id === 'member_family')?.avatarUrl || familyPortrait
+  const nurseAvatarUrl = careTeam.find((m) => m.id === 'member_nurse')?.avatarUrl || nursePortrait
+
+  const activeAlert = alerts.find((a) => a.state === 'VALIDATION_PENDING' || a.state === 'CARE_IN_PROGRESS')
+  const elderStatusText = activeAlert
+    ? activeAlert.scene === 'S4_CRITICAL'
+      ? '🚨 Critical Distress'
+      : '⚠️ Needs Assistance'
+    : 'At home · Safe'
+
+  const activeAlertRoom = displayRooms.find((r) => r.id === activeAlert?.roomId)
+  const activeAlertRoomName = activeAlertRoom ? activeAlertRoom.name : activeAlert?.roomId ? activeAlert.roomId.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Room'
+
+  const elderGreetingText = activeAlert
+    ? `${primaryResidentObj?.name || 'Elder'} may need attention in ${activeAlertRoomName}!`
+    : `${primaryResidentObj?.name || 'Elder'} is home and comfortable.`
 
   return (
     <div className="page">
       <section className="welcome">
         <div>
           <h1>
-            {greeting}, {mariaMember?.name ? mariaMember.name.split(' ')[0] : 'Maria'}.
+            {greeting}, {mariaMember?.name ? mariaMember.name.split(' ')[0] : 'Caregiver'}.
           </h1>
-          <p>{primaryResidentObj?.name || 'Eleanor'} is home and comfortable.</p>
+          <p style={{ color: activeAlert ? '#dc2626' : undefined, fontWeight: activeAlert ? 600 : undefined }}>
+            {elderGreetingText}
+          </p>
         </div>
         <div className="motto">A home that cares, even when you're away.</div>
         <div className="date">
@@ -121,24 +138,22 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
       <section className="summary-grid">
         <div className="summary-card interactive" onClick={() => setActiveTab('automation')}>
-          <span className="summary-icon green">
+          <span className={`summary-icon ${activeAlert ? (activeAlert.scene === 'S4_CRITICAL' ? 'red' : 'amber') : 'green'}`}>
             <ShieldCheck />
           </span>
           <div>
             <small>Home Status</small>
-            <strong>
-              {alerts.length > 0 && alerts[0].state === 'VALIDATION_PENDING'
-                ? 'Alert Pending'
-                : 'All systems OK'}
+            <strong style={{ color: activeAlert ? '#dc2626' : undefined }}>
+              {activeAlert ? `${activeAlert.scene.replace('_', ' ')} · Alert Active` : 'All systems OK'}
             </strong>
           </div>
         </div>
 
         <div className="summary-card interactive" onClick={() => setActiveTab('people')}>
-          <img src={eleanorAvatarUrl} alt="Eleanor" className="summary-avatar-img" />
+          <img src={elderAvatarUrl} alt="Elder" className="summary-avatar-img" />
           <div>
-            <small>{primaryResidentObj?.name || 'Eleanor'}</small>
-            <strong>At home · Safe</strong>
+            <small>{primaryResidentObj?.name || 'Elder'}</small>
+            <strong style={{ color: activeAlert ? '#dc2626' : undefined }}>{elderStatusText}</strong>
           </div>
         </div>
 
@@ -173,9 +188,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             <strong>{careTeam.length} Members</strong>
           </div>
           <div className="mini-avatars">
-            <img src={mariaAvatarUrl} alt="Maria" />
-            <img src={johnAvatarUrl} alt="John" />
-            <img src={sarahAvatarUrl} alt="Sarah" />
+            <img src={caregiverAvatarUrl} alt="Caregiver" />
+            <img src={familyAvatarUrl} alt="Family" />
+            <img src={nurseAvatarUrl} alt="Nurse" />
           </div>
         </div>
       </section>
@@ -229,8 +244,18 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   </div>
                   <Ellipsis className="room-menu" size={17} />
                 </div>
-                <div className={`room-image ${imgKey}`}>
-                  <span>● Live</span>
+                <div
+                  className={`room-image ${imgKey}`}
+                  style={{
+                    width: '100%',
+                    aspectRatio: '16 / 9',
+                    backgroundImage: liveRoom?.snapshotUrl ? `url(${liveRoom.snapshotUrl})` : undefined,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    position: 'relative',
+                  }}
+                >
+                  <span style={{ position: 'absolute', top: '10px', left: '10px' }}>● Live</span>
                 </div>
                 <div className="room-card-footer">
                   <span>
@@ -462,7 +487,17 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                   <Wifi size={13} />
                   <span className="pin-label-tag">{room.name}</span>
                   {isHovered && (
-                    <div className="device-tooltip" style={{ display: 'block' }}>
+                    <div
+                      className="device-tooltip"
+                      style={{
+                        display: 'block',
+                        left: coord.x > 75 ? 'auto' : coord.x < 25 ? '0' : '50%',
+                        right: coord.x > 75 ? '0' : 'auto',
+                        bottom: coord.y < 35 ? 'auto' : 'calc(100% + 10px)',
+                        top: coord.y < 35 ? 'calc(100% + 10px)' : 'auto',
+                        transform: coord.x >= 25 && coord.x <= 75 ? 'translateX(-50%)' : 'none',
+                      }}
+                    >
                       <strong>{room.deviceName || `Ring ${room.name}`}</strong>
                       <small>
                         {room.deviceType || 'Indoor Cam'} · {room.floor || 'Floor 1'}
@@ -485,7 +520,14 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
 
         <Panel title="Recent Event" action={<Ellipsis size={17} />}>
           <div className="recent-event">
-            <div className={`event-image ${activeRoomId.replace('_room', '')}`} />
+            <div
+              className={`event-image ${activeRoomId.replace('_room', '')}`}
+              style={{
+                backgroundImage: apiScenes[0]?.snapshotUrl ? `url(${apiScenes[0].snapshotUrl})` : undefined,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
             <div>
               <h3>{recentEventTitle}</h3>
               <small>
@@ -564,32 +606,32 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div className="care-team">
             <div onClick={() => setActiveTab('care_team')} style={{ cursor: 'pointer' }}>
               <div className="team-avatar">
-                <img src={mariaAvatarUrl} alt="Maria" />
+                <img src={caregiverAvatarUrl} alt="Caregiver" />
               </div>
               <small>
-                Maria
+                Caregiver
                 <br />
-                <b>Family</b>
+                <b>Primary</b>
               </small>
             </div>
             <div onClick={() => setActiveTab('care_team')} style={{ cursor: 'pointer' }}>
               <div className="team-avatar">
-                <img src={johnAvatarUrl} alt="John" />
+                <img src={familyAvatarUrl} alt="Family" />
               </div>
               <small>
-                John
+                Family
                 <br />
-                <b>Son</b>
+                <b>Relative</b>
               </small>
             </div>
             <div onClick={() => setActiveTab('care_team')} style={{ cursor: 'pointer' }}>
               <div className="team-avatar">
-                <img src={sarahAvatarUrl} alt="Sarah" />
+                <img src={nurseAvatarUrl} alt="Nurse" />
               </div>
               <small>
-                Sarah
+                Nurse
                 <br />
-                <b>Nurse</b>
+                <b>Medical</b>
               </small>
             </div>
             <div onClick={() => setActiveTab('care_team')} style={{ cursor: 'pointer' }}>

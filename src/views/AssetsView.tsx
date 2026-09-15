@@ -7,6 +7,7 @@ import {
   List,
   MapPin,
   Plus,
+  RefreshCw,
   Search,
   Trash2,
   Upload,
@@ -23,6 +24,7 @@ export interface AssetsViewProps {
   onUploadAsset: (formData: FormData, type: string) => Promise<void>
   onDeleteAsset: (assetId: string) => Promise<void>
   onSetAsAvatar: (assetId: string, residentId?: string, memberId?: string) => Promise<void>
+  onRefreshAssets?: () => Promise<void>
   isLoading: boolean
 }
 
@@ -36,6 +38,7 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
   onUploadAsset,
   onDeleteAsset,
   onSetAsAvatar,
+  onRefreshAssets,
   isLoading,
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('list')
@@ -53,9 +56,15 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
     return matchesType && matchesSearch
   })
 
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || !uploadType) return
+
+    setIsUploading(true)
+    setUploadError(null)
 
     const formData = new FormData()
     formData.append('file', file)
@@ -67,8 +76,11 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
       setShowUploadModal(false)
       setUploadType(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
-    } catch (err) {
+    } catch (err: any) {
       console.error('Upload failed:', err)
+      setUploadError(err?.message || 'Upload failed. Please check server connection.')
+    } finally {
+      setIsUploading(false)
     }
   }
 
@@ -79,7 +91,18 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
           <h1>Assets & Media Library</h1>
           <p>Manage resident photos, care team avatars, floor plans, and camera training snapshots</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {onRefreshAssets && (
+            <button
+              className="btn-icon-action"
+              title="Refresh Assets"
+              onClick={() => onRefreshAssets()}
+              disabled={isLoading}
+              style={{ width: '32px', height: '32px' }}
+            >
+              <RefreshCw size={14} className={isLoading ? 'spin' : ''} />
+            </button>
+          )}
           <button
             className="sim-button"
             style={{ fontSize: '12px' }}
@@ -365,6 +388,12 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
               </button>
             </div>
 
+            {uploadError && (
+              <div style={{ padding: '8px 12px', background: '#fef2f2', border: '1px solid #fecaca', color: '#991b1b', borderRadius: '6px', fontSize: '12px', marginBottom: '12px' }}>
+                {uploadError}
+              </div>
+            )}
+
             <div
               style={{
                 border: '2px dashed #cbd5e1',
@@ -373,22 +402,31 @@ export const AssetsView: React.FC<AssetsViewProps> = ({
                 textAlign: 'center',
                 marginBottom: '16px',
                 cursor: 'pointer',
-                background: '#f8fafc',
+                background: isUploading ? '#f1f5f9' : '#f8fafc',
+                position: 'relative',
               }}
-              onClick={() => fileInputRef.current?.click()}
             >
-              <Upload size={32} style={{ margin: '0 auto 12px', color: '#64748b' }} />
-              <strong>Click to upload</strong>
-              <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0' }}>or drag and drop</p>
-              <small style={{ color: '#94a3b8' }}>PNG, JPG up to 10MB</small>
+              {isUploading ? (
+                <div>
+                  <div className="spin" style={{ width: '24px', height: '24px', border: '3px solid #cbd5e1', borderTopColor: '#0284c7', borderRadius: '50%', margin: '0 auto 10px' }} />
+                  <strong style={{ display: 'block', color: '#0284c7', fontSize: '13px' }}>Uploading & processing asset...</strong>
+                </div>
+              ) : (
+                <label style={{ display: 'block', width: '100%', height: '100%', cursor: 'pointer', margin: 0 }}>
+                  <Upload size={32} style={{ margin: '0 auto 12px', color: '#64748b' }} />
+                  <strong style={{ display: 'block', color: '#1e293b' }}>Click to browse or drop image</strong>
+                  <p style={{ fontSize: '12px', color: '#64748b', margin: '4px 0' }}>Select PNG or JPG photo</p>
+                  <small style={{ color: '#94a3b8' }}>Up to 10MB</small>
 
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileUpload}
-                accept="image/*"
-                style={{ display: 'none' }}
-              />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept="image/*"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                  />
+                </label>
+              )}
             </div>
 
             <button

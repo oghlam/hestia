@@ -49,6 +49,7 @@ export type SceneEvent = {
   signals: string[]
   identity?: IdentityResult
   contextText?: string
+  snapshotUrl?: string
   createdAt: string
 }
 
@@ -174,7 +175,23 @@ export type AutomationRule = {
   updatedAt: string
 }
 
-export type RingDeviceType = 'Indoor Cam' | 'Stick Up Cam' | 'Video Doorbell' | 'Floodlight Cam'
+export type RingDeviceType = 'Indoor Cam' | 'Stick Up Cam' | 'Video Doorbell' | 'Floodlight Cam' | 'Spotlight Cam'
+
+export type RingMasterDevice = {
+  id: string
+  macAddress: string
+  vendor: 'Ring'
+  series: 'Plus' | 'Pro' | 'Elite' | 'Standard'
+  model: RingDeviceType
+  modelCode: string
+  firmwareVersion: string
+  ipAddress?: string
+  assignedRoomId?: string
+  signalDbm?: string
+  status: 'online' | 'offline' | 'paired'
+  createdAt: string
+  updatedAt: string
+}
 
 export type Room = {
   id: string
@@ -205,6 +222,7 @@ export type RoomState = {
   lastActivityTime: string
   deviceStatus: 'normal' | 'active' | 'warning' | 'offline'
   roomData?: Room
+  snapshotUrl?: string
 }
 
 export type AuditArchiveFile = {

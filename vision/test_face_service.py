@@ -17,7 +17,7 @@ class TestFaceService(unittest.TestCase):
         result = match_face(hint="eleanor")
         self.assertEqual(result["identity"], "known_target")
         self.assertEqual(result["residentId"], "resident_eleanor")
-        self.assertEqual(result["name"], "Eleanor")
+        self.assertEqual(result["name"], "Elder")
         self.assertGreaterEqual(result["confidence"], MATCH_THRESHOLD)
         self.assertEqual(result["faceCount"], 1)
         self.assertEqual(result["source"], "ring_snapshot")

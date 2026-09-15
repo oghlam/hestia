@@ -104,7 +104,7 @@ export function generateFacePoseThumbnail(angle: FaceAngle, _name: string): stri
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 }
 
-export const eleanorPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
+export const elderPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
   <defs>
     <linearGradient id="el-bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -132,7 +132,7 @@ export const eleanorPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 </svg>
 `)}`
 
-export const mariaPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
+export const caregiverPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
   <defs>
     <linearGradient id="ma-bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -162,7 +162,7 @@ export const mariaPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 </svg>
 `)}`
 
-export const johnPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
+export const familyPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
   <defs>
     <linearGradient id="jo-bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -180,7 +180,7 @@ export const johnPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 </svg>
 `)}`
 
-export const sarahPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
+export const nursePortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
   <defs>
     <linearGradient id="sa-bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -200,7 +200,7 @@ export const sarahPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 </svg>
 `)}`
 
-export const robertPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
+export const doctorPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
   <defs>
     <linearGradient id="ro-bg" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -223,8 +223,8 @@ export const robertPortrait = `data:image/svg+xml;utf8,${encodeURIComponent(`
 
 export const defaultResidents: Resident[] = [
   {
-    id: 'resident_eleanor',
-    name: 'Eleanor',
+    id: 'resident_elder',
+    name: 'Elder',
     age: 78,
     gender: 'female',
     primaryTarget: true,
@@ -242,7 +242,7 @@ export const defaultResidents: Resident[] = [
       specialty: 'Geriatric Medicine',
     },
     faceTemplates: [
-      { templateId: 'tmpl_el_front', angle: 'front', registeredAt: '2026-09-01T10:00:00Z', qualityScore: 0.98, previewUrl: eleanorPortrait, fileName: 'eleanor_front_a8f921.png' },
+      { templateId: 'tmpl_el_front', angle: 'front', registeredAt: '2026-09-01T10:00:00Z', qualityScore: 0.98, previewUrl: elderPortrait, fileName: 'elder_front_a8f921.png' },
       { templateId: 'tmpl_el_left', angle: 'left', registeredAt: '2026-09-01T10:02:00Z', qualityScore: 0.94, previewUrl: generateFacePoseThumbnail('left', 'Eleanor'), fileName: 'eleanor_left_b3c791.png' },
       { templateId: 'tmpl_el_right', angle: 'right', registeredAt: '2026-09-01T10:04:00Z', qualityScore: 0.95, previewUrl: generateFacePoseThumbnail('right', 'Eleanor'), fileName: 'eleanor_right_c4d812.png' },
     ],
@@ -253,10 +253,10 @@ export const defaultResidents: Resident[] = [
 
 export function generateMemberAvatarThumbnail(name: string, role: CareTeamMemberRole): string {
   const n = (name || '').toLowerCase()
-  if (n.includes('maria')) return mariaPortrait
-  if (n.includes('sarah') || n.includes('nurse') || n.includes('siti')) return sarahPortrait
-  if (n.includes('john')) return johnPortrait
-  if (n.includes('robert') || n.includes('dr')) return robertPortrait
+  if (n.includes('caregiver') || n.includes('maria')) return caregiverPortrait
+  if (n.includes('nurse') || n.includes('sarah') || n.includes('siti')) return nursePortrait
+  if (n.includes('family') || n.includes('john')) return familyPortrait
+  if (n.includes('doctor') || n.includes('robert') || n.includes('dr')) return doctorPortrait
 
   const initial = name ? name.charAt(0).toUpperCase() : 'M'
   const bgColor =
@@ -444,7 +444,7 @@ export const defaultDemoScenes: SceneEvent[] = [
     identity: {
       identity: 'known_target',
       residentId: 'resident_eleanor',
-      name: 'Eleanor',
+      name: 'Elder',
       confidence: 0.96,
       faceCount: 1,
       source: 'ring_snapshot',
@@ -479,7 +479,7 @@ export const defaultDemoScenes: SceneEvent[] = [
     identity: {
       identity: 'known_target',
       residentId: 'resident_eleanor',
-      name: 'Eleanor',
+      name: 'Elder',
       confidence: 0.95,
       faceCount: 1,
       source: 'ring_snapshot',
@@ -498,7 +498,7 @@ export const defaultDemoScenes: SceneEvent[] = [
     identity: {
       identity: 'known_target',
       residentId: 'resident_eleanor',
-      name: 'Eleanor',
+      name: 'Elder',
       confidence: 0.93,
       faceCount: 1,
       source: 'ring_snapshot',
