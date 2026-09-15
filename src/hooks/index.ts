@@ -23,6 +23,7 @@ export { useCareTeam, type UseCareTeamReturn, type CareTeamFormData } from './us
 export { useAutomationRules, type UseAutomationRulesReturn, type AutomationRuleFormData } from './useAutomationRules'
 export { useSceneEvents, type UseSceneEventsReturn, type EventsFilterState } from './useSceneEvents'
 export { useSystemSettings, type UseSystemSettingsReturn } from './useSystemSettings'
+export { useAssets, type UseAssetsReturn } from "./useAssets"
 
 // Utility hooks
 export { useLocalStorage } from './useLocalStorage'

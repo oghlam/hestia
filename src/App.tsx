@@ -52,6 +52,7 @@ import {
   useAutomationRules,
   useSceneEvents,
   useSystemSettings,
+  useAssets,
 } from '@/hooks'
 
 import {
@@ -86,6 +87,7 @@ export function App() {
   const automationRules = useAutomationRules()
   const sceneEvents = useSceneEvents()
   const systemSettings = useSystemSettings()
+  const assetsHook = useAssets()
 
   // ============================================================================
   // UI & APPLICATION STATE
@@ -569,10 +571,18 @@ export function App() {
             handleRotateLogs={systemSettings.handleRotateLogs}
             archivedLogs={systemSettings.archivedLogs}
             handleDownloadArchive={systemSettings.handleDownloadArchive}
-            handleDeleteArchive={systemSettings.handleDeleteArchive}
-            handleCheckUpdate={systemSettings.handleCheckUpdate}
-          />
-        )}
+             handleDeleteArchive={systemSettings.handleDeleteArchive}
+             handleCheckUpdate={systemSettings.handleCheckUpdate}
+             // Assets props
+             assets={assetsHook.assets}
+             residents={residents.residents}
+             careTeam={careTeam.careTeamMembers}
+             onUploadAsset={assetsHook.uploadAsset}
+             onDeleteAsset={assetsHook.deleteAsset}
+             onSetAsAvatar={assetsHook.setResidentAvatar}
+             isAssetsLoading={assetsHook.isLoading}
+           />
+         )}
 
         {/* MODALS */}
         <RoomModal

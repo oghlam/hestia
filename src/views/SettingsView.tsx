@@ -23,12 +23,14 @@ import {
   Zap,
 } from 'lucide-react'
 import type {
+  Asset,
   AuditArchiveFile,
   DbMode,
   DevicePipelineMode,
   Room,
   SystemSettings,
 } from '../domain/contracts'
+import { AssetsView } from './AssetsView'
 
 export interface SettingsViewProps {
   systemSettings: SystemSettings
