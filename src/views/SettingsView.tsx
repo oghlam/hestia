@@ -86,9 +86,9 @@ export interface SettingsViewProps {
   assets?: Asset[]
   residents?: any[]
   careTeam?: any[]
-  onUploadAsset?: (formData: FormData, type: string) => Promise<Asset | void>
-  onDeleteAsset?: (assetId: string) => Promise<boolean | void>
-  onSetAsAvatar?: (residentId: string, assetId: string) => Promise<boolean | void>
+  onUploadAsset?: any
+  onDeleteAsset?: any
+  onSetAsAvatar?: any
   isAssetsLoading?: boolean
 }
 
