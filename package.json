@@ -1,0 +1,29 @@
+{
+  "name": "hestia",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "api": "tsx server/index.ts",
+    "test": "tsx tests/hestia.test.ts"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "lucide-react": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@types/express": "latest",
+    "express": "latest",
+    "cors": "latest",
+    "tsx": "latest"
+  }
+}

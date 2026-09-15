@@ -1,0 +1,57 @@
+# Secrets and local credentials
+.env
+.env.*
+!.env.example
+ring-token-*.csv
+**/*token*.csv
+**/*secret*
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.crt
+*.cert
+*.csr
+
+# AWS & Cloud credentials
+aws-credentials
+.aws/
+credentials
+aws_credentials
+
+# Database files & local data
+*.db
+*.sqlite
+*.sqlite3
+*.mdb
+
+# IDE secrets & configs
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs (may contain sensitive data)
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS & editor temporaries
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+.env.local
+.env.*.local
+
+# Local development output & dependencies
+node_modules/
+dist/
+.vite/
+__pycache__/
+*.pyc
