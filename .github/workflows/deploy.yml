@@ -78,8 +78,16 @@ jobs:
               echo "Repository exists, pulling latest changes..."
               git fetch origin main
               git reset --hard origin/main
+              git clean -fd
             else
               echo "Cloning repository..."
+              # Remove directory first if it exists but is not a git repo
+              if [ -d . ] && [ ! -z "$(ls -A .)" ]; then
+                echo "Directory exists with content, backing up..."
+                mv "$DEPLOY_PATH" "$DEPLOY_PATH.backup.$(date +%s)"
+                mkdir -p "$DEPLOY_PATH"
+                cd "$DEPLOY_PATH"
+              fi
               git clone --branch main https://github.com/oghlam/hestia.git .
             fi
             
