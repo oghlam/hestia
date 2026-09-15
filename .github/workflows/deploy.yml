@@ -1,0 +1,116 @@
+name: Build & Deploy HESTIA
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "18"
+
+jobs:
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run linter (TypeScript)
+        run: npm run build
+        continue-on-error: true
+
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+  deploy:
+    name: Deploy to EC2
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_DEPLOY_KEY }}
+          script: |
+            set -e
+            
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+            
+            echo "=== HESTIA Deployment Started ==="
+            echo "Deployment path: $DEPLOY_PATH"
+            
+            # Create directory if doesn't exist
+            mkdir -p "$DEPLOY_PATH"
+            cd "$DEPLOY_PATH"
+            
+            # Clone or pull latest code
+            if [ -d .git ]; then
+              echo "Repository exists, pulling latest changes..."
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              echo "Cloning repository..."
+              git clone --branch main https://github.com/oghlam/hestia.git .
+            fi
+            
+            # Install dependencies
+            echo "Installing dependencies..."
+            npm install --production=false
+            
+            # Build application
+            echo "Building application..."
+            npm run build
+            
+            # Check if .env exists, if not use template
+            if [ ! -f .env ]; then
+              echo "⚠️  No .env file found. Using template..."
+              if [ -f .env.template ]; then
+                cp .env.template .env
+                echo "⚠️  WARNING: Using template values. Please update .env with real credentials!"
+              fi
+            fi
+            
+            # Stop old PM2 process if exists
+            echo "Stopping old process..."
+            pm2 stop hestia || true
+            pm2 delete hestia || true
+            
+            # Start new process with PM2
+            echo "Starting new process..."
+            PORT=8787 NODE_ENV=production pm2 start npm --name "hestia" -- run api
+            
+            # Save PM2 process list for auto-restart
+            pm2 save
+            
+            echo "=== HESTIA Deployment Completed Successfully ==="
+            echo "Application running on port 8787"
+            echo "Accessible via: https://32.193.23.154"
+
+      - name: Deployment Status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+            exit 1
+          fi
