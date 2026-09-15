@@ -862,7 +862,7 @@ async function testPipelineFeedFlow() {
 
     console.log('✔ Pipeline feed ingestion, Room snapshot update & Asset sync tests passed')
   } finally {
-    server.close()
+    await new Promise<void>((resolve) => server.close(() => resolve()))
   }
 }
 
@@ -880,6 +880,7 @@ async function runAll() {
   await testPipelineFeedFlow()
   await testCompleteVerticalSlice()
   console.log('\nAll tests completed successfully!')
+  process.exit(0)
 }
 
 runAll()
