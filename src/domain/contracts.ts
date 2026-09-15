@@ -117,6 +117,7 @@ export type CareTeamMember = {
   slaMinutes: number
   isPrimaryValidator: boolean
   avatarUrl?: string
+  avatarAssetId?: string
   assignedResidentId?: string
   shiftSchedule?: string
   notes?: string
@@ -136,6 +137,7 @@ export type Resident = {
   emergencyContacts: EmergencyContact[]
   doctorContact?: DoctorContact
   faceTemplates: FaceTemplate[]
+  primaryAvatarAssetId?: string
   createdAt: string
   updatedAt: string
 }

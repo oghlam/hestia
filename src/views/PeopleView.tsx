@@ -84,7 +84,21 @@ export const PeopleView: React.FC<PeopleViewProps> = ({
                   className={`resident-card ${res.primaryTarget ? 'is-primary' : ''}`}
                 >
                   <div className="resident-card-header">
-                    {frontTmpl?.previewUrl ? (
+                    {res.primaryAvatarAssetId ? (
+                      // Display real photo avatar if set
+                      <img
+                        src={res.primaryAvatarAssetId}
+                        alt={res.name}
+                        className="resident-avatar"
+                        style={{ objectFit: 'cover' }}
+                        onError={(e) => {
+                          // Fallback to face template if asset image fails
+                          if (frontTmpl?.previewUrl) {
+                            ;(e.target as HTMLImageElement).src = frontTmpl.previewUrl
+                          }
+                        }}
+                      />
+                    ) : frontTmpl?.previewUrl ? (
                       <img
                         src={frontTmpl.previewUrl}
                         alt={res.name}

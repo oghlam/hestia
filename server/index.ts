@@ -1006,6 +1006,96 @@ app.post('/demo/events', async (_req, res) => {
    res.json({ success: deleted, assetId })
  })
 
+ // ===== AVATAR LINKING =====
+ // Set resident avatar from asset
+ app.post('/api/residents/:residentId/set-avatar', (req, res) => {
+   const { residentId } = req.params
+   const { assetId } = req.body
+
+   if (!assetId) {
+     return res.status(400).json({ error: 'assetId is required' })
+   }
+
+   const resident = getResident(residentId)
+   if (!resident) {
+     return res.status(404).json({ error: 'Resident not found' })
+   }
+
+   const asset = getAsset(assetId)
+   if (!asset) {
+     return res.status(404).json({ error: 'Asset not found' })
+   }
+
+   if (asset.type !== 'resident_photo' || asset.residentId !== residentId) {
+     return res.status(400).json({ error: 'Asset must be a resident photo belonging to this resident' })
+   }
+
+   resident.primaryAvatarAssetId = assetId
+   saveResident(resident)
+
+   res.json({ success: true, resident })
+ })
+
+ // Clear resident avatar (revert to default)
+ app.post('/api/residents/:residentId/clear-avatar', (req, res) => {
+   const { residentId } = req.params
+
+   const resident = getResident(residentId)
+   if (!resident) {
+     return res.status(404).json({ error: 'Resident not found' })
+   }
+
+   resident.primaryAvatarAssetId = undefined
+   saveResident(resident)
+
+   res.json({ success: true, resident })
+ })
+
+ // Set care team member avatar from asset
+ app.post('/api/care-team/:memberId/set-avatar', (req, res) => {
+   const { memberId } = req.params
+   const { assetId } = req.body
+
+   if (!assetId) {
+     return res.status(400).json({ error: 'assetId is required' })
+   }
+
+   const member = getCareTeamMember(memberId)
+   if (!member) {
+     return res.status(404).json({ error: 'Care team member not found' })
+   }
+
+   const asset = getAsset(assetId)
+   if (!asset) {
+     return res.status(404).json({ error: 'Asset not found' })
+   }
+
+   if (asset.type !== 'care_team_photo' || asset.careTeamMemberId !== memberId) {
+     return res.status(400).json({ error: 'Asset must be a care team photo belonging to this member' })
+   }
+
+   member.avatarAssetId = assetId
+   member.avatarUrl = asset.fileUrl
+   saveCareTeamMember(member)
+
+   res.json({ success: true, member })
+ })
+
+ // Clear care team member avatar
+ app.post('/api/care-team/:memberId/clear-avatar', (req, res) => {
+   const { memberId } = req.params
+
+   const member = getCareTeamMember(memberId)
+   if (!member) {
+     return res.status(404).json({ error: 'Care team member not found' })
+   }
+
+   member.avatarAssetId = undefined
+   saveCareTeamMember(member)
+
+   res.json({ success: true, member })
+ })
+
  // SPA fallback: serve index.html for all non-API routes
 app.get(/^\/(?!api\/).*$/, (req, res) => {
   const indexPath = path.join(distDir, 'index.html')
