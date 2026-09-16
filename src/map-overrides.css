@@ -1192,20 +1192,26 @@
 /* Device Ingestion Pipeline Studio & Settings */
 .pipeline-mode-cards {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+@media (max-width: 768px) {
+  .pipeline-mode-cards {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 .pipeline-mode-card {
   background: #ffffff;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  padding: 16px;
+  padding: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   text-align: left;
 }
 .pipeline-mode-card:hover {
@@ -1223,7 +1229,7 @@
   justify-content: space-between;
 }
 .pipeline-mode-card-header strong {
-  font-size: 14px;
+  font-size: 13.5px;
   color: #0f172a;
   display: flex;
   align-items: center;
@@ -1238,8 +1244,13 @@
 .camera-studio-container {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  gap: 20px;
+  gap: 16px;
   align-items: start;
+}
+@media (max-width: 860px) {
+  .camera-studio-container {
+    grid-template-columns: 1fr;
+  }
 }
 .camera-viewfinder-box {
   background: #090d16;
@@ -1725,114 +1736,42 @@
 }
 
 /* ==========================================================================
-   Left Sidebar Menu Spacing & Responsive Mobile Drawer Fix
+   Responsive Mobile Drawer & Overlay
    ========================================================================== */
 
-/* 1. Comfortable navigation item height and spacing */
-.primary-nav {
-  padding: 24px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.primary-nav a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-radius: 10px;
-  color: #556987;
-  font-size: 14.5px;
-  font-weight: 500;
-  text-decoration: none;
-  cursor: pointer;
-  user-select: none;
-  transition: all 0.15s ease-in-out;
-  line-height: 1.2;
-}
-
-.primary-nav a:hover {
-  background: #f1f5f9;
-  color: #0f172a;
-}
-
-.primary-nav a.active {
-  background: #eff6ff;
-  color: #005cf5;
-  font-weight: 600;
-}
-
-.primary-nav a.active svg {
-  color: #005cf5;
-}
-
-.brand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 20px 16px;
-  border-bottom: 1px solid #eff3f7;
-}
-
-.brand span {
-  font-size: 9.5px;
-  letter-spacing: 1.2px;
-  font-weight: 700;
-  color: #8a9bb2;
-  text-align: center;
-}
-
-/* 2. Responsive Mobile Drawer & Overlay */
 .sidebar-backdrop {
   display: none;
 }
 
 @media (max-width: 900px) {
-  .mobile-menu {
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    background: transparent;
-    border: none;
-    color: #1e293b;
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 8px;
-  }
-
-  .mobile-menu:hover {
-    background: #f1f5f9;
-  }
-
   .sidebar {
     position: fixed;
-    top: 0;
+    top: 52px;
     left: 0;
     bottom: 0;
-    width: 250px;
+    width: 66px;
+    height: calc(100vh - 52px);
+    background: #ffffff;
     z-index: 1000;
     transform: translateX(-100%);
-    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     box-shadow: none;
+    border-right: 1px solid #e2e8f0;
+    padding: 6px 0;
   }
 
   .sidebar.open {
     transform: translateX(0);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
   }
 
   .sidebar-backdrop {
     display: block;
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
+    top: 52px;
     background: rgba(15, 23, 42, 0.45);
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(2px);
     z-index: 999;
     animation: fadeInOverlay 0.2s ease-out;
   }
@@ -1852,11 +1791,11 @@
   }
 
   .topbar {
-    padding: 0 16px;
+    padding: 0 12px;
   }
 
   .page-view {
-    padding: 16px;
+    padding: 12px 14px 32px;
   }
 }
 
@@ -2586,347 +2525,5 @@
   padding: 10px 12px;
   border-radius: 0 6px 6px 0;
   margin: 0;
-}
-
-/* ============================================================================
-   CARE TOPOLOGY GRAPH STYLES
-   ============================================================================ */
-.topology-canvas-container {
-  padding: 24px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  min-height: 520px;
-  display: flex;
-  flex-direction: column;
-}
-.topology-legend {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #e2e8f0;
-  flex-wrap: wrap;
-}
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: #475569;
-}
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-.legend-dot.cloud { background: #0284c7; }
-.legend-dot.gateway { background: #6366f1; }
-.legend-dot.device { background: #10b981; }
-.legend-dot.target { background: #ec4899; }
-.legend-dot.care { background: #f59e0b; }
-
-.topology-tree {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.topology-tier {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-}
-.tier-badge {
-  font-size: 10px;
-  font-weight: 700;
-  color: #64748b;
-  letter-spacing: 0.6px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-.tier-nodes-row {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-  width: 100%;
-}
-.topology-node-card {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
-  min-width: 220px;
-}
-.topology-node-card:hover {
-  border-color: #0284c7;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
-}
-.topology-node-card.selected {
-  border-color: #0284c7;
-  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
-  background: #f0f9ff;
-}
-.node-icon-circle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: #f1f5f9;
-  color: #334155;
-}
-.tier-cloud .node-icon-circle { background: #e0f2fe; color: #0284c7; }
-.tier-gateway .node-icon-circle { background: #e0e7ff; color: #4f46e5; }
-.tier-device .node-icon-circle { background: #dcfce7; color: #16a34a; }
-.tier-target .node-icon-circle { background: #fce7f3; color: #db2777; }
-.tier-care .node-icon-circle { background: #fef3c7; color: #d97706; }
-.node-text strong {
-  display: block;
-  font-size: 13px;
-  color: #0f172a;
-}
-.node-text small {
-  font-size: 11px;
-  color: #64748b;
-}
-.topology-connector-wire {
-  width: 2px;
-  height: 24px;
-  background: #cbd5e1;
-  position: relative;
-}
-.wire-pulse {
-  position: absolute;
-  top: 0;
-  left: -2px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #0284c7;
-}
-.wire-pulse.active {
-  animation: pulseDown 1.8s infinite linear;
-}
-@keyframes pulseDown {
-  0% { top: 0; opacity: 1; }
-  100% { top: 100%; opacity: 0; }
-}
-.topology-bottom-row {
-  display: flex;
-  width: 100%;
-  gap: 20px;
-  align-items: center;
-  margin-top: 10px;
-}
-.topology-horizontal-arrow {
-  width: 60px;
-  height: 2px;
-  background: #cbd5e1;
-  position: relative;
-}
-.wire-pulse.horizontal.active {
-  animation: pulseRight 1.5s infinite linear;
-}
-@keyframes pulseRight {
-  0% { left: 0; top: -2px; opacity: 1; }
-  100% { left: 100%; top: -2px; opacity: 0; }
-}
-
-/* ============================================================================
-   ALERTS VIEW STYLES
-   ============================================================================ */
-.alert-active-hero-box {
-  background: #fffbeb;
-  border: 1px solid #fde68a;
-  border-left: 4px solid #f59e0b;
-}
-.hero-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.alert-hero-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: #fef3c7;
-  color: #d97706;
-  display: grid;
-  place-items: center;
-}
-.alert-hero-icon.pulse {
-  animation: pulseRing 1.5s infinite;
-}
-@keyframes pulseRing {
-  0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
-}
-.sla-timer-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #fef3c7;
-  border: 1px solid #fde68a;
-  color: #92400e;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 700;
-}
-.hero-actions-bar {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.all-clear-banner {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-left: 4px solid #16a34a;
-}
-
-/* ============================================================================
-   INSIGHTS & HEATMAP STYLES
-   ============================================================================ */
-.ai-insight-highlight-box {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-left: 4px solid #0284c7;
-}
-.heatmap-scroll-area {
-  overflow-x: auto;
-  padding-bottom: 8px;
-}
-.heatmap-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.routine-timeline-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.routine-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 10px 14px;
-  border-radius: 8px;
-}
-.routine-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  display: grid;
-  place-items: center;
-}
-.routine-icon.morning { background: #fef3c7; color: #d97706; }
-.routine-icon.day { background: #e0f2fe; color: #0284c7; }
-.routine-icon.night { background: #e0e7ff; color: #4f46e5; }
-.routine-info strong { display: block; font-size: 13px; color: #0f172a; }
-
-/* Global Site Selector & Health Pill in Topbar */
-.site-selector-container {
-  position: relative;
-}
-.site-selector-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 6px 12px;
-  cursor: pointer;
-  text-align: left;
-}
-.site-selector-btn:hover {
-  background: #e2e8f0;
-}
-.site-selector-text strong {
-  display: block;
-  font-size: 13px;
-  color: #0f172a;
-}
-.site-selector-text small {
-  display: block;
-  font-size: 10px;
-  color: #10b981;
-  font-weight: 600;
-}
-.site-dropdown-menu {
-  position: absolute;
-  top: 48px;
-  left: 0;
-  width: 240px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  z-index: 50;
-  padding: 6px 0;
-}
-.site-dropdown-header {
-  font-size: 10px;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  padding: 6px 12px;
-  border-bottom: 1px solid #f1f5f9;
-}
-.site-dropdown-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  cursor: pointer;
-}
-.site-dropdown-item:hover {
-  background: #f8fafc;
-}
-.site-dropdown-item.active {
-  background: #f0f9ff;
-}
-.system-health-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-.health-pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #16a34a;
-  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.3);
-}
-.search-input-field {
-  background: transparent;
-  border: none;
-  outline: none;
-  font-size: 13px;
-  width: 100%;
-  color: #1e293b;
 }
 

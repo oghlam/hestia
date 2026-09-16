@@ -52,9 +52,12 @@
 html, body {
   margin: 0;
   padding: 0;
+  width: 100%;
+  max-width: 100vw;
   height: 100vh;
   max-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: hidden;
   font-family: var(--font-sans);
   background-color: var(--bg-app);
   color: var(--text-primary);
@@ -63,6 +66,8 @@ html, body {
 }
 
 #root {
+  width: 100%;
+  max-width: 100vw;
   height: 100vh;
   max-height: 100vh;
   overflow: hidden;
@@ -92,6 +97,7 @@ button, input, select, textarea {
   height: 100vh;
   max-height: 100vh;
   width: 100%;
+  max-width: 100vw;
   overflow: hidden;
   background-color: var(--bg-app);
 }
@@ -100,6 +106,8 @@ button, input, select, textarea {
   display: flex;
   flex: 1;
   min-width: 0;
+  width: 100%;
+  max-width: 100vw;
   height: calc(100vh - 52px);
   max-height: calc(100vh - 52px);
   overflow: hidden;
@@ -450,15 +458,12 @@ button, input, select, textarea {
 .main-content {
   flex: 1;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
   height: 100%;
   overflow-y: auto;
-  background-color: var(--bg-app);
-}
-
-.main-content {
-  flex: 1;
-  min-width: 0;
-  overflow-y: auto;
+  overflow-x: hidden;
+  box-sizing: border-box;
   background-color: var(--bg-app);
 }
 
@@ -558,15 +563,21 @@ button, input, select, textarea {
    ========================================================================== */
 
 .page {
+  width: 100%;
   max-width: 1420px;
   margin: 0 auto;
-  padding: 16px 20px 28px;
+  padding: 14px 16px 28px;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .page-view {
-  padding: 16px 20px 28px;
+  width: 100%;
   max-width: 1420px;
   margin: 0 auto;
+  padding: 14px 16px 28px;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .view-header {
@@ -1618,32 +1629,39 @@ button, input, select, textarea {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-/* Controller Table Box */
+/* Controller Table Box - Fully Responsive with Horizontal Touch Scroll */
 .controller-table-box {
   padding: 0;
-  overflow: hidden;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  display: block;
 }
 
 .controller-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .controller-table th {
   text-align: left;
-  padding: 12px 16px;
+  padding: 10px 14px;
   background: var(--bg-subtle);
   color: var(--text-muted);
   font-weight: 700;
   border-bottom: 1px solid var(--border-color);
+  white-space: nowrap;
 }
 
 .controller-table td {
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border-light);
   color: var(--text-primary);
   vertical-align: middle;
+  white-space: nowrap;
 }
 
 .interactive-row {
@@ -1758,35 +1776,39 @@ button, input, select, textarea {
 }
 
 /* ==========================================================================
-   TOPOLOGY VIEW STYLES
+   TOPOLOGY VIEW STYLES - Mobile Compatible & No Side Overflow
    ========================================================================== */
 
 .topology-canvas-container {
-  padding: 24px;
+  padding: 14px;
   background: #ffffff;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .topology-legend {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 24px;
-  padding-bottom: 14px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border-light);
 }
 
 .legend-item {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
+  gap: 5px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--text-secondary);
 }
 
 .legend-dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 
@@ -1800,50 +1822,56 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
 }
 
 .topology-tier {
   width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .tier-badge {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 800;
   color: var(--text-muted);
   letter-spacing: 0.08em;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   text-transform: uppercase;
 }
 
 .tier-nodes-row {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
   width: 100%;
+  max-width: 100%;
 }
 
 .topology-node-card {
   background: #ffffff;
   border: 1.5px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   cursor: pointer;
-  min-width: 240px;
-  max-width: 300px;
+  min-width: 0;
+  width: calc(33.333% - 10px);
+  max-width: 100%;
+  box-sizing: border-box;
   transition: all 0.15s ease;
   box-shadow: var(--shadow-sm);
 }
 
 .topology-node-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
   border-color: #93c5fd;
 }
@@ -1851,12 +1879,12 @@ button, input, select, textarea {
 .topology-node-card.selected {
   border-color: var(--color-primary);
   background: var(--color-primary-subtle);
-  box-shadow: 0 4px 14px rgba(0, 92, 245, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 92, 245, 0.12);
 }
 
 .node-icon-circle {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--bg-subtle);
   display: grid;
@@ -1878,13 +1906,16 @@ button, input, select, textarea {
 
 .node-text strong {
   display: block;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .node-text small {
   display: block;
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
@@ -1893,7 +1924,7 @@ button, input, select, textarea {
 
 .topology-connector-wire {
   width: 2px;
-  height: 24px;
+  height: 18px;
   background: #cbd5e1;
   position: relative;
   overflow: hidden;
@@ -1904,7 +1935,7 @@ button, input, select, textarea {
   top: 0;
   left: 0;
   width: 100%;
-  height: 8px;
+  height: 6px;
   background: #3b82f6;
   opacity: 0;
 }
@@ -1915,23 +1946,24 @@ button, input, select, textarea {
 }
 
 @keyframes wirePulseDown {
-  0% { transform: translateY(-10px); }
-  100% { transform: translateY(30px); }
+  0% { transform: translateY(-8px); }
+  100% { transform: translateY(24px); }
 }
 
 .topology-bottom-row {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   width: 100%;
-  max-width: 760px;
+  max-width: 100%;
 }
 
 .topology-horizontal-arrow {
   height: 2px;
-  width: 40px;
+  width: 30px;
   background: #cbd5e1;
   position: relative;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
@@ -1941,6 +1973,11 @@ button, input, select, textarea {
 .alert-active-hero-box {
   border: 1.5px solid #fecaca;
   background: #fff5f5;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
 }
 
 .hero-top-row {
@@ -1948,12 +1985,12 @@ button, input, select, textarea {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
 .alert-hero-icon {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #fee2e2;
   color: var(--color-danger);
@@ -1965,34 +2002,38 @@ button, input, select, textarea {
 .sla-timer-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: #fee2e2;
   color: #991b1b;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  padding: 6px 12px;
-  border-radius: var(--radius-md);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
   border: 1px solid #fca5a5;
 }
 
 .hero-actions-bar {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .all-clear-banner {
   background: #f0fdf4;
   border-color: #bbf7d0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
 }
 
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 11px;
+  gap: 5px;
+  font-size: 10.5px;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 2px 7px;
   border-radius: var(--radius-full);
 }
 
@@ -2007,8 +2048,8 @@ button, input, select, textarea {
 }
 
 .status-pill .dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: currentColor;
 }
@@ -2020,15 +2061,25 @@ button, input, select, textarea {
 .ai-insight-highlight-box {
   background: #fffbeb;
   border-color: #fde68a;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
 }
 
 .heatmap-scroll-area {
+  width: 100%;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  display: block;
   padding-bottom: 6px;
 }
 
 .heatmap-table {
   width: 100%;
+  min-width: 580px;
   border-collapse: separate;
   border-spacing: 2px;
 }
@@ -2456,14 +2507,15 @@ button, input, select, textarea {
     top: 52px;
     left: 0;
     bottom: 0;
-    width: 72px;
+    width: 66px;
     height: calc(100vh - 52px) !important;
     background: #ffffff;
     transform: translateX(-100%);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 1000;
-    box-shadow: var(--shadow-xl);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
     border-right: 1px solid var(--border-color);
+    padding: 6px 0;
   }
 
   .sidebar.open {
