@@ -260,7 +260,9 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
         <button onClick={() => window.history.back()} title="Back to Dashboard">
           <ChevronLeft size={22} />
         </button>
-        <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
+        <div className="validator-header-logo">
+          <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
+        </div>
         <button
           onClick={() => {
             setDrawerOpen(true)
@@ -528,10 +530,10 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
               {elderName} · {elderRoomName}
             </p>
 
-            {/* Note from AI (Amazon Nova Micro) */}
+            {/* Note from AI */}
             <div className="validator-ai-box">
               <div className="validator-ai-header">
-                <Sparkles size={12} /> Amazon Nova Micro Context
+                <Sparkles size={12} /> AI
               </div>
               <p>{aiNote}</p>
             </div>

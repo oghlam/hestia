@@ -1,0 +1,26 @@
+{
+  "name": "HESTIA — Elder Care Command Center",
+  "short_name": "HESTIA",
+  "description": "Elder Care Fast Action Validator & Real-time Telemetry Command Center for Ring Devices",
+  "start_url": "/?view=validator",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f2f2f7",
+  "theme_color": "#0f172a",
+  "categories": ["medical", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "/logo/hestia_pwa_192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo/hestia_pwa_512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
