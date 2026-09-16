@@ -36,14 +36,20 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header className="topbar">
+        {/* Mobile Hamburger Menu Toggle Button */}
+        <button
+          className="mobile-menu"
+          onClick={() => setMenuOpen(!menuOpen)}
+          title="Toggle Navigation Menu"
+          aria-label="Toggle navigation menu"
+        >
+          <Menu size={22} strokeWidth={2.2} />
+        </button>
+
         {/* Logo Hestia di Sudut Kiri Atas */}
         <div className="topbar-logo-area">
           <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
         </div>
-
-        <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)}>
-          <Menu size={20} strokeWidth={2} />
-        </button>
 
         {/* Site Identity Badge - Flat Design */}
         <div className="site-identity-badge">
