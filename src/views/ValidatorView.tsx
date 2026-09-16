@@ -550,27 +550,35 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
                 </span>
               </div>
 
-              {/* Room Snapshot Silhouette Background */}
-              <svg
-                style={{ width: '100%', height: '100%' }}
-                viewBox="0 0 640 400"
-                preserveAspectRatio="xMidYMid slice"
-              >
-                <defs>
-                  <linearGradient id="val-cam-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#1e293b" />
-                    <stop offset="100%" stopColor="#0f172a" />
-                  </linearGradient>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#val-cam-bg)" />
-                <line x1="0" y1="280" x2="640" y2="280" stroke="#334155" strokeWidth="2" />
-                <line x1="120" y1="280" x2="0" y2="400" stroke="#1e293b" strokeWidth="2" />
-                <line x1="520" y1="280" x2="640" y2="400" stroke="#1e293b" strokeWidth="2" />
-                <rect x="80" y="220" width="160" height="70" rx="8" fill="#334155" opacity="0.6" />
-                <rect x="400" y="210" width="160" height="80" rx="8" fill="#334155" opacity="0.6" />
-                <circle cx="320" cy="180" r="28" fill="#64748b" opacity="0.85" />
-                <path d="M 280 280 C 280 220, 360 220, 360 280 Z" fill="#64748b" opacity="0.85" />
-              </svg>
+              {/* Room Snapshot or Live Camera Feed / Snapshot */}
+              {activeScene?.snapshotUrl ? (
+                <img
+                  src={activeScene.snapshotUrl}
+                  alt={elderRoomName}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <svg
+                  style={{ width: '100%', height: '100%' }}
+                  viewBox="0 0 640 400"
+                  preserveAspectRatio="xMidYMid slice"
+                >
+                  <defs>
+                    <linearGradient id="val-cam-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#1e293b" />
+                      <stop offset="100%" stopColor="#0f172a" />
+                    </linearGradient>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#val-cam-bg)" />
+                  <line x1="0" y1="280" x2="640" y2="280" stroke="#334155" strokeWidth="2" />
+                  <line x1="120" y1="280" x2="0" y2="400" stroke="#1e293b" strokeWidth="2" />
+                  <line x1="520" y1="280" x2="640" y2="400" stroke="#1e293b" strokeWidth="2" />
+                  <rect x="80" y="220" width="160" height="70" rx="8" fill="#334155" opacity="0.6" />
+                  <rect x="400" y="210" width="160" height="80" rx="8" fill="#334155" opacity="0.6" />
+                  <circle cx="320" cy="180" r="28" fill="#64748b" opacity="0.85" />
+                  <path d="M 280 280 C 280 220, 360 220, 360 280 Z" fill="#64748b" opacity="0.85" />
+                </svg>
+              )}
 
               {/* Biometric Bounding Box Overlay */}
               <div
