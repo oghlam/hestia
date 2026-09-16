@@ -3,6 +3,7 @@ import {
   Activity,
   AlertTriangle,
   Bell,
+  Building2,
   Camera,
   CameraOff,
   CheckCircle2,
@@ -41,8 +42,8 @@ import { AssetsView } from './AssetsView'
 export interface SettingsViewProps {
   systemSettings: SystemSettings
   setSystemSettings: React.Dispatch<React.SetStateAction<SystemSettings>>
-  settingsSubTab: 'pipeline' | 'devices' | 'profile_address' | 'database' | 'maintenance' | 'assets'
-  setSettingsSubTab: (tab: 'pipeline' | 'devices' | 'profile_address' | 'database' | 'maintenance' | 'assets') => void
+  settingsSubTab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets'
+  setSettingsSubTab: (tab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets') => void
   pipelineFeedback: string | null
   maintenanceFeedback: string | null
   // Camera & Pipeline Studio
@@ -175,7 +176,53 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const activeFeedback = pipelineFeedback || maintenanceFeedback
 
   return (
-    <div className="page-view">
+    <div className="settings-layout-container">
+      {/* Settings Secondary Submenu Sidebar with Labels (UniFi Controller Model) */}
+      <aside className="settings-secondary-sidebar">
+        <div className="settings-sidebar-header">
+          <span>SETTINGS MENU</span>
+        </div>
+        <nav className="settings-sidebar-nav">
+          <button
+            className={`settings-nav-item ${settingsSubTab === 'profile_address' ? 'active' : ''}`}
+            onClick={() => setSettingsSubTab('profile_address')}
+          >
+            <Building2 size={15} />
+            <span>General</span>
+          </button>
+          <button
+            className={`settings-nav-item ${settingsSubTab === 'pipeline' ? 'active' : ''}`}
+            onClick={() => setSettingsSubTab('pipeline')}
+          >
+            <SlidersHorizontal size={15} />
+            <span>Pipeline Studio</span>
+          </button>
+          <button
+            className={`settings-nav-item ${settingsSubTab === 'database' ? 'active' : ''}`}
+            onClick={() => setSettingsSubTab('database')}
+          >
+            <Database size={15} />
+            <span>Database Profile</span>
+          </button>
+          <button
+            className={`settings-nav-item ${settingsSubTab === 'assets' ? 'active' : ''}`}
+            onClick={() => setSettingsSubTab('assets')}
+          >
+            <Cloud size={15} />
+            <span>Assets & Media</span>
+          </button>
+          <button
+            className={`settings-nav-item ${settingsSubTab === 'maintenance' ? 'active' : ''}`}
+            onClick={() => setSettingsSubTab('maintenance')}
+          >
+            <Wrench size={15} />
+            <span>System Health</span>
+          </button>
+        </nav>
+      </aside>
+
+      {/* Main Settings Content Area */}
+      <div className="settings-content-area page-view" style={{ flex: 1, padding: '28px 36px' }}>
       <div className="view-header">
         <div>
           <h1>Device Ingestion Pipeline & Settings</h1>
@@ -187,46 +234,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </span>
         )}
       </div>
-
-       {/* Sub-Tab Navigation Switcher */}
-       <div className="view-subtabs">
-         <button
-           className={`subtab-btn ${settingsSubTab === 'pipeline' ? 'active' : ''}`}
-           onClick={() => setSettingsSubTab('pipeline')}
-         >
-           <SlidersHorizontal size={14} /> Active Device Pipeline Studio
-         </button>
-         <button
-           className={`subtab-btn ${settingsSubTab === 'devices' ? 'active' : ''}`}
-           onClick={() => setSettingsSubTab('devices')}
-         >
-           <Radio size={14} /> Master Ring Devices
-         </button>
-         <button
-           className={`subtab-btn ${settingsSubTab === 'database' ? 'active' : ''}`}
-           onClick={() => setSettingsSubTab('database')}
-         >
-           <Database size={14} /> Database Profile
-         </button>
-         <button
-           className={`subtab-btn ${settingsSubTab === 'profile_address' ? 'active' : ''}`}
-           onClick={() => setSettingsSubTab('profile_address')}
-         >
-           <MapPin size={14} /> Home Address Profile
-         </button>
-         <button
-           className={`subtab-btn ${settingsSubTab === 'assets' ? 'active' : ''}`}
-           onClick={() => setSettingsSubTab('assets')}
-         >
-           <Cloud size={14} /> Assets & Media
-         </button>
-         <button
-           className={`subtab-btn ${settingsSubTab === 'maintenance' ? 'active' : ''}`}
-           onClick={() => setSettingsSubTab('maintenance')}
-         >
-           <Wrench size={14} /> Maintenance & System Health
-         </button>
-       </div>
 
        {/* 1. PIPELINE SUBTAB */}
       {settingsSubTab === 'pipeline' && (
@@ -756,115 +763,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           )}
         </>
-      )}
-
-      {/* 2. MASTER RING DEVICES SUBTAB */}
-      {settingsSubTab === 'devices' && (
-        <div className="card-box">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '16px', color: '#0f172a' }}>Master Ring Device Registry</h3>
-              <p style={{ fontSize: '13px', color: '#64748b', margin: '4px 0 0 0' }}>
-                Hardware catalog of registered Ring cameras, doorbells, and perimeter sensors (Vendor, Model, MAC Address).
-              </p>
-            </div>
-            <button
-              type="button"
-              className="sim-button"
-              onClick={() => {
-                const mac = prompt('Enter Device MAC Address (e.g. 9C:76:13:A1:B2:C3):')
-                if (!mac) return
-                const model = prompt('Enter Device Model (Indoor Cam, Stick Up Cam, Video Doorbell, Floodlight Cam):', 'Indoor Cam') as any
-                if (!model) return
-                const series = prompt('Enter Series (Plus, Pro, Elite, Standard):', 'Plus') as any
-                onAddMasterDevice?.({
-                  macAddress: mac.trim(),
-                  vendor: 'Ring',
-                  model,
-                  series: series || 'Plus',
-                  modelCode: `RING-${model.toUpperCase().replace(/\s+/g, '-')}`,
-                  signalDbm: 'Good · -55 dBm',
-                  status: 'online',
-                })
-              }}
-            >
-              + Register Master Device
-            </button>
-          </div>
-
-          <table className="table-responsive">
-            <thead>
-              <tr>
-                <th>Hardware Device</th>
-                <th>Model Code & Series</th>
-                <th>MAC Address</th>
-                <th>Paired Room</th>
-                <th>Signal Telemetry</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {masterDevices.length === 0 ? (
-                <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '24px', color: '#64748b' }}>
-                    No master Ring devices registered. Click "+ Register Master Device" above to add hardware.
-                  </td>
-                </tr>
-              ) : (
-                masterDevices.map((dev) => {
-                  const pairedRoom = displayRooms.find((r) => r.deviceId === dev.id || r.id === dev.assignedRoomId)
-                  return (
-                    <tr key={dev.id}>
-                      <td>
-                        <strong style={{ color: '#0f172a' }}>{dev.vendor} {dev.model}</strong>
-                        <small style={{ display: 'block', color: '#64748b', fontSize: '11px' }}>Firmware: {dev.firmwareVersion}</small>
-                      </td>
-                      <td>
-                        <span className="badge normal" style={{ fontSize: '11px' }}>{dev.series}</span>
-                        <code style={{ marginLeft: '6px', fontSize: '11px' }}>{dev.modelCode}</code>
-                      </td>
-                      <td>
-                        <code style={{ fontWeight: 600 }}>{dev.macAddress}</code>
-                      </td>
-                      <td>
-                        {pairedRoom ? (
-                          <span style={{ fontWeight: 600, color: '#0284c7' }}>
-                            📍 {pairedRoom.name}
-                          </span>
-                        ) : (
-                          <span style={{ color: '#94a3b8', fontSize: '12px' }}>Unassigned (Available)</span>
-                        )}
-                      </td>
-                      <td>
-                        <span className="coord-badge" style={{ fontSize: '11px' }}>{dev.signalDbm || 'Good · -55 dBm'}</span>
-                      </td>
-                      <td>
-                        <span className={`badge ${dev.status === 'paired' || dev.status === 'online' ? 'normal' : 'watch'}`}>
-                          {dev.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="btn-icon-action danger"
-                          title="Delete Device"
-                          onClick={() => {
-                            if (confirm(`Remove device ${dev.macAddress}?`)) {
-                              onDeleteMasterDevice?.(dev.id)
-                            }
-                          }}
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
       )}
 
       {/* 2. DATABASE SUBTAB */}
@@ -1459,6 +1357,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           isLoading={isAssetsLoading}
         />
       )}
+      </div>
     </div>
   )
 }

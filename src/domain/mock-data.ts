@@ -13,7 +13,20 @@ import type {
   SceneEvent,
 } from './contracts'
 
-export type TabKey = 'overview' | 'rooms' | 'people' | 'events' | 'care_team' | 'automation' | 'settings'
+export type TabKey =
+  | 'overview'
+  | 'residents'
+  | 'rooms'
+  | 'devices'
+  | 'topology'
+  | 'alerts'
+  | 'events'
+  | 'insights'
+  | 'settings'
+  | 'people'
+  | 'care_team'
+  | 'automation'
+  | 'assets'
 export type Scene = 'Normal' | 'Watch' | 'Help' | 'Critical'
 
 export const sceneLabels: Record<SceneEvent['scene'], Scene> = {

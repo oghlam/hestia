@@ -1,5 +1,5 @@
 import React from 'react'
-import { Bell, ChevronDown, ExternalLink, Menu, Search, X } from 'lucide-react'
+import { Building2, Bell, ChevronDown, Menu, Search, X } from 'lucide-react'
 import type { CareTeamMember, NotificationItem } from '../../domain/contracts'
 
 export interface HeaderProps {
@@ -10,6 +10,9 @@ export interface HeaderProps {
   notifications: NotificationItem[]
   mariaAvatarUrl: string
   mariaMember?: CareTeamMember
+  activeSiteName?: string
+  onSelectSite?: (siteName: string) => void
+  onSearch?: (query: string) => void
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -20,32 +23,65 @@ export const Header: React.FC<HeaderProps> = ({
   notifications,
   mariaAvatarUrl,
   mariaMember,
+  activeSiteName = 'Greenwood Residence',
+  onSearch,
 }) => {
+  const [searchValue, setSearchValue] = React.useState('')
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchValue(e.target.value)
+    if (onSearch) onSearch(e.target.value)
+  }
+
   return (
     <>
       <header className="topbar">
-        <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)}>
-          <Menu size={20} />
-        </button>
-        <div className="search">
-          <Search size={17} />
-          <span>Search people, rooms, events...</span>
+        {/* Logo Hestia di Sudut Kiri Atas */}
+        <div className="topbar-logo-area">
+          <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
         </div>
-        <div className="top-right">
 
-          <span className="online">
-            <i /> All Systems Online
-          </span>
+        <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)}>
+          <Menu size={20} strokeWidth={2} />
+        </button>
+
+        {/* Site Identity Badge - Flat Design */}
+        <div className="site-identity-badge">
+          <Building2 size={16} className="text-primary" strokeWidth={2} />
+          <div className="site-identity-text">
+            <strong>{activeSiteName}</strong>
+            <small>Active Site Online</small>
+          </div>
+        </div>
+
+        {/* Global Search Bar - Compact & Flat */}
+        <div className="search">
+          <Search size={15} strokeWidth={2} />
+          <input
+            type="text"
+            placeholder="Search residents, devices, MAC, events..."
+            value={searchValue}
+            onChange={handleSearchChange}
+            className="search-input-field"
+          />
+        </div>
+
+        {/* Top Right System Status & Profile - Extra Compact */}
+        <div className="top-right">
+          <div className="system-health-pill" title="Ring Cloud & AWS Bedrock latency: 18ms">
+            <span className="health-pulse-dot" />
+            <span>Systems Optimal · 18ms</span>
+          </div>
           <button className="notification" onClick={() => setNotice(!notice)}>
-            <Bell size={21} />
+            <Bell size={17} strokeWidth={2} />
             {notifications.length > 0 && <b>{notifications.length}</b>}
           </button>
           <img src={mariaAvatarUrl} alt="Maria" className="profile-avatar-img" />
           <div className="profile">
             <strong>{mariaMember?.name ? mariaMember.name.split(' ')[0] : 'Maria'}</strong>
-            <small>Family Caregiver</small>
+            <small>Primary Caregiver</small>
           </div>
-          <ChevronDown size={15} />
+          <ChevronDown size={12} strokeWidth={2} />
         </div>
       </header>
 

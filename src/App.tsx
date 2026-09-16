@@ -21,6 +21,7 @@ import type {
   AuditLogEntry,
   NotificationItem,
   SceneEvent,
+  ValidatorAction,
 } from './domain/contracts'
 
 import { SettingsView } from './views/SettingsView'
@@ -32,8 +33,15 @@ import {
   CareTeamView,
   AutomationView,
   ValidatorView,
+  DevicesView,
+  TopologyView,
+  AlertsView,
+  InsightsView,
 } from './views'
 import { PreloadScreen } from './components/layout/PreloadScreen'
+import { Sidebar } from './components/layout/Sidebar'
+import { Header } from './components/layout/Header'
+import { ContextualDrawer, type DrawerEntity } from './components/layout/ContextualDrawer'
 
 import {
   RoomModal,
@@ -44,6 +52,7 @@ import {
   AutomationRuleModal,
   EventInspectionModal,
   AlertSimulatorModal,
+  MasterDeviceModal,
 } from './components/modals'
 
 import {
@@ -111,6 +120,9 @@ export function App() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([])
   const [accessLogs, setAccessLogs] = useState<AccessLogEntry[]>([])
+  const [activeSiteName, setActiveSiteName] = useState('Greenwood Residence')
+  const [selectedDrawerEntity, setSelectedDrawerEntity] = useState<DrawerEntity | null>(null)
+  const [isMasterDeviceModalOpen, setIsMasterDeviceModalOpen] = useState(false)
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
   // Real Initial Preload State
@@ -400,11 +412,26 @@ export function App() {
     }
   }
 
+  const handleAlertAction = async (alertId: string, action: ValidatorAction) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/alerts/${alertId}/actions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        await fetchData()
+      }
+    } catch (e) {
+      console.error('Alert action error:', e)
+    }
+  }
+
   // ============================================================================
   // RENDER
   // ============================================================================
   return (
-    <div className="dashboard-shell">
+    <div className="dashboard-shell-layout">
       {/* Real Preload Screen on Initial Boot / API Hydration */}
       {showPreloader && (
         <PreloadScreen
@@ -415,120 +442,42 @@ export function App() {
         />
       )}
 
-      {/* Mobile Backdrop Overlay */}
-      {menuOpen && (
-        <div
-          className="sidebar-backdrop"
-          onClick={() => setMenuOpen(false)}
+      {/* Top Banner Header with Logo (No Tagline) and Caregiver Profile & Systems */}
+      <Header
+        menuOpen={menuOpen}
+        setMenuOpen={setMenuOpen}
+        notice={notice}
+        setNotice={setNotice}
+        notifications={notifications}
+        mariaAvatarUrl={mariaAvatarUrl}
+        mariaMember={mariaMember || undefined}
+        activeSiteName={activeSiteName}
+        onSelectSite={(site) => {
+          setActiveSiteName(site)
+          systemSettings.setSystemSettings((prev) => ({ ...prev, homeName: site }))
+        }}
+      />
+
+      <div className="dashboard-body-row">
+        {/* Mobile Backdrop Overlay */}
+        {menuOpen && (
+          <div
+            className="sidebar-backdrop"
+            onClick={() => setMenuOpen(false)}
+          />
+        )}
+
+        {/* Left Icon-only Sidebar separated from header */}
+        <Sidebar
+          menuOpen={menuOpen}
+          setMenuOpen={setMenuOpen}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          homeName={systemSettings.systemSettings.homeName || activeSiteName}
+          homeId={systemSettings.systemSettings.homeId || 'HGW-001'}
         />
-      )}
 
-      <aside className={menuOpen ? 'sidebar open' : 'sidebar'}>
-        <div className="brand">
-          <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
-          <span>ELDER CARE FOR RING</span>
-        </div>
-        <nav className="primary-nav">
-          <a
-            className={activeTab === 'overview' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('overview')
-              setMenuOpen(false)
-            }}
-          >
-            <House size={18} /> Overview
-          </a>
-          <a
-            className={activeTab === 'rooms' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('rooms')
-              setMenuOpen(false)
-            }}
-          >
-            <Monitor size={18} /> Rooms
-          </a>
-          <a
-            className={activeTab === 'people' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('people')
-              setMenuOpen(false)
-            }}
-          >
-            <Users size={18} /> People
-          </a>
-          <a
-            className={activeTab === 'events' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('events')
-              setMenuOpen(false)
-            }}
-          >
-            <CalendarDays size={18} /> Events
-          </a>
-          <a
-            className={activeTab === 'care_team' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('care_team')
-              setMenuOpen(false)
-            }}
-          >
-            <UserCheck size={18} /> Care Team
-          </a>
-          <a
-            className={activeTab === 'automation' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('automation')
-              setMenuOpen(false)
-            }}
-          >
-            <Activity size={18} /> Automation
-          </a>
-          <a
-            className={activeTab === 'settings' ? 'active' : ''}
-            onClick={() => {
-              setActiveTab('settings')
-              setMenuOpen(false)
-            }}
-          >
-            <Settings size={18} /> Settings
-          </a>
-        </nav>
-        <div className="home-switcher">
-          <div className="home-photo">⌂</div>
-          <div>
-            <strong>{systemSettings.systemSettings.homeName || 'Greenwood Home'}</strong>
-            <small>Home ID · {systemSettings.systemSettings.homeId || 'HGW-001'}</small>
-          </div>
-          <ChevronDown size={15} />
-        </div>
-      </aside>
-
-      <main className="main-content">
-        <header className="topbar">
-          <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)}>
-            <Menu size={20} />
-          </button>
-          <div className="search">
-            <Search size={17} />
-            <span>Search people, rooms, events...</span>
-          </div>
-          <div className="top-right">
-
-            <span className="online">
-              <i /> All Systems Online
-            </span>
-            <button className="notification" onClick={() => setNotice(!notice)}>
-              <Bell size={21} />
-              {notifications.length > 0 && <b>{notifications.length}</b>}
-            </button>
-            <img src={mariaAvatarUrl} alt="Maria" className="profile-avatar-img" />
-            <div className="profile">
-              <strong>{mariaMember?.name ? mariaMember.name.split(' ')[0] : 'Maria'}</strong>
-              <small>Family Caregiver</small>
-            </div>
-            <ChevronDown size={15} />
-          </div>
-        </header>
+        <main className="main-content">
 
         {notice && (
           <div className="notification-popover">
@@ -620,8 +569,8 @@ export function App() {
           />
         )}
 
-        {/* ROUTE 3: PEOPLE VIEW */}
-        {activeTab === 'people' && (
+        {/* ROUTE 3: PEOPLE / RESIDENTS VIEW */}
+        {(activeTab === 'people' || activeTab === 'residents') && (
           <PeopleView
             peopleSubTab={peopleSubTab}
             setPeopleSubTab={setPeopleSubTab}
@@ -632,6 +581,46 @@ export function App() {
             handleSetPrimaryResident={residents.handleSetPrimaryResident}
             openEditResident={residents.openEditResident}
             handleDeleteResident={residents.handleDeleteResident}
+          />
+        )}
+
+        {/* ROUTE: DEVICES VIEW */}
+        {activeTab === 'devices' && (
+          <DevicesView
+            devices={ringDevicesHook.devices}
+            rooms={displayRooms}
+            onOpenAddModal={() => setIsMasterDeviceModalOpen(true)}
+            onDeleteDevice={ringDevicesHook.deleteDevice}
+            onSelectDeviceForDrawer={(entity) => setSelectedDrawerEntity(entity)}
+            onPingDevice={() => {
+              systemSettings.setPipelineFeedback('Subnet Scan complete: 4 Ring hardware online')
+              setTimeout(() => systemSettings.setPipelineFeedback(null), 3000)
+            }}
+          />
+        )}
+
+        {/* ROUTE: TOPOLOGY VIEW */}
+        {activeTab === 'topology' && (
+          <TopologyView
+            onSelectNodeForDrawer={(entity) => setSelectedDrawerEntity(entity)}
+          />
+        )}
+
+        {/* ROUTE: ALERTS VIEW */}
+        {activeTab === 'alerts' && (
+          <AlertsView
+            alerts={alerts}
+            onAction={handleAlertAction}
+            onTriggerSimulator={() => setIsAlertSimulatorOpen(true)}
+            onSelectAlertForDrawer={(entity) => setSelectedDrawerEntity(entity)}
+          />
+        )}
+
+        {/* ROUTE: INSIGHTS VIEW */}
+        {activeTab === 'insights' && (
+          <InsightsView
+            primaryResident={primaryResidentObj || undefined}
+            rooms={displayRooms}
           />
         )}
 
@@ -863,7 +852,31 @@ export function App() {
           displayRooms={displayRooms}
           handleRunDynamicSimulation={handleRunDynamicSimulation}
         />
+
+        <MasterDeviceModal
+          isOpen={isMasterDeviceModalOpen}
+          onClose={() => setIsMasterDeviceModalOpen(false)}
+          onSave={ringDevicesHook.addDevice}
+        />
+
+        <ContextualDrawer
+          entity={selectedDrawerEntity}
+          onClose={() => setSelectedDrawerEntity(null)}
+          onAction={(actionName, entity) => {
+            if (actionName === 'validate_coming' && entity.type === 'alert') {
+              handleAlertAction(entity.data.alertId, 'COMING')
+              setSelectedDrawerEntity(null)
+            } else if (actionName === 'trigger_siren' && entity.type === 'alert') {
+              handleAlertAction(entity.data.alertId, 'SIREN')
+              setSelectedDrawerEntity(null)
+            } else if (actionName === 'ping_device' && entity.type === 'device') {
+              systemSettings.setPipelineFeedback(`Device ${entity.data.model} (${entity.data.ipAddress}) responding · 12ms`)
+              setTimeout(() => systemSettings.setPipelineFeedback(null), 3500)
+            }
+          }}
+        />
       </main>
+      </div>
     </div>
   )
 }

@@ -81,7 +81,7 @@ export const initialDefaultArchives: AuditArchiveFile[] = [
 
 export interface UseSystemSettingsReturn {
   systemSettings: SystemSettings
-  settingsSubTab: 'pipeline' | 'devices' | 'profile_address' | 'database' | 'maintenance' | 'assets'
+  settingsSubTab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets'
   isDbTesting: boolean
   dbTestResult: { ok: boolean; message: string; latencyMs?: number } | null
   isWebhookTesting: boolean
@@ -108,7 +108,7 @@ export interface UseSystemSettingsReturn {
   archivedLogs: AuditArchiveFile[]
 
   setSystemSettings: React.Dispatch<React.SetStateAction<SystemSettings>>
-  setSettingsSubTab: (tab: 'pipeline' | 'devices' | 'profile_address' | 'database' | 'maintenance' | 'assets') => void
+  setSettingsSubTab: (tab: 'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets') => void
   setIsDbTesting: (testing: boolean) => void
   setDbTestResult: (result: { ok: boolean; message: string; latencyMs?: number } | null) => void
   setMaintenanceFeedback: (feedback: string | null) => void
@@ -174,7 +174,7 @@ export function useSystemSettings(): UseSystemSettingsReturn {
     return initialDefaultArchives
   })
 
-  const [settingsSubTab, setSettingsSubTab] = useState<'pipeline' | 'devices' | 'profile_address' | 'database' | 'maintenance' | 'assets'>('pipeline')
+  const [settingsSubTab, setSettingsSubTab] = useState<'pipeline' | 'profile_address' | 'database' | 'maintenance' | 'assets'>('pipeline')
   const [isDbTesting, setIsDbTesting] = useState(false)
   const [isDbSyncing, setIsDbSyncing] = useState(false)
   const [dbTestResult, setDbTestResult] = useState<{ ok: boolean; message: string; latencyMs?: number } | null>(null)

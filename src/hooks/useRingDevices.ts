@@ -12,6 +12,7 @@ const API_BASE =
 export function useRingDevices() {
   const [devices, setDevices] = useState<RingMasterDevice[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false)
 
   const fetchDevices = useCallback(async () => {
     try {
@@ -67,6 +68,8 @@ export function useRingDevices() {
   return {
     devices,
     isLoading,
+    isAddDeviceOpen,
+    setIsAddDeviceOpen,
     fetchDevices,
     addDevice,
     deleteDevice,
