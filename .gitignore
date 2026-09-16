@@ -57,3 +57,7 @@ dist/
 .vite/
 __pycache__/
 *.pyc
+
+# Internal production reference documents & media assets
+docs/references/
+docs/references/*
