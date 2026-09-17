@@ -61,3 +61,5 @@ __pycache__/
 # Internal production reference documents & media assets
 docs/references/
 docs/references/*
+docs/video/
+docs/video/*

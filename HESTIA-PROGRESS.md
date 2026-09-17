@@ -1,5 +1,11 @@
 # HESTIA — Implementation Progress
 
+## Submission & Presentation Assets (Completed)
+- [x] Captured 9 production-quality high-resolution screenshots (`01` through `07A`) integrated directly into `README.md` for GitHub visual presentation.
+- [x] Generated Master Broadcast Presentation Video (`docs/video/HESTIA-FINAL-BROADCAST-SUBMISSION.mp4`) with Veo 3 Intro, Christopher Neural Studio Narration, Animated Logo Overlay, and Broadcast News Ticker Subtitle.
+- [x] Updated `.gitignore` to exclude raw local video assets (`docs/video/`) from git tracking.
+- [x] Prepared complete Devpost submission guide (`devpost-submission.md`).
+
 ## Handoff checkpoint — closed
 - Sprint 1 vertical slice demo, API care-response loop, Validator demo, AWS target context, secret handling, dan instruksi lanjutan sudah terdokumentasi di `AGENTS.md`.
 - Tahap berikutnya dapat dilanjutkan dari `AGENTS.md` tanpa mengulang keputusan produk atau UI.

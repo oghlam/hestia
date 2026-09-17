@@ -48,6 +48,33 @@ HESTIA is designed as a calm elder-care operating system rather than a surveilla
 - [Dashboard mockup](docs/references/dashboard-mockup.png)
 - [Validator mobile mockup](docs/references/validator-mobile-mockup.png)
 
+## Visual Gallery & Screenshots
+
+Here is the visual walkthrough of the HESTIA platform across its core modules:
+
+### 1. Care Command Center Overview
+![Dashboard Overview](docs/screenshots/01-dashboard-overview.png)
+
+### 2. Event Inspection & Amazon Nova Micro AI Context
+![Event Inspection](docs/screenshots/02-event-inspection-nova-context.png)
+
+### 3. Fast-Action Validator PWA
+![Validator PWA](docs/screenshots/03-validator-pwa-action.png)
+
+### 4. Family Reassurance & Handled State
+![Family Reassurance](docs/screenshots/04-family-reassurance-resolved.png)
+
+### 5. Ring Hardware Registry & Webhook Integration
+![Ring Integration](docs/screenshots/05-ring-integration.png)
+
+### 6. Resident Face Studio & Multi-Angle Biometrics
+![Face Studio](docs/screenshots/06-resident-face-studio.png)
+![Face Studio Angle B](docs/screenshots/06A-resident-face-studio.png)
+
+### 7. Automation Rules Engine
+![Automation Rules](docs/screenshots/07-automation-rules.png)
+![Automation Rules Angle B](docs/screenshots/07A-automation-rules.png)
+
 ## Running the project
 
 Install dependencies and start the frontend shell:

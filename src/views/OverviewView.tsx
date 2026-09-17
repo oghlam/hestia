@@ -174,7 +174,11 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           <div>
             <small>Home Status</small>
             <strong style={{ color: activeAlert ? '#dc2626' : undefined }}>
-              {activeAlert ? `${activeAlert.scene.replace('_', ' ')} · Alert Active` : 'All systems OK'}
+              {activeAlert 
+                ? activeAlert.state === 'CARE_IN_PROGRESS' 
+                  ? 'CARE IN PROGRESS · Responding'
+                  : `${activeAlert.scene.replace('_', ' ')} · Alert Active`
+                : 'All systems OK'}
             </strong>
           </div>
         </div>
