@@ -265,6 +265,12 @@
   - [x] Generic neutral entity naming standard (*Elder*, *Caregiver*, *Resident Family*, *Nurse*, *Doctor*) across entire backend, database, and UI.
   - [x] Multi-angle Face Studio real frame grab & automatic JPEG asset cataloging.
   - [x] Adaptive device tooltip positioning and responsive Overview grid layout.
+- [x] Sub-Sprint M: Unified Startup Runner, Slide-Over Right Drawers, Spatial Heatmap & Dashboard Re-Architecture (Completed)
+  - [x] 1-Click Startup Runner: Native cross-platform script `scripts/start.js` (`npm start`) and Windows 1-click batch file `start.bat` executing Vite Frontend and Express Backend concurrently.
+  - [x] Topbar Header Polish: Search box removed, eye-catching "Validator PWA" button with light-edge smartphone styling added, compact right-aligned avatar with custom hover tooltip, and mobile-friendly responsive layout.
+  - [x] Resident Horizontal Split Cards: Multi-Angle Face Templates (3/3) sub-card with biometric calibration status and Right Drawer (Slide-Over Panel) for Register/Edit Resident.
+  - [x] Automation Rules 2-Column Balanced Grid: Parameter cards for AI Confidence, Trigger Zone, Active Window, SLA Policy, Target Action, and Family Reassurance with Pulldown Template selector in Right Drawer.
+  - [x] Overview Dashboard Spatial Re-Architecture: Today's Activity relocated to top-right sidebar with integrated Live Event Feed Legend, and 24-Hour Spatial Activity Heatmap paired symmetrically below Home Map.
 - [x] Full Test & Build Verification:
   - [x] Automated test suite `npm test` passing 100% (10/10 test suites verified).
   - [x] Production build `npm run build` compiling cleanly with 0 TypeScript/Vite errors.

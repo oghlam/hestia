@@ -144,40 +144,77 @@ export const AutomationView: React.FC<AutomationViewProps> = ({
                   </p>
                 </div>
 
-                {/* Rule Trigger & SLA Parameters */}
-                <div className="rule-param-pills">
-                  <span className="rule-param-tag">
-                    <CheckCircle2 size={11} style={{ color: '#16a34a' }} /> ≥{' '}
-                    {Math.round(rule.confidenceThreshold * 100)}% Confidence
-                  </span>
-                  <span className="rule-param-tag">
-                    <Compass size={11} /> Zone:{' '}
-                    {rule.triggerZone === 'all' ? 'All Rooms' : rule.triggerZone.replace('_', ' ')}
-                  </span>
-                  <span className="rule-param-tag">
-                    <Clock3 size={11} />{' '}
-                    {rule.timeWindow.allDay
-                      ? '24/7 Window'
-                      : `${rule.timeWindow.startHour}:00 - ${rule.timeWindow.endHour}:00`}
-                  </span>
-                  <span className="rule-param-tag">
-                    <Activity size={11} /> SLA: &lt; {rule.slaTimeoutMinutes}m Auto-Escalate
-                  </span>
-                  <span className="rule-param-tag">
-                    <Shield size={11} /> Action: {rule.escalationPolicy.replace('_', ' ')}
-                  </span>
-                  {rule.reassurancePush && (
-                    <span
-                      className="rule-param-tag"
-                      style={{
-                        background: '#ecfdf5',
-                        color: '#065f46',
-                        borderColor: '#a7f3d0',
-                      }}
-                    >
-                      <Bell size={11} /> Family Reassurance Push
-                    </span>
-                  )}
+                {/* Structured Balanced 2-Column Rule Parameters Grid */}
+                <div className="rule-params-grid-container">
+                  <div className="rule-param-cell">
+                    <CheckCircle2 size={12} className="param-icon confidence" />
+                    <div className="param-content">
+                      <span className="param-label">AI Confidence</span>
+                      <strong className="param-value">
+                        ≥ {Math.round(rule.confidenceThreshold * 100)}%
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="rule-param-cell">
+                    <Compass size={12} className="param-icon zone" />
+                    <div className="param-content">
+                      <span className="param-label">Trigger Zone</span>
+                      <strong className="param-value">
+                        {rule.triggerZone === 'all'
+                          ? 'All Rooms'
+                          : rule.triggerZone
+                              .replace(/_/g, ' ')
+                              .replace(/\b\w/g, (l) => l.toUpperCase())}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="rule-param-cell">
+                    <Clock3 size={12} className="param-icon time" />
+                    <div className="param-content">
+                      <span className="param-label">Active Window</span>
+                      <strong className="param-value">
+                        {rule.timeWindow.allDay
+                          ? '24/7 Window'
+                          : `${rule.timeWindow.startHour}:00 - ${rule.timeWindow.endHour}:00`}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="rule-param-cell">
+                    <Activity size={12} className="param-icon sla" />
+                    <div className="param-content">
+                      <span className="param-label">SLA Policy</span>
+                      <strong className="param-value">
+                        &lt; {rule.slaTimeoutMinutes}m Auto-Escalate
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="rule-param-cell">
+                    <Shield size={12} className="param-icon action" />
+                    <div className="param-content">
+                      <span className="param-label">Target Action</span>
+                      <strong className="param-value">
+                        {rule.escalationPolicy
+                          .replace(/_/g, ' ')
+                          .replace(/\b\w/g, (l) => l.toUpperCase())}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`rule-param-cell ${rule.reassurancePush ? 'reassurance-active' : 'reassurance-off'}`}
+                  >
+                    <Bell size={12} className="param-icon bell" />
+                    <div className="param-content">
+                      <span className="param-label">Family Reassurance</span>
+                      <strong className="param-value">
+                        {rule.reassurancePush ? 'Push Enabled' : 'Disabled'}
+                      </strong>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Card Footer Actions */}

@@ -1,5 +1,5 @@
 import React from 'react'
-import { X } from 'lucide-react'
+import { Activity, HeartPulse, Phone, ShieldCheck, Stethoscope, User, UserCheck, UserPlus, X } from 'lucide-react'
 import type { Resident } from '../../domain/contracts'
 
 export interface ResidentModalProps {
@@ -54,172 +54,292 @@ export const ResidentModal: React.FC<ResidentModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
-      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{editingResident ? 'Edit Resident Care Profile' : 'Register New Resident'}</h2>
-          <button onClick={onClose} aria-label="Close modal">
+    <>
+      {/* Backdrop overlay */}
+      <div className="drawer-overlay-backdrop" onClick={onClose} />
+
+      {/* Right Drawer Panel */}
+      <aside className="resident-right-drawer" onClick={(e) => e.stopPropagation()}>
+        <div className="drawer-header">
+          <div className="drawer-title-group">
+            <div className="drawer-icon-box resident">
+              {editingResident ? <UserCheck size={18} /> : <UserPlus size={18} />}
+            </div>
+            <div>
+              <h3>{editingResident ? 'Edit Resident Profile' : 'Register New Resident'}</h3>
+              <p className="drawer-subtitle">
+                Elder Care Record & Ring Biometric Target Configuration
+              </p>
+            </div>
+          </div>
+          <button className="drawer-close" onClick={onClose} aria-label="Close drawer" title="Close drawer">
             <X size={18} />
           </button>
         </div>
-        <form onSubmit={handleSaveResidentSubmit}>
-          <div className="modal-body">
-            <div className="form-row">
-              <div className="form-group" style={{ flex: 2 }}>
-                <label className="form-label">Full Name *</label>
+
+        <form onSubmit={handleSaveResidentSubmit} className="resident-drawer-form">
+          <div className="drawer-body resident-drawer-body">
+            {/* Section 1: Basic Identity */}
+            <div className="drawer-form-section">
+              <div className="section-title-sm">
+                <User size={13} />
+                <span>Personal Identity</span>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 2 }}>
+                  <label className="form-label">Full Name *</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    required
+                    placeholder="e.g. Arthur Pendelton"
+                    value={residentFormData.name}
+                    onChange={(e) =>
+                      setResidentFormData({ ...residentFormData, name: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Age</label>
+                  <input
+                    type="number"
+                    className="form-input"
+                    min="50"
+                    max="120"
+                    value={residentFormData.age}
+                    onChange={(e) =>
+                      setResidentFormData({
+                        ...residentFormData,
+                        age: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label className="form-label">Gender</label>
+                  <select
+                    className="form-select"
+                    value={residentFormData.gender}
+                    onChange={(e) =>
+                      setResidentFormData({
+                        ...residentFormData,
+                        gender: e.target.value as 'female' | 'male' | 'other',
+                      })
+                    }
+                  >
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="primary-target-checkbox-box">
+                <label className="checkbox-label-custom">
+                  <input
+                    type="checkbox"
+                    checked={residentFormData.primaryTarget}
+                    onChange={(e) =>
+                      setResidentFormData({
+                        ...residentFormData,
+                        primaryTarget: e.target.checked,
+                      })
+                    }
+                  />
+                  <div className="checkbox-text-group">
+                    <strong>
+                      <ShieldCheck size={14} className="text-primary" /> Designate as Primary Care Target
+                    </strong>
+                    <small>
+                      HESTIA will match Ring scene events against this resident's biometric face template.
+                    </small>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* Section 2: Health Profile & Mobility */}
+            <div className="drawer-form-section">
+              <div className="section-title-sm">
+                <HeartPulse size={13} />
+                <span>Health Profile & Mobility</span>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Health Conditions (Comma-separated)</label>
                 <input
                   type="text"
                   className="form-input"
-                  required
-                  placeholder="e.g. Arthur Pendelton"
-                  value={residentFormData.name}
-                  onChange={(e) => setResidentFormData({ ...residentFormData, name: e.target.value })}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Age</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  min="50"
-                  max="120"
-                  value={residentFormData.age}
-                  onChange={(e) => setResidentFormData({ ...residentFormData, age: Number(e.target.value) })}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Gender</label>
-                <select
-                  className="form-select"
-                  value={residentFormData.gender}
+                  placeholder="e.g. Fall Risk, Hypertension, Mild Dementia"
+                  value={residentFormData.healthConditions}
                   onChange={(e) =>
                     setResidentFormData({
                       ...residentFormData,
-                      gender: e.target.value as 'female' | 'male' | 'other',
+                      healthConditions: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Mobility & Assistance Level</label>
+                <select
+                  className="form-select"
+                  value={residentFormData.mobilityStatus}
+                  onChange={(e) =>
+                    setResidentFormData({
+                      ...residentFormData,
+                      mobilityStatus: e.target.value,
                     })
                   }
                 >
-                  <option value="female">Female</option>
-                  <option value="male">Male</option>
-                  <option value="other">Other</option>
+                  <option value="Fully independent">Fully independent</option>
+                  <option value="Independent with walking cane">Independent with walking cane</option>
+                  <option value="Walker / rollator assisted">Walker / rollator assisted</option>
+                  <option value="Wheelchair assisted">Wheelchair assisted</option>
+                  <option value="Bedbound / Constant caregiver support">
+                    Bedbound / Constant caregiver support
+                  </option>
                 </select>
               </div>
             </div>
 
-            <div className="form-group">
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: '#1e293b',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={residentFormData.primaryTarget}
-                  onChange={(e) => setResidentFormData({ ...residentFormData, primaryTarget: e.target.checked })}
-                />
-                Designate as Primary Target (Triggers care monitoring and alerts)
-              </label>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Health Conditions (Comma-separated)</label>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="e.g. Fall Risk, Hypertension, Mild Dementia"
-                value={residentFormData.healthConditions}
-                onChange={(e) => setResidentFormData({ ...residentFormData, healthConditions: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Mobility & Daily Assistance Level</label>
-              <select
-                className="form-select"
-                value={residentFormData.mobilityStatus}
-                onChange={(e) => setResidentFormData({ ...residentFormData, mobilityStatus: e.target.value })}
-              >
-                <option value="Fully independent">Fully independent</option>
-                <option value="Independent with walking cane">Independent with walking cane</option>
-                <option value="Walker / rollator assisted">Walker / rollator assisted</option>
-                <option value="Wheelchair assisted">Wheelchair assisted</option>
-                <option value="Bedbound / Constant caregiver support">Bedbound / Constant caregiver support</option>
-              </select>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Primary Caregiver / Family Contact</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Contact Name (e.g. Maria Vance)"
-                  value={residentFormData.emergencyName}
-                  onChange={(e) => setResidentFormData({ ...residentFormData, emergencyName: e.target.value })}
-                />
+            {/* Section 3: Emergency Caregiver Contacts */}
+            <div className="drawer-form-section">
+              <div className="section-title-sm">
+                <UserCheck size={13} />
+                <span>Emergency Caregiver & Family Contact</span>
               </div>
+
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 1.2 }}>
+                  <label className="form-label">Caregiver Name</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Maria Vance"
+                    value={residentFormData.emergencyName}
+                    onChange={(e) =>
+                      setResidentFormData({
+                        ...residentFormData,
+                        emergencyName: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 0.8 }}>
+                  <label className="form-label">Relationship</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Daughter"
+                    value={residentFormData.emergencyRelation}
+                    onChange={(e) =>
+                      setResidentFormData({
+                        ...residentFormData,
+                        emergencyRelation: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
               <div className="form-group">
-                <label className="form-label">Caregiver Phone</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="+1 (555) 234-5678"
-                  value={residentFormData.emergencyPhone}
-                  onChange={(e) => setResidentFormData({ ...residentFormData, emergencyPhone: e.target.value })}
-                />
+                <label className="form-label">Phone Number / WhatsApp</label>
+                <div className="input-with-icon">
+                  <Phone size={14} className="input-icon" />
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="+1 (555) 234-5678"
+                    value={residentFormData.emergencyPhone}
+                    onChange={(e) =>
+                      setResidentFormData({
+                        ...residentFormData,
+                        emergencyPhone: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">Primary Physician / Doctor</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Dr. Robert Chen, MD"
-                  value={residentFormData.doctorName}
-                  onChange={(e) => setResidentFormData({ ...residentFormData, doctorName: e.target.value })}
-                />
+            {/* Section 4: Physician / Doctor */}
+            <div className="drawer-form-section">
+              <div className="section-title-sm">
+                <Stethoscope size={13} />
+                <span>Primary Physician & Clinic</span>
               </div>
-              <div className="form-group">
-                <label className="form-label">Clinic / Hospital</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="St. Jude Geriatric Care"
-                  value={residentFormData.doctorClinic}
-                  onChange={(e) => setResidentFormData({ ...residentFormData, doctorClinic: e.target.value })}
-                />
+
+              <div className="form-row">
+                <div className="form-group" style={{ flex: 1.2 }}>
+                  <label className="form-label">Physician Name</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Dr. Robert Chen, MD"
+                    value={residentFormData.doctorName}
+                    onChange={(e) =>
+                      setResidentFormData({
+                        ...residentFormData,
+                        doctorName: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 0.8 }}>
+                  <label className="form-label">Clinic / Hospital</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. St. Jude Geriatric"
+                    value={residentFormData.doctorClinic}
+                    onChange={(e) =>
+                      setResidentFormData({
+                        ...residentFormData,
+                        doctorClinic: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Care Notes & Preferences</label>
-              <textarea
-                className="form-input"
-                rows={2}
-                placeholder="e.g. Scheduled morning routine at 08:30. Bedtime 21:30."
-                value={residentFormData.notes}
-                onChange={(e) => setResidentFormData({ ...residentFormData, notes: e.target.value })}
-              />
+            {/* Section 5: Care Notes & Preferences */}
+            <div className="drawer-form-section">
+              <div className="section-title-sm">
+                <Activity size={13} />
+                <span>Care Notes & Preferences</span>
+              </div>
+
+              <div className="form-group">
+                <textarea
+                  className="form-input"
+                  rows={2}
+                  placeholder="e.g. Scheduled morning routine at 08:30. Medication with breakfast."
+                  value={residentFormData.notes}
+                  onChange={(e) =>
+                    setResidentFormData({ ...residentFormData, notes: e.target.value })
+                  }
+                />
+              </div>
             </div>
           </div>
-          <div className="modal-footer">
+
+          <div className="resident-drawer-footer">
             <button type="button" className="sim-button secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="sim-button">
-              {editingResident ? 'Update Profile' : 'Register Profile'}
+            <button type="submit" className="sim-button primary">
+              {editingResident ? 'Update Care Profile' : 'Register Resident'}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </aside>
+    </>
   )
 }

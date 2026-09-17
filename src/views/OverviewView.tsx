@@ -8,9 +8,11 @@ import {
   Map,
   Monitor,
   Play,
+  Radio,
   RefreshCw,
   ShieldCheck,
   SlidersHorizontal,
+  Sparkles,
   UserRound,
   Users,
   Wifi,
@@ -118,8 +120,35 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
     ? `${primaryResidentObj?.name || 'Elder'} may need attention in ${activeAlertRoomName}!`
     : `${primaryResidentObj?.name || 'Elder'} is home and comfortable.`
 
+  // 24-hour occupancy spatial heatmap data
+  const heatmapHours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, '0')}:00`)
+  const roomOccupancyMap: Record<string, number[]> = {
+    'Living Room': [0, 0, 0, 0, 0, 0, 1, 2, 4, 5, 4, 3, 5, 4, 3, 4, 5, 4, 3, 2, 1, 0, 0, 0],
+    'Bedroom': [5, 5, 5, 5, 5, 4, 2, 1, 0, 0, 0, 1, 2, 1, 0, 0, 0, 0, 1, 2, 4, 5, 5, 5],
+    'Corridor': [0, 0, 0, 0, 0, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 0, 0, 0],
+    'Front Entry': [0, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 2, 0, 1, 2, 1, 0, 0, 0, 0, 0, 0, 0],
+  }
+
+  const getHeatColor = (level: number) => {
+    switch (level) {
+      case 5:
+        return '#0284c7' // High
+      case 4:
+        return '#38bdf8'
+      case 3:
+        return '#7dd3fc'
+      case 2:
+        return '#bae6fd'
+      case 1:
+        return '#e0f2fe'
+      default:
+        return '#f1f5f9' // Zero
+    }
+  }
+
   return (
     <div className="page">
+      {/* Welcome Banner */}
       <section className="welcome">
         <div>
           <h1>
@@ -136,6 +165,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
       </section>
 
+      {/* Summary KPI Cards Grid */}
       <section className="summary-grid">
         <div className="summary-card interactive" onClick={() => setActiveTab('automation')}>
           <span className={`summary-icon ${activeAlert ? (activeAlert.scene === 'S4_CRITICAL' ? 'red' : 'amber') : 'green'}`}>
@@ -195,15 +225,17 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
         </div>
       </section>
 
+      {/* Section Header */}
       <section className="section-row">
         <h2>
-          Rooms <ChevronRight size={18} />
+          Active Monitoring Rooms <ChevronRight size={18} />
         </h2>
         <a onClick={() => setActiveTab('rooms')} style={{ cursor: 'pointer' }}>
-          View All
+          View All Rooms
         </a>
       </section>
 
+      {/* Workspace Grid: Rooms + Today's Activity & Live Event Feed Legend */}
       <section className="workspace-grid">
         <div className="rooms-grid">
           {displayRooms.map((room) => {
@@ -270,93 +302,141 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           })}
         </div>
 
-        <aside className="activity-feed">
-          <div className="feed-title">
-            <h2>Activity Feed</h2>
-            <a onClick={() => setActiveTab('events')} style={{ cursor: 'pointer' }}>
+        {/* Unified Today's Activity & Live Event Stream Legend */}
+        <aside className="today-activity-card">
+          <div className="activity-card-header">
+            <div className="activity-card-title-group">
+              <h2>Today's Activity</h2>
+              <span className="live-tag-pill">
+                <span className="live-dot" /> LIVE
+              </span>
+            </div>
+            <a onClick={() => setActiveTab('events')} className="feed-view-all-link">
               View All
             </a>
           </div>
-          {apiScenes.length > 0 ? (
-            apiScenes.slice(0, 5).map((sceneItem, idx) => (
-              <div
-                className="activity-item clickable-event-row"
-                key={sceneItem.sceneId || `scene-${idx}`}
-                onClick={() => setSelectedEventForInspection(sceneItem)}
-                title="Click to inspect event snapshot & AI context"
-              >
-                <span
-                  className={`activity-check ${
-                    sceneItem.scene === 'S1_NORMAL' ? 'normal' : 'watch'
-                  }`}
-                >
-                  ✓
-                </span>
-                <time>
-                  {new Date(sceneItem.createdAt || Date.now()).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </time>
-                <div>
-                  <strong>
-                    {sceneItem.identity?.name ??
-                      (sceneItem.identity?.identity === 'unknown'
-                        ? 'Visitor'
-                        : 'Motion detected')}
-                  </strong>
-                  <small>
-                    {(sceneItem.roomId || 'Unknown Room').replace('_', ' ')} · {sceneLabels[sceneItem.scene]}
-                  </small>
-                </div>
-                <span className="activity-thumb" />
-              </div>
-            ))
-          ) : (
-            [
-              ['21:18', 'Eleanor sitting on sofa', 'Living Room · Normal', 'normal'],
-              ['20:47', 'Front door motion', 'Entry · Person detected', 'watch'],
-              ['18:32', 'Eleanor in bedroom', 'Bedroom · Normal', 'normal'],
-              ['17:11', 'Visitor at front door', 'Entry · Known (Family)', 'normal'],
-              ['13:02', 'Corridor motion', 'Corridor · No person', 'normal'],
-            ].map(([time, title, detail, tone]) => (
-              <div className="activity-item" key={time + title}>
-                <span className={`activity-check ${tone}`}>✓</span>
-                <time>{time}</time>
-                <div>
-                  <strong>{title}</strong>
-                  <small>{detail}</small>
-                </div>
-                <span className="activity-thumb" />
-              </div>
-            ))
-          )}
+
+          {/* Activity Category Count Legend */}
+          <div className="chart-legend">
+            <span>
+              <i className="green-dot" /> Normal {normalCount}
+            </span>
+            <span>
+              <i className="watch-dot" /> Watch {watchCount}
+            </span>
+            <span>
+              <i className="help-dot" /> Help {helpCount}
+            </span>
+            <span>
+              <i className="critical-dot" /> Critical {criticalCount}
+            </span>
+          </div>
+
+          {/* Hourly 24-Hour Activity Rhythm Chart */}
+          <div className="chart">
+            {Array.from({ length: 28 }, (_, i) => (
+              <i
+                key={i}
+                style={{
+                  height: `${
+                    [
+                      10, 20, 14, 8, 12, 35, 20, 56, 32, 44, 18, 27, 12, 9, 22, 15, 15, 25, 16,
+                      17, 30, 24, 48, 32, 16, 37, 25, 10,
+                    ][i]
+                  }px`,
+                }}
+              />
+            ))}
+          </div>
+          <div className="chart-times">
+            <span>00:00</span>
+            <span>06:00</span>
+            <span>12:00</span>
+            <span>18:00</span>
+            <span>24:00</span>
+          </div>
+
+          {/* Live Activity Feed Legend (Short Real-Time Event Stream) */}
+          <div className="feed-legend-section">
+            <div className="feed-legend-header">
+              <small>LIVE SCENE FEED LEGEND</small>
+            </div>
+            <div className="feed-legend-list">
+              {apiScenes.length > 0 ? (
+                apiScenes.slice(0, 4).map((sceneItem, idx) => (
+                  <div
+                    className="activity-item compact-item clickable-event-row"
+                    key={sceneItem.sceneId || `scene-${idx}`}
+                    onClick={() => setSelectedEventForInspection(sceneItem)}
+                    title="Click to inspect event snapshot & AI context"
+                  >
+                    <span
+                      className={`activity-check ${
+                        sceneItem.scene === 'S1_NORMAL' ? 'normal' : 'watch'
+                      }`}
+                    >
+                      ✓
+                    </span>
+                    <time>
+                      {new Date(sceneItem.createdAt || Date.now()).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </time>
+                    <div className="activity-text">
+                      <strong>
+                        {sceneItem.identity?.name ??
+                          (sceneItem.identity?.identity === 'unknown'
+                            ? 'Visitor'
+                            : 'Motion detected')}
+                      </strong>
+                      <small>
+                        {(sceneItem.roomId || 'Unknown Room').replace(/_/g, ' ')} · {sceneLabels[sceneItem.scene]}
+                      </small>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                [
+                  ['21:18', 'Eleanor sitting on sofa', 'Living Room · Normal', 'normal'],
+                  ['20:47', 'Front door motion', 'Entry · Person detected', 'watch'],
+                  ['18:32', 'Eleanor in bedroom', 'Bedroom · Normal', 'normal'],
+                  ['17:11', 'Visitor at front door', 'Entry · Known (Family)', 'normal'],
+                ].map(([time, title, detail, tone]) => (
+                  <div className="activity-item compact-item" key={time + title}>
+                    <span className={`activity-check ${tone}`}>✓</span>
+                    <time>{time}</time>
+                    <div className="activity-text">
+                      <strong>{title}</strong>
+                      <small>{detail}</small>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </aside>
       </section>
 
-      <section className="lower-grid">
-        <Panel
-          title="Home Map"
-          action={
+      {/* Row 1: Home Map Spatial Tracking & Recent Event AI Breakdown */}
+      <section className="overview-balanced-row">
+        {/* Left: Home Map with Live Device Pin Markers */}
+        <div className="overview-panel-card map-panel">
+          <div className="overview-panel-header">
+            <div className="overview-panel-title">
+              <h2>Home Map & Ring Device Pins</h2>
+            </div>
             <span
-              style={{
-                display: 'flex',
-                gap: '6px',
-                alignItems: 'center',
-                fontSize: '11px',
-                color: '#005cf5',
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
+              className="panel-action-link"
               onClick={() => {
                 setActiveTab('rooms')
                 setRoomsSubTab('map')
               }}
             >
-              <Map size={14} /> Floor Map Setup
+              <Map size={13} /> Floor Map Setup
             </span>
-          }
-        >
+          </div>
+
           <div className="floorplan-canvas overview-mode">
             {homeMap.mapUrl ? (
               <img
@@ -516,10 +596,20 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
               )
             })}
           </div>
-        </Panel>
+        </div>
 
-        <Panel title="Recent Event" action={<Ellipsis size={17} />}>
-          <div className="recent-event">
+        {/* Right: Recent Scene Event with AI Nova Micro Explanation */}
+        <div className="overview-panel-card recent-event-panel">
+          <div className="overview-panel-header">
+            <div className="overview-panel-title">
+              <h2>Recent Scene Event</h2>
+            </div>
+            <a onClick={() => setActiveTab('events')} className="panel-action-link">
+              Inspect Stream
+            </a>
+          </div>
+
+          <div className="recent-event-full-box">
             <div
               className={`event-image ${activeRoomId.replace('_room', '')}`}
               style={{
@@ -528,118 +618,137 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 backgroundPosition: 'center',
               }}
             />
-            <div>
-              <h3>{recentEventTitle}</h3>
-              <small>
-                {recentEventTime} · {recentEventRoom}
+            <div className="recent-event-content">
+              <div className="recent-event-header-line">
+                <h3>{recentEventTitle}</h3>
+                <span className={recentEventScene === 'Normal' ? 's1-badge' : 'watch-dot-pill'}>
+                  {recentEventScene === 'Normal' ? 'S1 Normal' : recentEventScene}
+                </span>
+              </div>
+              <small className="recent-event-meta">
+                <Clock3 size={11} /> {recentEventTime} · {recentEventRoom}
               </small>
-              <span className={recentEventScene === 'Normal' ? 's1-badge' : 'watch-dot'}>
-                {recentEventScene === 'Normal' ? 'S1  Normal' : recentEventScene}
-              </span>
-              <p>{recentEventContext}</p>
-              <small className="ai">
-                <Activity size={13} /> AI Summary · Nova Micro
-              </small>
+              <p className="recent-event-desc">{recentEventContext}</p>
+              <div className="ai-summary-tag">
+                <Sparkles size={12} className="text-primary" />
+                <span>Amazon Nova Micro · Structured Context Analysis</span>
+              </div>
             </div>
           </div>
-        </Panel>
-
-        <Panel title="Today's Activity" action={<Ellipsis size={17} />}>
-          <div className="chart-legend">
-            <span>
-              <i className="green-dot" /> Normal {normalCount}
-            </span>
-            <span>
-              <i className="watch-dot" /> Watch {watchCount}
-            </span>
-            <span>
-              <i className="help-dot" /> Help {helpCount}
-            </span>
-            <span>
-              <i className="critical-dot" /> Critical {criticalCount}
-            </span>
-          </div>
-          <div className="chart">
-            {Array.from({ length: 28 }, (_, i) => (
-              <i
-                key={i}
-                style={{
-                  height: `${
-                    [
-                      10, 20, 14, 8, 12, 35, 20, 56, 32, 44, 18, 27, 12, 9, 22, 15, 15, 25, 16,
-                      17, 30, 24, 48, 32, 16, 37, 25, 10,
-                    ][i]
-                  }px`,
-                }}
-              />
-            ))}
-          </div>
-          <div className="chart-times">
-            <span>00:00</span>
-            <span>06:00</span>
-            <span>12:00</span>
-            <span>18:00</span>
-            <span>24:00</span>
-          </div>
-        </Panel>
+        </div>
       </section>
 
-      <section className="bottom-grid">
-        <Panel title="System Status">
-          <div className="system-status">
-            <Status icon={<Wifi />} title="Ring Integration" value="Online" />
-            <Status icon={<Monitor />} title="Local Detection" value="Active" />
-            <Status icon={<Activity />} title="Cloud AI (Bedrock)" value="Online" />
-            <Status icon={<ShieldCheck />} title="Face Recognition" value="Active" />
-            <Status icon={<ShieldCheck />} title="Data & Privacy" value="Protected" />
+      {/* Row 2: 24-Hour Spatial Activity Heatmap & System Telemetry */}
+      <section className="overview-balanced-row">
+        {/* Left: 24-Hour Spatial Activity Heatmap */}
+        <div className="overview-panel-card heatmap-panel">
+          <div className="overview-panel-header">
+            <div className="overview-panel-title">
+              <h2>24-Hour Spatial Activity Heatmap</h2>
+              <small style={{ display: 'block', fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
+                Hourly resident occupancy frequency across mapped Ring camera zones
+              </small>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', color: '#64748b' }}>
+                <span>Low</span>
+                <div style={{ display: 'flex', gap: '2px' }}>
+                  {[0, 1, 2, 3, 4, 5].map((lvl) => (
+                    <div
+                      key={lvl}
+                      style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '2px',
+                        background: getHeatColor(lvl),
+                      }}
+                    />
+                  ))}
+                </div>
+                <span>High</span>
+              </div>
+              <a onClick={() => setActiveTab('insights')} className="panel-action-link">
+                Analytics
+              </a>
+            </div>
           </div>
-        </Panel>
 
-        <Panel
-          title="Care Team"
-          action={
-            <a onClick={() => setActiveTab('care_team')} style={{ cursor: 'pointer' }}>
-              View All
-            </a>
-          }
-        >
-          <div className="care-team">
-            <div onClick={() => setActiveTab('care_team')} style={{ cursor: 'pointer' }}>
-              <div className="team-avatar">
-                <img src={caregiverAvatarUrl} alt="Caregiver" />
-              </div>
-              <small>
-                Caregiver
-                <br />
-                <b>Primary</b>
-              </small>
-            </div>
-            <div onClick={() => setActiveTab('care_team')} style={{ cursor: 'pointer' }}>
-              <div className="team-avatar">
-                <img src={familyAvatarUrl} alt="Family" />
-              </div>
-              <small>
-                Family
-                <br />
-                <b>Relative</b>
-              </small>
-            </div>
-            <div onClick={() => setActiveTab('care_team')} style={{ cursor: 'pointer' }}>
-              <div className="team-avatar">
-                <img src={nurseAvatarUrl} alt="Nurse" />
-              </div>
-              <small>
-                Nurse
-                <br />
-                <b>Medical</b>
-              </small>
-            </div>
-            <div onClick={() => setActiveTab('care_team')} style={{ cursor: 'pointer' }}>
-              <div className="team-avatar add">+</div>
-              <small>Add</small>
-            </div>
+          <div className="heatmap-scroll-area" style={{ marginTop: '2px' }}>
+            <table className="heatmap-table" style={{ width: '100%' }}>
+              <thead>
+                <tr>
+                  <th style={{ width: '100px', textAlign: 'left', fontSize: '10.5px', color: '#64748b' }}>
+                    Zone
+                  </th>
+                  {heatmapHours.map((h, i) => (
+                    <th
+                      key={i}
+                      style={{
+                        fontSize: '9px',
+                        padding: '2px 1px',
+                        textAlign: 'center',
+                        color: '#94a3b8',
+                      }}
+                    >
+                      {i % 4 === 0 ? h.slice(0, 2) : ''}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(roomOccupancyMap).map(([roomName, hours]) => (
+                  <tr key={roomName}>
+                    <td
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        color: '#1e293b',
+                        whiteSpace: 'nowrap',
+                        padding: '3px 0',
+                      }}
+                    >
+                      {roomName}
+                    </td>
+                    {hours.map((val, idx) => (
+                      <td key={idx} style={{ padding: '2px 1px' }}>
+                        <div
+                          className="heat-cell"
+                          style={{
+                            background: getHeatColor(val),
+                            height: '18px',
+                            borderRadius: '3px',
+                            transition: 'background 0.2s ease',
+                          }}
+                          title={`${roomName} at ${heatmapHours[idx]} · Intensity ${val}/5`}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </Panel>
+        </div>
+
+        {/* Right: System & Integration Telemetry Status */}
+        <div className="overview-panel-card system-status-panel">
+          <div className="overview-panel-header">
+            <div className="overview-panel-title">
+              <h2>System Telemetry & Platform Status</h2>
+            </div>
+            <span className="system-health-tag">
+              <span className="health-pulse-dot" /> All Nodes Operational
+            </span>
+          </div>
+
+          <div className="system-status-grid">
+            <Status icon={<Wifi />} title="Ring Hardware & Webhooks" value="Connected" />
+            <Status icon={<Monitor />} title="Local Pipeline Ingestion" value="Active (18ms)" />
+            <Status icon={<Activity />} title="AWS Bedrock (Nova Micro)" value="Online (us-east-1)" />
+            <Status icon={<ShieldCheck />} title="Biometric Face Recognition" value="Active Target" />
+            <Status icon={<ShieldCheck />} title="HIPAA Data & Privacy Guard" value="Protected" />
+          </div>
+        </div>
       </section>
 
       {/* Quick Simulation Bar for Demonstration */}
@@ -648,8 +757,8 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
           background: '#fff',
           border: '1px solid #e2e8f0',
           borderRadius: '12px',
-          padding: '16px 20px',
-          margin: '24px 0',
+          padding: '14px 18px',
+          margin: '20px 0 32px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',

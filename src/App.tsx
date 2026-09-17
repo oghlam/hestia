@@ -456,6 +456,9 @@ export function App() {
           setActiveSiteName(site)
           systemSettings.setSystemSettings((prev) => ({ ...prev, homeName: site }))
         }}
+        onOpenValidator={() => {
+          window.location.href = '?view=validator'
+        }}
       />
 
       <div className="dashboard-body-row">

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Building2, Bell, ChevronDown, Menu, Search, X } from 'lucide-react'
+import { Building2, Bell, Menu, Smartphone, X } from 'lucide-react'
 import type { CareTeamMember, NotificationItem } from '../../domain/contracts'
 
 export interface HeaderProps {
@@ -12,7 +12,7 @@ export interface HeaderProps {
   mariaMember?: CareTeamMember
   activeSiteName?: string
   onSelectSite?: (siteName: string) => void
-  onSearch?: (query: string) => void
+  onOpenValidator?: () => void
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -24,70 +24,84 @@ export const Header: React.FC<HeaderProps> = ({
   mariaAvatarUrl,
   mariaMember,
   activeSiteName = 'Greenwood Residence',
-  onSearch,
+  onOpenValidator,
 }) => {
-  const [searchValue, setSearchValue] = React.useState('')
+  const caregiverName = mariaMember?.name || 'Sarah Jenkins'
+  const caregiverRole = mariaMember?.role || 'Lead Caregiver'
+  const tooltipText = `${caregiverName} (${caregiverRole})`
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value)
-    if (onSearch) onSearch(e.target.value)
+  const handleValidatorClick = (e: React.MouseEvent) => {
+    if (onOpenValidator) {
+      e.preventDefault()
+      onOpenValidator()
+    }
   }
 
   return (
     <>
       <header className="topbar">
-        {/* Mobile Hamburger Menu Toggle Button */}
-        <button
-          className="mobile-menu"
-          onClick={() => setMenuOpen(!menuOpen)}
-          title="Toggle Navigation Menu"
-          aria-label="Toggle navigation menu"
-        >
-          <Menu size={22} strokeWidth={2.2} />
-        </button>
+        {/* Left Section: Mobile Toggle + Logo + Site Badge */}
+        <div className="topbar-left-section">
+          {/* Mobile Hamburger Menu Toggle Button */}
+          <button
+            className="mobile-menu"
+            onClick={() => setMenuOpen(!menuOpen)}
+            title="Toggle Navigation Menu"
+            aria-label="Toggle navigation menu"
+          >
+            <Menu size={20} strokeWidth={2.2} />
+          </button>
 
-        {/* Logo Hestia di Sudut Kiri Atas */}
-        <div className="topbar-logo-area">
-          <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
-        </div>
+          {/* Logo Hestia di Sudut Kiri Atas */}
+          <div className="topbar-logo-area">
+            <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
+          </div>
 
-        {/* Site Identity Badge - Flat Design */}
-        <div className="site-identity-badge">
-          <Building2 size={16} className="text-primary" strokeWidth={2} />
-          <div className="site-identity-text">
-            <strong>{activeSiteName}</strong>
-            <small>Active Site Online</small>
+          {/* Site Identity Badge */}
+          <div className="site-identity-badge" title={`Active site: ${activeSiteName}`}>
+            <Building2 size={15} className="text-primary" strokeWidth={2} />
+            <div className="site-identity-text">
+              <strong>{activeSiteName}</strong>
+              <small>Active Site Online</small>
+            </div>
           </div>
         </div>
 
-        {/* Global Search Bar - Compact & Flat */}
-        <div className="search">
-          <Search size={15} strokeWidth={2} />
-          <input
-            type="text"
-            placeholder="Search residents, devices, MAC, events..."
-            value={searchValue}
-            onChange={handleSearchChange}
-            className="search-input-field"
-          />
-        </div>
-
-        {/* Top Right System Status & Profile - Extra Compact */}
+        {/* Right Section: Validator Action + Notifications + Compact Avatar */}
         <div className="top-right">
-          <div className="system-health-pill" title="Ring Cloud & AWS Bedrock latency: 18ms">
-            <span className="health-pulse-dot" />
-            <span>Systems Optimal · 18ms</span>
-          </div>
-          <button className="notification" onClick={() => setNotice(!notice)}>
+          {/* Eye-catching Validator PWA Button with Light Edge */}
+          <a
+            href="?view=validator"
+            onClick={handleValidatorClick}
+            className="topbar-validator-btn"
+            title="Open Validator Fast-Action PWA Interface"
+          >
+            <span className="validator-btn-icon-wrapper">
+              <Smartphone size={14} strokeWidth={2.4} />
+            </span>
+            <span className="validator-btn-label">Validator</span>
+            <span className="validator-btn-pill">PWA</span>
+          </a>
+
+          {/* Notification Button */}
+          <button
+            className="notification"
+            onClick={() => setNotice(!notice)}
+            title="Care updates & system alerts"
+            aria-label="Notifications"
+          >
             <Bell size={17} strokeWidth={2} />
             {notifications.length > 0 && <b>{notifications.length}</b>}
           </button>
-          <img src={mariaAvatarUrl} alt="Maria" className="profile-avatar-img" />
-          <div className="profile">
-            <strong>{mariaMember?.name ? mariaMember.name.split(' ')[0] : 'Maria'}</strong>
-            <small>Primary Caregiver</small>
+
+          {/* Compact Caregiver Avatar (Right Aligned, Custom Tooltip on Hover) */}
+          <div className="profile-avatar-wrapper">
+            <img src={mariaAvatarUrl} alt={caregiverName} className="profile-avatar-img" />
+            <div className="profile-avatar-tooltip">
+              <strong>{caregiverName}</strong>
+              <small>{caregiverRole}</small>
+            </div>
           </div>
-          <ChevronDown size={12} strokeWidth={2} />
         </div>
       </header>
 

@@ -118,6 +118,16 @@ Validator demo: `http://127.0.0.1:5173/?view=validator`.
     - Multi-angle Face Studio real frame grab & automatic JPEG asset cataloging.
     - Adaptive device tooltip positioning and responsive Overview grid layout.
 
+12. **Sub-Sprint M — Unified Startup Runner, Slide-Over Right Drawers, Spatial Heatmap & Dashboard Re-Architecture** (Completed):
+    - Unified 1-click project startup runner (`npm start` & `start.bat`) running Vite Frontend and Express Backend concurrently.
+    - Topbar Header cleanup: Removed search input, added eye-catching "Validator PWA" button with light-edge smartphone styling, compact right-aligned caregiver avatar with custom tooltip, and responsive mobile alignment.
+    - Resident horizontal card layout with 3-angle face template status (0°, 45°L, 45°R) and Right Drawer slide-over for Register/Edit Resident.
+    - Scene Engine & Automation Rules: 2-column balanced parameter grid (`AI Confidence`, `Trigger Zone`, `Active Window`, `SLA Policy`, `Target Action`, `Family Reassurance`) with compact typography and Pulldown-to-apply preset selector in Right Drawer.
+    - Overview Workspace & Intelligence re-architecture:
+      - Moved Today's Activity & 24h Hourly Chart into top-right sidebar, integrating real-time live event feed as a live scene legend.
+      - Added 24-Hour Spatial Activity Heatmap showing resident occupancy across mapped Ring camera zones directly below the Home Map.
+      - Symmetrical, 0-empty-space 2-column lower grid (Home Map + Recent Event, Spatial Heatmap + System Telemetry).
+
 ## Next sprint priorities
 
 1. **End-to-End Verification & Final Compliance**: Live Demo Recording (< 3 menit), Devpost Submission Prep, dan AWS `kurusetra` deployment check.
