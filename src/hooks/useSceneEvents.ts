@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+﻿import { useState, useCallback, useMemo } from 'react'
 import type { SceneEvent } from '../domain/contracts'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (
@@ -16,17 +16,17 @@ export const defaultDemoScenes: SceneEvent[] = [
     scene: 'S1_NORMAL',
     confidence: 0.94,
     roomId: 'living_room',
-    residentId: 'resident_eleanor',
+    residentId: 'resident_elder',
     signals: ['Human motion detected', 'Frontal face pose verified', 'Comfortable seated posture'],
     identity: {
       identity: 'known_target',
-      residentId: 'resident_eleanor',
+      residentId: 'resident_elder',
       name: 'Elder',
       confidence: 0.96,
       faceCount: 1,
       source: 'ring_snapshot',
     },
-    contextText: 'Eleanor is seated in living room sofa reading comfortably. Ambient motion and posture routine normal.',
+    contextText: 'Elder is seated in living room sofa reading comfortably. Ambient motion and posture routine normal.',
     createdAt: new Date(Date.now() - 6 * 60000).toISOString(),
   },
   {
@@ -50,11 +50,11 @@ export const defaultDemoScenes: SceneEvent[] = [
     scene: 'S1_NORMAL',
     confidence: 0.92,
     roomId: 'bedroom',
-    residentId: 'resident_eleanor',
+    residentId: 'resident_elder',
     signals: ['Routine bedtime movement', 'Bedside lamp active'],
     identity: {
       identity: 'known_target',
-      residentId: 'resident_eleanor',
+      residentId: 'resident_elder',
       name: 'Elder',
       confidence: 0.93,
       faceCount: 1,

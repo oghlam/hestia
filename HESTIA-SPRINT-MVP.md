@@ -1,4 +1,4 @@
-# HESTIA — Sprint MVP
+﻿# HESTIA — Sprint MVP
 
 > **A home that cares, even when you're away.**
 
@@ -206,7 +206,7 @@ Contoh request Bedrock setelah Scene Engine selesai:
 
 ```json
 {
-  "resident": "Eleanor",
+  "resident": "Elder",
   "room": "Living Room",
   "scene": "S3_HELP",
   "confidence": 0.87,
@@ -222,7 +222,7 @@ Contoh request Bedrock setelah Scene Engine selesai:
 Contoh output context:
 
 ```text
-Possible distress detected. Eleanor has shown repeated movement near the chair
+Possible distress detected. Elder has shown repeated movement near the chair
 with a possible verbal distress signal. Caregiver validation is required.
 ```
 
@@ -248,7 +248,7 @@ hestia/
 │   ├── s3/
 │   └── ecs-vision/
 ├── fixtures/
-│   ├── residents/                 # Eleanor reference images
+│   ├── residents/                 # Elder reference images
 │   ├── ring-events/
 │   └── scenes/
 ├── docs/
@@ -334,13 +334,13 @@ Dashboard harus menjawab, dalam urutan yang mudah dipindai: **Who? Where? What h
 Gunakan contextual greeting untuk memberi orientasi, misalnya:
 
 ```text
-Good evening, Maria. Eleanor is home and comfortable.
+Good evening, Caregiver. Elder is home and comfortable.
 ```
 
 Jika ada alert, gunakan bahasa yang berorientasi care action:
 
 ```text
-Eleanor may need your attention.
+Elder may need your attention.
 ```
 
 ### 8.5 Scene UX
@@ -369,7 +369,7 @@ Alert tidak menampilkan raw AI output sebagai beban interpretasi caregiver. Seti
 Person → Location → Event → Confidence → Required action
 ```
 
-Contoh: **Eleanor → Bedroom → possible distress detected → 87% confidence → caregiver validation required**. Context text boleh berasal dari Bedrock, tetapi UI tetap menonjolkan fakta, tingkat kepastian, dan tindakan yang tersedia. Confidence harus membantu keputusan, bukan memberi kesan kepastian palsu.
+Contoh: **Elder → Bedroom → possible distress detected → 87% confidence → caregiver validation required**. Context text boleh berasal dari Bedrock, tetapi UI tetap menonjolkan fakta, tingkat kepastian, dan tindakan yang tersedia. Confidence harus membantu keputusan, bukan memberi kesan kepastian palsu.
 
 ### 8.7 Validator PWA: Fast Action Interface
 
@@ -379,7 +379,7 @@ Validator adalah **Fast Action Interface**, bukan versi mini dari dashboard. Ia 
 🔴 HELP
 Possible distress detected
 
-Eleanor
+Elder
 Bedroom
 
 [ OK ]
@@ -531,7 +531,7 @@ Folder separation boleh disesuaikan dengan monorepo pada bagian repository; tuju
 - [ ] Hubungkan backend ke `/internal/vision/identify`.
 - [ ] Gunakan confidence dan `unknown` secara konservatif.
 
-**Checkpoint:** snapshot fixture dapat menghasilkan `KNOWN_TARGET: Eleanor` atau `UNKNOWN`; face template hanya berasal dari resident target yang dilatih/terdaftar. Hasil identity memperkaya scene, bukan menentukan alert sendirian. Orang non-target tidak otomatis memicu siren.
+**Checkpoint:** snapshot fixture dapat menghasilkan `KNOWN_TARGET: Elder` atau `UNKNOWN`; face template hanya berasal dari resident target yang dilatih/terdaftar. Hasil identity memperkaya scene, bukan menentukan alert sendirian. Orang non-target tidak otomatis memicu siren.
 
 ### Sprint 5 — Demo polish dan reliability
 
@@ -577,15 +577,15 @@ sequenceDiagram
     R->>RC: Motion/snapshot event
     RC->>H: Ring webhook
     H->>V: Identify snapshot
-    V-->>H: Known Eleanor, confidence 0.94
+    V-->>H: Known Elder, confidence 0.94
     H->>H: Scene Engine classifies S3_HELP
     H->>B: Structured scene text
     B-->>H: Care context summary
     H->>P: Alert + context + snapshot
     P->>H: COMING
-    H->>F: Maria is on the way
+    H->>F: Caregiver is on the way
     P->>H: I'VE ARRIVED
-    H->>F: Alert handled by Maria
+    H->>F: Alert handled by Caregiver
 ```
 
 Narasi demo:

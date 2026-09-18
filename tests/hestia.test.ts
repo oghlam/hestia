@@ -1,4 +1,4 @@
-import assert from 'node:assert/strict'
+﻿import assert from 'node:assert/strict'
 import type { Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { app } from '../server/index'
@@ -20,7 +20,7 @@ function testSceneClassification() {
   const knownResident: IdentityResult = {
     identity: 'known_target',
     residentId: 'resident_elder',
-    name: 'Eleanor',
+    name: 'Elder',
     confidence: 0.95,
     faceCount: 1,
     source: 'ring_snapshot',
@@ -164,7 +164,7 @@ function testStoreRepository() {
   }
   memoryStore.saveEvent(event)
 
-  const scene = classifyScene(event, { identity: 'known_target', residentId: 'resident_eleanor', name: 'Eleanor', faceCount: 1, source: 'ring_snapshot' }, { distress: true })
+  const scene = classifyScene(event, { identity: 'known_target', residentId: 'resident_elder', name: 'Elder', faceCount: 1, source: 'ring_snapshot' }, { distress: true })
   memoryStore.saveScene(scene)
   assert.equal(memoryStore.listScenes().length, initialScenesCount + 1)
 
@@ -179,7 +179,7 @@ function testStoreRepository() {
   assert.equal(rooms.length, 4)
   const bedroom = rooms.find((r) => r.roomId === 'bedroom')
   assert.equal(bedroom?.status, 'S3_HELP')
-  assert.equal(bedroom?.activePerson, 'Eleanor')
+  assert.equal(bedroom?.activePerson, 'Elder')
 
   // Access log verification
   const accessLogs = memoryStore.listAccessLogs()
@@ -193,7 +193,7 @@ function testStoreRepository() {
     timestamp: new Date().toISOString(),
     action: 'COMING',
     actorId: 'caregiver_maria',
-    targetId: 'resident_eleanor',
+    targetId: 'resident_elder',
     newState: 'CARE_IN_PROGRESS',
   })
   assert.equal(memoryStore.listAuditLogs().length, 1)
@@ -386,7 +386,7 @@ async function testBedrockService() {
     identity: {
       identity: 'known_target' as const,
       residentId: 'resident_elder',
-      name: 'Eleanor',
+      name: 'Elder',
       confidence: 0.94,
       faceCount: 1,
       source: 'ring_snapshot' as const,
@@ -397,12 +397,12 @@ async function testBedrockService() {
   // 1. Structured prompt builder (structured text only)
   const prompt = buildNovaMicroPrompt(req)
   assert.ok(prompt.includes('Nova Micro') || prompt.includes('HESTIA'))
-  assert.ok(prompt.includes('Eleanor'))
+  assert.ok(prompt.includes('Elder'))
   assert.ok(prompt.includes('living room'))
 
   // 2. Deterministic summary
   const fallback = generateDeterministicSummary(req)
-  assert.ok(fallback.includes('Eleanor'))
+  assert.ok(fallback.includes('Elder'))
   assert.ok(fallback.includes('living room'))
 
   // 3. Context generator (with fallback)
@@ -763,7 +763,7 @@ function testModularViewsAndMenus() {
   const testIdentity: IdentityResult = {
     identity: 'known_target',
     residentId: 'resident_elder',
-    name: 'Eleanor Vance',
+    name: 'Elder',
     confidence: 0.96,
     faceCount: 1,
     source: 'ring_snapshot',

@@ -3151,6 +3151,56 @@ button, input, select, textarea {
 
 
 
+@media (max-width: 640px) {
+  /* Mobile: show square H 80x80 near hamburger, Greenwood centered */
+  .topbar-validator-btn{ display:none !important; }
+  .topbar{ position:relative; padding:0 10px; height:52px; min-height:52px; }
+  .topbar-left-section{ gap:6px; flex:0 0 auto; align-items:center; }
+  .topbar-logo-area{ display:flex !important; flex:0 0 auto; align-items:center; }
+  .topbar-logo-area .logo-full{ display:none !important; }
+  .topbar-logo-area .logo-icon-mobile{ display:block !important; width:28px; height:28px; }
+  .site-identity-badge{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    max-width:50vw;
+    justify-content:center;
+    background:transparent;
+    pointer-events:none;
+    z-index:1;
+  }
+  .site-identity-badge .site-identity-text strong{
+    text-align:center;
+    white-space:normal;
+    line-height:1.15;
+    font-size:10.5px;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .site-identity-badge .site-identity-text small{ display:none; }
+  .site-identity-badge svg{ display:none; }
+  .top-right{ gap:6px; }
+}
+
+.logo-icon-mobile{ display:none; width:28px; height:28px; object-fit:contain; border-radius:6px; }
+
+/* PWA Android standalone: show square H icon (28px) near hamburger, not wide wordmark 400x80 */
+@media (max-width: 640px) and (display-mode: standalone){
+  .topbar-logo-area{ display:flex !important; flex:0 0 auto; align-items:center; }
+  .topbar-logo-area .logo-full{ display:none !important; }
+  .topbar-logo-area .logo-icon-mobile{ display:block !important; }
+  .topbar-left-section{ gap:6px; }
+  .site-identity-badge{ max-width:48vw; }
+}
+
+@media (display-mode: standalone){
+  .topbar-validator-btn{ display:none !important; }
+}
+
 @media (max-width: 420px) {
   .topbar {
     padding: 0 8px;
@@ -3158,12 +3208,11 @@ button, input, select, textarea {
   }
 
   .topbar-logo-area img {
-    height: 25px;
+    height: 28px;
   }
 
   .topbar-validator-btn {
-    padding: 3px 6px;
-    font-size: 10.5px;
+    display:none !important;
   }
 
   .summary-grid {

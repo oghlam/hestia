@@ -1,11 +1,11 @@
-# HESTIA Product Feedback
+﻿# HESTIA Product Feedback
 
 > Elder-Care Operating System feedback collected during iterative caregiver testing, Ring simulator sessions, and mobile validator evaluation.
 
 ## Session metadata
 
 - **Date**: September 2026
-- **Participant / tester**: Caregiver & Validator Team (Maria Vance, Family Circle Testers)
+- **Participant / tester**: Caregiver & Validator Team (Caregiver, Family Circle Testers)
 - **Build**: v0.1.0-mvp
 - **Scenario tested**: Elder fall detection, night inactivity alerts, unknown visitor doorstep filter, mobile fast-action responses, and automatic family emergency notification dispatch.
 
@@ -21,6 +21,6 @@
 ## Product decisions from feedback
 
 1. **Human Decision Loop**: AI provides scene explanation; caregivers remain the sole authority for dispatching sirens or marking all-clear.
-2. **Strict Resident Care Target Mapping**: Face recognition templates are restricted to registered resident targets (e.g. Eleanor) to protect visitor privacy.
+2. **Strict Resident Care Target Mapping**: Face recognition templates are restricted to registered resident targets (e.g. Elder) to protect visitor privacy.
 3. **Automated Family Reassurance**: Every completed validation (`OK` / `I'VE ARRIVED`) automatically broadcasts reassurance confirmation to the family circle.
 

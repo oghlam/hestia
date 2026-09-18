@@ -1,7 +1,7 @@
-"""
+﻿"""
 Unit tests for HESTIA Python Vision / Face Recognition Service.
 Validates:
-1. Known target (registered resident Eleanor) matching.
+1. Known target (registered resident Elder) matching.
 2. Unknown visitor classification (without assigning resident ID).
 3. No face detected scenarios.
 4. Perturbation & threshold calibration tests (lighting, noise, angle).
@@ -13,10 +13,10 @@ from face_service import match_face, cosine_similarity, REGISTERED_RESIDENTS, MA
 
 class TestFaceService(unittest.TestCase):
 
-    def test_known_target_eleanor(self):
-        result = match_face(hint="eleanor")
+    def test_known_target_elder(self):
+        result = match_face(hint="elder")
         self.assertEqual(result["identity"], "known_target")
-        self.assertEqual(result["residentId"], "resident_eleanor")
+        self.assertEqual(result["residentId"], "resident_elder")
         self.assertEqual(result["name"], "Elder")
         self.assertGreaterEqual(result["confidence"], MATCH_THRESHOLD)
         self.assertEqual(result["faceCount"], 1)
@@ -46,7 +46,7 @@ class TestFaceService(unittest.TestCase):
 
     def test_lighting_and_angle_perturbations(self):
         """Simulate realistic lighting and angle variance on registered template."""
-        base_emb = np.array(REGISTERED_RESIDENTS["resident_eleanor"]["embedding"], dtype=np.float32)
+        base_emb = np.array(REGISTERED_RESIDENTS["resident_elder"]["embedding"], dtype=np.float32)
         
         # Minor perturbation (slight angle/lighting shift) -> should still be recognized
         for seed in [1, 7, 23, 99]:
@@ -55,7 +55,7 @@ class TestFaceService(unittest.TestCase):
             perturbed = (perturbed / np.linalg.norm(perturbed)).tolist()
             res = match_face(embedding=perturbed)
             self.assertEqual(res["identity"], "known_target")
-            self.assertEqual(res["residentId"], "resident_eleanor")
+            self.assertEqual(res["residentId"], "resident_elder")
 
         # Heavy distortion/different face -> should drop to unknown
         random_stranger = np.random.RandomState(54321).randn(64).astype(np.float32)

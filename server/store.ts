@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   AccessLogEntry,
   Alert,
   Asset,
@@ -408,19 +408,19 @@ function seedDefaultResidents() {
     mobilityStatus: 'Independent with walking cane',
     notes: 'Morning walks around 08:30. Bedtime scheduled at 21:30. Prefers warm lighting.',
     emergencyContacts: [
-      { id: 'c_1', name: 'Maria Vance', relation: 'Daughter / Primary Caregiver', phone: '+1 (555) 234-5678', isPrimary: true },
-      { id: 'c_2', name: 'John Vance', relation: 'Son', phone: '+1 (555) 876-5432', isPrimary: false },
+      { id: 'c_1', name: 'Caregiver', relation: 'Primary Caregiver', phone: '+1 (555) 234-5678', isPrimary: true },
+      { id: 'c_2', name: 'Resident Family', relation: 'Family Member', phone: '+1 (555) 876-5432', isPrimary: false },
     ],
     doctorContact: {
-      name: 'Dr. Robert Chen, MD',
+      name: 'Care Doctor',
       clinic: 'St. Jude Geriatric Care',
       phone: '+1 (555) 345-9012',
       specialty: 'Geriatric Medicine',
     },
     faceTemplates: [
-      { templateId: 'tmpl_el_front', angle: 'front', registeredAt: '2026-09-01T10:00:00Z', qualityScore: 0.98, fileName: 'eleanor_front_a8f921.png' },
-      { templateId: 'tmpl_el_left', angle: 'left', registeredAt: '2026-09-01T10:02:00Z', qualityScore: 0.94, fileName: 'eleanor_left_b3c791.png' },
-      { templateId: 'tmpl_el_right', angle: 'right', registeredAt: '2026-09-01T10:04:00Z', qualityScore: 0.95, fileName: 'eleanor_right_c4d812.png' },
+      { templateId: 'tmpl_el_front', angle: 'front', registeredAt: '2026-09-01T10:00:00Z', qualityScore: 0.98, fileName: 'elder_front_a8f921.png' },
+      { templateId: 'tmpl_el_left', angle: 'left', registeredAt: '2026-09-01T10:02:00Z', qualityScore: 0.94, fileName: 'elder_left_b3c791.png' },
+      { templateId: 'tmpl_el_right', angle: 'right', registeredAt: '2026-09-01T10:04:00Z', qualityScore: 0.95, fileName: 'elder_right_c4d812.png' },
     ],
     createdAt: '2026-09-01T00:00:00Z',
     updatedAt: '2026-09-01T00:00:00Z',

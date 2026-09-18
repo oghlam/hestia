@@ -1,4 +1,4 @@
-import type {
+﻿import type {
   AccessLogEntry,
   Alert,
   Asset,
@@ -65,7 +65,7 @@ export function resetDynamoClient() {
 }
 
 export interface DynamoItem {
-  pk: string // e.g. "HOME#HGW-001", "ROOM#living_room", "RESIDENT#eleanor"
+  pk: string // e.g. "HOME#HGW-001", "ROOM#living_room", "RESIDENT#Elder"
   sk: string // e.g. "METADATA", "SCENE#2026-09-15T12:00:00Z#scene_001", "ALERT#alert_001"
   entityType: string // 'room' | 'resident' | 'care_team' | 'rule' | 'scene' | 'alert' | 'audit_log' | 'access_log' | 'notification' | 'asset' | 'settings' | 'home_map'
   data: Record<string, any>

@@ -67,13 +67,11 @@ import {
 } from '@/hooks'
 
 import {
-  elderPortrait,
-  caregiverPortrait,
-  familyPortrait,
-  nursePortrait,
   type TabKey,
   type Scene,
 } from './domain/mock-data'
+
+const DEFAULT_AVATAR = '/avatar/default.png'
 
 const API_BASE =
   import.meta.env.VITE_API_BASE_URL ??
@@ -281,7 +279,7 @@ export function App() {
   const displayRooms = rooms.rawRooms || []
   const primaryResidentObj = residents.residents?.find((r) => r.primaryTarget) || residents.residents?.[0] || null
   const mariaMember = careTeam.careTeam?.find((m) => m.name?.includes('Caregiver') || m.isPrimaryValidator) || null
-  const mariaAvatarUrl = mariaMember?.avatarUrl || caregiverPortrait
+  const mariaAvatarUrl = mariaMember?.avatarUrl || DEFAULT_AVATAR
 
   const roomStates = rooms.roomStates || []
   const apiScenes = sceneEvents.apiScenes || []

@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useEffect } from 'react'
+﻿import { useRef, useState, useCallback, useEffect } from 'react'
 import type { SystemSettings, DbMode, DevicePipelineMode, AuditArchiveFile } from '../domain/contracts'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (
@@ -31,7 +31,7 @@ export const defaultSystemSettings: SystemSettings = {
     lat: 44.0462,
     lon: -123.022,
   },
-  emergencyAccessNotes: 'Side entrance lockbox code: 4821. Master physical key with Maria Vance.',
+  emergencyAccessNotes: 'Side entrance lockbox code: 4821. Master physical key with Caregiver.',
 
   dbMode: 'local_memory',
   cloudDbEndpoint: 'https://dynamodb.us-east-1.amazonaws.com',
@@ -63,8 +63,8 @@ export const initialDefaultArchives: AuditArchiveFile[] = [
     recordsCount: 42,
     contentJson: JSON.stringify([
       { logId: 'log_seed_1', timestamp: '2026-09-10T11:58:00Z', action: 'SYSTEM_ALERT_CREATED', actorId: 'system', targetId: 'alert_001', newState: 'VALIDATION_PENDING', notes: 'Automated fall detection alert' },
-      { logId: 'log_seed_2', timestamp: '2026-09-10T11:59:12Z', action: 'COMING', actorId: 'Maria Vance', targetId: 'alert_001', previousState: 'VALIDATION_PENDING', newState: 'CARE_IN_PROGRESS', notes: 'ETA 5 mins' },
-      { logId: 'log_seed_3', timestamp: '2026-09-10T12:04:30Z', action: 'I_HAVE_ARRIVED', actorId: 'Maria Vance', targetId: 'alert_001', previousState: 'CARE_IN_PROGRESS', newState: 'HANDLED', notes: 'Eleanor is safe' }
+      { logId: 'log_seed_2', timestamp: '2026-09-10T11:59:12Z', action: 'COMING', actorId: 'Caregiver', targetId: 'alert_001', previousState: 'VALIDATION_PENDING', newState: 'CARE_IN_PROGRESS', notes: 'ETA 5 mins' },
+      { logId: 'log_seed_3', timestamp: '2026-09-10T12:04:30Z', action: 'I_HAVE_ARRIVED', actorId: 'Caregiver', targetId: 'alert_001', previousState: 'CARE_IN_PROGRESS', newState: 'HANDLED', notes: 'Elder is safe' }
     ], null, 2),
   },
   {
@@ -74,7 +74,7 @@ export const initialDefaultArchives: AuditArchiveFile[] = [
     size: '12.8 KB',
     recordsCount: 28,
     contentJson: JSON.stringify([
-      { logId: 'log_seed_0', timestamp: '2026-09-01T08:29:00Z', action: 'OK', actorId: 'Maria Vance', targetId: 'resident_eleanor', newState: 'RESOLVED', notes: 'Morning wellness check' }
+      { logId: 'log_seed_0', timestamp: '2026-09-01T08:29:00Z', action: 'OK', actorId: 'Caregiver', targetId: 'resident_elder', newState: 'RESOLVED', notes: 'Morning wellness check' }
     ], null, 2),
   },
 ]
@@ -93,7 +93,7 @@ export interface UseSystemSettingsReturn {
   selectedCameraDeviceId: string
   pipelineTargetRoom: string
   pipelineScenario: 'normal' | 'distress' | 'repeated_motion' | 'doorbell'
-  pipelineFaceHint: 'eleanor' | 'known_target' | 'unknown' | 'no_face'
+  pipelineFaceHint: 'elder' | 'known_target' | 'unknown' | 'no_face'
   isPipelinePushing: boolean
   isAutoStreaming: boolean
   pipelineFeedback: string | null
@@ -117,7 +117,7 @@ export interface UseSystemSettingsReturn {
   setSelectedCameraDeviceId: (id: string) => void
   setPipelineTargetRoom: (room: string) => void
   setPipelineScenario: (scenario: 'normal' | 'distress' | 'repeated_motion' | 'doorbell') => void
-  setPipelineFaceHint: (hint: 'eleanor' | 'known_target' | 'unknown' | 'no_face') => void
+  setPipelineFaceHint: (hint: 'elder' | 'known_target' | 'unknown' | 'no_face') => void
   setIsPipelinePushing: (pushing: boolean) => void
   setIsAutoStreaming: (streaming: boolean) => void
   setPipelineFeedback: (feedback: string | null) => void
@@ -187,7 +187,7 @@ export function useSystemSettings(): UseSystemSettingsReturn {
   const [selectedCameraDeviceId, setSelectedCameraDeviceId] = useState<string>('')
   const [pipelineTargetRoom, setPipelineTargetRoom] = useState<string>('living_room')
   const [pipelineScenario, setPipelineScenario] = useState<'normal' | 'distress' | 'repeated_motion' | 'doorbell'>('normal')
-  const [pipelineFaceHint, setPipelineFaceHint] = useState<'eleanor' | 'known_target' | 'unknown' | 'no_face'>('known_target')
+  const [pipelineFaceHint, setPipelineFaceHint] = useState<'elder' | 'known_target' | 'unknown' | 'no_face'>('known_target')
   const [isPipelinePushing, setIsPipelinePushing] = useState(false)
   const [isAutoStreaming, setIsAutoStreaming] = useState(false)
   const [pipelineFeedback, setPipelineFeedback] = useState<string | null>(null)
@@ -694,7 +694,7 @@ export function useSystemSettings(): UseSystemSettingsReturn {
 
   const handlePushPipelineFeed = useCallback(async () => {
     setIsPipelinePushing(true)
-    const activeHint = pipelineFaceHint === 'eleanor' ? 'known_target' : pipelineFaceHint
+    const activeHint = pipelineFaceHint === 'elder' ? 'known_target' : pipelineFaceHint
 
     let snapshotBase64: string | undefined = undefined
     if (isLocalCameraRunning) {

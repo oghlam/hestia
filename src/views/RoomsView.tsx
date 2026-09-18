@@ -1,5 +1,6 @@
 import React from 'react'
 import {
+  Camera,
   Check,
   Crosshair,
   Edit3,
@@ -155,9 +156,23 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     position: 'relative',
+                    overflow: 'hidden',
+                    backgroundColor: '#0f172a',
                   }}
                 >
-                  <span style={{ position: 'absolute', top: '10px', left: '10px' }}>● Live Feed</span>
+                  <span style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 2 }}>● Live Feed</span>
+                  {!liveRoom?.snapshotUrl && (
+                    <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: 'rgba(15,23,42,0.96)', zIndex: 1 }}>
+                      <div className="face-studio-scanner-line" style={{ zIndex: 1 }} />
+                      <div style={{ textAlign: 'center', zIndex: 2 }}>
+                        <Camera size={28} style={{ margin: '0 auto 8px', color: '#38bdf8', display: 'block' }} className="pulse" />
+                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#93c5fd', letterSpacing: '0.08em' }}>SCANNING {room.name.toUpperCase()}</div>
+                        <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <Camera size={12} /> RING CAMERA FEED
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <table className="table-responsive">
                   <tbody>

@@ -1,4 +1,4 @@
-# HESTIA — Comprehensive Live Demo & Device Testing Plan
+﻿# HESTIA — Comprehensive Live Demo & Device Testing Plan
 
 Dokumen ini adalah panduan lengkap langkah-demi-langkah (*step-by-step execution script*) untuk pengujian dan demonstrasi HESTIA (Elder Care Command Center for Ring).
 
@@ -43,13 +43,13 @@ npm run dev
 3. **Pilih Zona Ruangan & Skenario**:
    - **Ingest to Zone**: Pilih `Living Room` atau `Bedroom`.
    - **Simulation Signal**: Pilih `Elder Fall / Distress (S3)`.
-   - **Face Hint**: Pilih `Known Resident (Eleanor / Primary Target)`.
+   - **Face Hint**: Pilih `Known Resident (Elder / Primary Target)`.
 4. **Jepret & Ingest ke Pipeline**:
    - Klik tombol **"Capture Snapshot & Ingest to Pipeline"** (atau aktifkan **"Auto-Stream (5s)"** untuk pengiriman otomatis).
 5. **Verifikasi Hasil Real-Time**:
    - **Scene Engine**: Mengklasifikasikan situasi sebagai **S3_HELP** (Keyakinan: ≥ 85%).
-   - **Subject**: Terkunci sebagai *Eleanor* (Target terverifikasi).
-   - **AI Summary (Nova Micro)**: Memunculkan kalimat penjelasan situasi ramah pengasuh (*"Eleanor is in distress in Living Room, immediate assistance recommended"*).
+   - **Subject**: Terkunci sebagai *Elder* (Target terverifikasi).
+   - **AI Summary (Nova Micro)**: Memunculkan kalimat penjelasan situasi ramah pengasuh (*"Elder is in distress in Living Room, immediate assistance recommended"*).
    - **Home Map**: Indikator lampu kamera di *Living Room* berkedip oranye/merah.
 
 ---
@@ -60,7 +60,7 @@ npm run dev
 
 1. **Buka Tab People**:
    - Klik tab **People** di sidebar.
-   - Klik tombol **"Register Resident"** (atau klik **"Studio"** pada kartu Eleanor).
+   - Klik tombol **"Register Resident"** (atau klik **"Studio"** pada kartu Elder).
 2. **Buka Multi-Angle Face Studio**:
    - Di dalam modal Face Studio, klik **"Enable Camera"** untuk melihat wajah Anda di dalam reticle bidik.
 3. **Ambil 3 Pose Wajah**:
@@ -86,7 +86,7 @@ npm run dev
 3. **Pengasuh Mengambil Tindakan**:
    - Pengasuh menekan tombol **`COMING`** (Saya Menuju Lokasi).
    - Status berubah menjadi **`CARE_IN_PROGRESS`** (ETA: 5 menit).
-   - Keluarga menerima notifikasi update penenang: *"Maria is en route to Bedroom"*.
+   - Keluarga menerima notifikasi update penenang: *"Caregiver is en route to Bedroom"*.
 4. **Konfirmasi Selesai di Lokasi**:
    - Setelah tiba, pengasuh menekan **`I HAVE ARRIVED`** $\rightarrow$ Status berubah menjadi **`HANDLED`**.
    - Atau tekan **`OK`** jika situasi sudah aman $\rightarrow$ Status berubah menjadi **`RESOLVED`**.

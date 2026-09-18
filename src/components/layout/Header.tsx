@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { Building2, Bell, Menu, Smartphone, X } from 'lucide-react'
 import type { CareTeamMember, NotificationItem } from '../../domain/contracts'
 
@@ -26,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   activeSiteName = 'Greenwood Residence',
   onOpenValidator,
 }) => {
-  const caregiverName = mariaMember?.name || 'Sarah Jenkins'
+  const caregiverName = mariaMember?.name || 'Nurse'
   const caregiverRole = mariaMember?.role || 'Lead Caregiver'
   const tooltipText = `${caregiverName} (${caregiverRole})`
 
@@ -54,7 +54,8 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Logo Hestia di Sudut Kiri Atas */}
           <div className="topbar-logo-area">
-            <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
+            <img src="/logo/hestia_logo_full.png" alt="HESTIA" className="logo-full" />
+            <img src="/logo/hestia_pwa_192.png" alt="H" className="logo-icon-mobile" />
           </div>
 
           {/* Site Identity Badge */}

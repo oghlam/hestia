@@ -1,5 +1,5 @@
 // HESTIA PWA Service Worker
-const CACHE_NAME = 'hestia-pwa-v3-android-maskable';
+const CACHE_NAME = 'hestia-pwa-v5-splash-transparent';
 const STATIC_ASSETS = [
   '/',
   '/?view=validator',
@@ -11,7 +11,10 @@ const STATIC_ASSETS = [
   '/logo/hestia_maskable_192.png',
   '/logo/hestia_maskable_512.png',
   '/logo/hestia_apple_180.png',
-  '/logo/hestia_favicon_32.png'
+  '/logo/hestia_favicon_32.png',
+  '/logo/hestia_splash_transparent.png',
+  '/logo/hestia_topbar_80.png',
+  '/avatar/default.png'
 ];
 
 self.addEventListener('install', (event) => {

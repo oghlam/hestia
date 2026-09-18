@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import {
   Activity,
   AlertTriangle,
@@ -59,8 +59,8 @@ export interface SettingsViewProps {
   setPipelineTargetRoom: (roomId: string) => void
   pipelineScenario: 'normal' | 'distress' | 'repeated_motion' | 'doorbell'
   setPipelineScenario: (scenario: 'normal' | 'distress' | 'repeated_motion' | 'doorbell') => void
-  pipelineFaceHint: 'eleanor' | 'known_target' | 'unknown' | 'no_face'
-  setPipelineFaceHint: (hint: 'eleanor' | 'known_target' | 'unknown' | 'no_face') => void
+  pipelineFaceHint: 'elder' | 'known_target' | 'unknown' | 'no_face'
+  setPipelineFaceHint: (hint: 'elder' | 'known_target' | 'unknown' | 'no_face') => void
   isPipelinePushing: boolean
   isAutoStreaming?: boolean
   toggleAutoStreaming?: () => void
@@ -1082,7 +1082,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <textarea
                 className="form-input"
                 rows={3}
-                placeholder="e.g. Side entrance lockbox code: 4821. Master physical key with Maria Vance."
+                placeholder="e.g. Side entrance lockbox code: 4821. Master physical key with Caregiver."
                 value={systemSettings.emergencyAccessNotes}
                 onChange={(e) => setSystemSettings({ ...systemSettings, emergencyAccessNotes: e.target.value })}
               />

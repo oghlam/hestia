@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import {
   Activity,
   ArrowDown,
@@ -133,7 +133,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ onSelectNodeForDrawe
       id: 'node-care-loop',
       tier: 'care',
       label: 'Caregiver Validation Loop',
-      sublabel: 'Primary: Maria (SLA 90s)',
+      sublabel: 'Primary: Caregiver (SLA 90s)',
       icon: HeartPulse,
       status: 'online' as const,
       latency: 45,

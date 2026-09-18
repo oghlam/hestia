@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+﻿import { useState, useRef, useCallback } from 'react'
 import type { Resident, FaceAngle, FaceTemplate } from '../domain/contracts'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (
@@ -9,32 +9,13 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (
     : ''
 )
 
-function generateFacePoseThumbnail(angle: FaceAngle): string {
-  const angleLabel = angle === 'front' ? '0° Frontal' : angle === 'left' ? '45° Left Profile' : '45° Right Profile'
-  const rot = angle === 'left' ? -22 : angle === 'right' ? 22 : 0
-  const eyeX1 = angle === 'left' ? 34 : angle === 'right' ? 44 : 39
-  const eyeX2 = angle === 'left' ? 56 : angle === 'right' ? 66 : 61
-  const noseX = angle === 'left' ? 43 : angle === 'right' ? 57 : 50
-
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-    <rect width="100" height="100" rx="14" fill="#0f172a"/>
-    <circle cx="50" cy="46" r="40" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3,2"/>
-    <g transform="rotate(${rot} 50 46)">
-      <ellipse cx="50" cy="46" rx="20" ry="26" fill="#f8fafc"/>
-      <circle cx="${eyeX1}" cy="40" r="3" fill="#0f172a"/>
-      <circle cx="${eyeX2}" cy="40" r="3" fill="#0f172a"/>
-      <path d="M ${noseX} 44 L ${noseX} 52 L ${noseX + (angle === 'left' ? -3 : angle === 'right' ? 3 : 0)} 53" fill="none" stroke="#475569" stroke-width="2"/>
-      <path d="M 43 59 Q 50 63 57 59" fill="none" stroke="#64748b" stroke-width="2"/>
-    </g>
-    <rect x="10" y="76" width="80" height="18" rx="5" fill="#0284c7"/>
-    <text x="50" y="88" fill="#ffffff" font-size="8" font-weight="bold" text-anchor="middle" font-family="sans-serif">${angleLabel}</text>
-  </svg>`
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+function generateFacePoseThumbnail(_angle: FaceAngle): string {
+  return '/avatar/default.png'
 }
 
 export const defaultResidents: Resident[] = [
   {
-    id: 'resident_eleanor',
+    id: 'resident_elder',
     name: 'Elder',
     age: 78,
     gender: 'female',
@@ -44,21 +25,21 @@ export const defaultResidents: Resident[] = [
     notes: 'Prefers morning coffee on the porch at 08:30. Bedtime at 21:30.',
     faceTemplates: [
       {
-        templateId: 'tmpl_eleanor_front',
+        templateId: 'tmpl_elder_front',
         angle: 'front',
         registeredAt: '2026-09-01T08:00:00Z',
         qualityScore: 0.98,
         previewUrl: generateFacePoseThumbnail('front'),
       },
       {
-        templateId: 'tmpl_eleanor_left',
+        templateId: 'tmpl_elder_left',
         angle: 'left',
         registeredAt: '2026-09-01T08:02:00Z',
         qualityScore: 0.94,
         previewUrl: generateFacePoseThumbnail('left'),
       },
       {
-        templateId: 'tmpl_eleanor_right',
+        templateId: 'tmpl_elder_right',
         angle: 'right',
         registeredAt: '2026-09-01T08:04:00Z',
         qualityScore: 0.95,
@@ -67,15 +48,15 @@ export const defaultResidents: Resident[] = [
     ],
     emergencyContacts: [
       {
-        id: 'contact_maria',
-        name: 'Maria Vance',
-        relation: 'Daughter / Primary Caregiver',
+        id: 'contact_caregiver',
+        name: 'Caregiver',
+        relation: 'Primary Caregiver',
         phone: '+1 (555) 234-5678',
         isPrimary: true,
       },
     ],
     doctorContact: {
-      name: 'Dr. Robert Chen, MD',
+      name: 'Care Doctor',
       clinic: 'St. Jude Geriatric Care',
       phone: '+1 (555) 345-9012',
       specialty: 'Geriatric Medicine',
@@ -249,14 +230,14 @@ export function useResidents(): UseResidentsReturn {
         emergencyContacts: [
           {
             id: `contact_${Date.now()}`,
-            name: residentFormData.emergencyName.trim() || 'Maria Vance',
+            name: residentFormData.emergencyName.trim() || 'Caregiver',
             relation: residentFormData.emergencyRelation.trim() || 'Family Caregiver',
             phone: residentFormData.emergencyPhone.trim() || '+1 (555) 234-5678',
             isPrimary: true,
           },
         ],
         doctorContact: {
-          name: residentFormData.doctorName.trim() || 'Dr. Robert Chen, MD',
+          name: residentFormData.doctorName.trim() || 'Care Doctor',
           clinic: residentFormData.doctorClinic.trim() || 'St. Jude Geriatric Care',
           phone: residentFormData.doctorPhone.trim() || '+1 (555) 345-9012',
           specialty: residentFormData.doctorSpecialty.trim() || 'Geriatric Medicine',

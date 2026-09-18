@@ -1,7 +1,7 @@
-"""
+﻿"""
 HESTIA Vision Service - Face Recognition for Elder Care
 Matches Ring snapshot frames against registered resident target templates.
-Product rule: Only registered care targets (e.g. Eleanor) are identified as 'known_target'.
+Product rule: Only registered care targets (e.g. Elder) are identified as 'known_target'.
 All other detected faces are classified as 'unknown' (never triggers siren by identity alone).
 """
 
@@ -16,7 +16,7 @@ import numpy as np
 MATCH_THRESHOLD = 0.75
 
 # Default reference face templates for registered residents (normalized 64-d feature vectors or haar/hog-based embeddings)
-# Seeded with deterministic synthetic/canonical embeddings for resident Eleanor
+# Seeded with deterministic synthetic/canonical embeddings for resident Elder
 def _generate_canonical_embedding(seed: int = 42, dim: int = 64) -> np.ndarray:
     np.random.seed(seed)
     vec = np.random.randn(dim).astype(np.float32)

@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { CareTeamMember, CareTeamMemberRole, NotificationChannel } from '../domain/contracts'
-import { caregiverPortrait, familyPortrait, nursePortrait, doctorPortrait } from '../domain/mock-data'
+
+const DEFAULT_AVATAR = '/avatar/default.png'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? (
   typeof window !== 'undefined' &&
@@ -21,7 +22,7 @@ export const defaultCareTeam: CareTeamMember[] = [
     channel: 'push_sms',
     slaMinutes: 2,
     isPrimaryValidator: true,
-    avatarUrl: caregiverPortrait,
+    avatarUrl: DEFAULT_AVATAR,
     shiftSchedule: '24/7 Primary Response',
     notes: 'Primary on-site responder.',
     createdAt: '2026-09-01T00:00:00Z',
@@ -37,7 +38,7 @@ export const defaultCareTeam: CareTeamMember[] = [
     channel: 'whatsapp',
     slaMinutes: 5,
     isPrimaryValidator: false,
-    avatarUrl: familyPortrait,
+    avatarUrl: DEFAULT_AVATAR,
     shiftSchedule: 'Evening & Weekend On-Call',
     notes: 'Family backup contact.',
     createdAt: '2026-09-01T00:00:00Z',
@@ -53,7 +54,7 @@ export const defaultCareTeam: CareTeamMember[] = [
     channel: 'phone_call',
     slaMinutes: 3,
     isPrimaryValidator: false,
-    avatarUrl: nursePortrait,
+    avatarUrl: DEFAULT_AVATAR,
     shiftSchedule: 'Weekdays 08:00 - 16:00',
     notes: 'Home nurse check.',
     createdAt: '2026-09-01T00:00:00Z',
@@ -69,7 +70,7 @@ export const defaultCareTeam: CareTeamMember[] = [
     channel: 'phone_call',
     slaMinutes: 10,
     isPrimaryValidator: false,
-    avatarUrl: doctorPortrait,
+    avatarUrl: DEFAULT_AVATAR,
     shiftSchedule: 'On-Call Medical Escalation',
     notes: 'Attending physician.',
     createdAt: '2026-09-01T00:00:00Z',
@@ -339,14 +340,8 @@ export function useCareTeam(): UseCareTeamReturn {
 
       stream.getTracks().forEach((track) => track.stop())
     } catch {
-      // Fallback to high-quality generated avatar if camera is unavailable or permission denied
-      const initial = memberFormData.name ? memberFormData.name.charAt(0).toUpperCase() : 'C'
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
-        <rect width="100" height="100" rx="50" fill="#0284c7"/>
-        <text x="50" y="62" fill="#ffffff" font-size="36" font-weight="bold" text-anchor="middle" font-family="sans-serif">${initial}</text>
-      </svg>`
-      const dataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-      setMemberFormData((prev) => ({ ...prev, avatarUrl: dataUrl }))
+      // Fallback to default avatar if camera is unavailable or permission denied
+      setMemberFormData((prev) => ({ ...prev, avatarUrl: DEFAULT_AVATAR }))
     }
   }, [memberFormData.name])
 

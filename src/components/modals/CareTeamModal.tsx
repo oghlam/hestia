@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { Camera, Trash2, Upload, X } from 'lucide-react'
 import type {
   CareTeamMember,
@@ -75,7 +75,7 @@ export const CareTeamModal: React.FC<CareTeamModalProps> = ({
                   type="text"
                   className="form-input"
                   required
-                  placeholder="e.g. Maria Vance, Nurse Sarah, Dr. Robert"
+                  placeholder="e.g. Caregiver, Nurse Sarah, Dr. Robert"
                   value={memberFormData.name}
                   onChange={(e) => setMemberFormData({ ...memberFormData, name: e.target.value })}
                 />
@@ -199,7 +199,7 @@ export const CareTeamModal: React.FC<CareTeamModalProps> = ({
                 <input
                   type="email"
                   className="form-input"
-                  placeholder="maria.vance@example.com"
+                  placeholder="Caregiver.vance@example.com"
                   value={memberFormData.email}
                   onChange={(e) => setMemberFormData({ ...memberFormData, email: e.target.value })}
                 />

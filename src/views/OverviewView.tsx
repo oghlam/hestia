@@ -1,6 +1,7 @@
-import React from 'react'
+﻿import React from 'react'
 import {
   Activity,
+  Camera,
   ChevronRight,
   Clock3,
   Ellipsis,
@@ -28,15 +29,12 @@ import type {
   SceneEvent,
 } from '../domain/contracts'
 import {
-  elderPortrait,
-  caregiverPortrait,
-  familyPortrait,
-  nursePortrait,
-  doctorPortrait,
   sceneLabels,
   type TabKey,
   type Scene,
 } from '../domain/mock-data'
+
+const DEFAULT_AVATAR = '/avatar/default.png'
 
 export interface OverviewViewProps {
   greeting: string
@@ -101,10 +99,10 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
   triggerSimulation,
   setIsAlertSimulatorOpen,
 }) => {
-  const elderAvatarUrl = primaryResidentObj?.faceTemplates?.[0]?.previewUrl || elderPortrait
-  const caregiverAvatarUrl = careTeam.find((m) => m.id === 'member_caregiver')?.avatarUrl || caregiverPortrait
-  const familyAvatarUrl = careTeam.find((m) => m.id === 'member_family')?.avatarUrl || familyPortrait
-  const nurseAvatarUrl = careTeam.find((m) => m.id === 'member_nurse')?.avatarUrl || nursePortrait
+  const elderAvatarUrl = primaryResidentObj?.faceTemplates?.[0]?.previewUrl || DEFAULT_AVATAR
+  const caregiverAvatarUrl = careTeam.find((m) => m.id === 'member_caregiver')?.avatarUrl || DEFAULT_AVATAR
+  const familyAvatarUrl = careTeam.find((m) => m.id === 'member_family')?.avatarUrl || DEFAULT_AVATAR
+  const nurseAvatarUrl = careTeam.find((m) => m.id === 'member_nurse')?.avatarUrl || DEFAULT_AVATAR
 
   const activeAlert = alerts.find((a) => a.state === 'VALIDATION_PENDING' || a.state === 'CARE_IN_PROGRESS')
   const elderStatusText = activeAlert
@@ -289,9 +287,23 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     position: 'relative',
+                    overflow: 'hidden',
+                    backgroundColor: '#0f172a',
                   }}
                 >
-                  <span style={{ position: 'absolute', top: '10px', left: '10px' }}>● Live</span>
+                  <span style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 2 }}>● Live</span>
+                  {!liveRoom?.snapshotUrl && (
+                    <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: 'rgba(15,23,42,0.96)', zIndex: 1 }}>
+                      <div className="face-studio-scanner-line" style={{ zIndex: 1 }} />
+                      <div style={{ textAlign: 'center', zIndex: 2 }}>
+                        <Camera size={24} style={{ margin: '0 auto 6px', color: '#38bdf8', display: 'block' }} className="pulse" />
+                        <div style={{ fontSize: '10px', fontWeight: 700, color: '#93c5fd', letterSpacing: '0.08em' }}>SCANNING {room.name.toUpperCase()}</div>
+                        <div style={{ fontSize: '9px', color: '#64748b', marginTop: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                          <Camera size={11} /> RING CAMERA FEED
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="room-card-footer">
                   <span>
@@ -402,9 +414,9 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 ))
               ) : (
                 [
-                  ['21:18', 'Eleanor sitting on sofa', 'Living Room · Normal', 'normal'],
+                  ['21:18', 'Elder sitting on sofa', 'Living Room · Normal', 'normal'],
                   ['20:47', 'Front door motion', 'Entry · Person detected', 'watch'],
-                  ['18:32', 'Eleanor in bedroom', 'Bedroom · Normal', 'normal'],
+                  ['18:32', 'Elder in bedroom', 'Bedroom · Normal', 'normal'],
                   ['17:11', 'Visitor at front door', 'Entry · Known (Family)', 'normal'],
                 ].map(([time, title, detail, tone]) => (
                   <div className="activity-item compact-item" key={time + title}>
@@ -761,7 +773,7 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
             disabled={simLoading}
             onClick={() => triggerSimulation('normal')}
           >
-            Eleanor Living Room (S1)
+            Elder Living Room (S1)
           </button>
           <button
             className="sim-button secondary"

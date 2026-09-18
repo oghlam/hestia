@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+﻿import React, { useEffect, useState } from 'react'
 import {
   BellRing,
   Camera,
@@ -171,7 +171,7 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
     const updatedAlert: Alert = {
       ...alert,
       state: nextState,
-      actorId: 'Maria Vance',
+      actorId: 'Caregiver',
       etaMinutes: action === 'COMING' ? 5 : undefined,
       updatedAt: nowIso,
     }
@@ -179,9 +179,9 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
     if (action === 'OK' || action === 'I_HAVE_ARRIVED') {
       const record: HandledRecord = {
         alertId: alert.alertId,
-        residentName: primaryResident?.name || 'Eleanor',
+        residentName: primaryResident?.name || 'Elder',
         roomName: (alert.roomId || 'living_room').replace('_', ' ').toUpperCase(),
-        actorId: 'Maria Vance (Daughter / Caregiver)',
+        actorId: 'Caregiver (Daughter / Caregiver)',
         handledAt: formatTriggerTime(nowIso),
         scene: alert.scene === 'S4_CRITICAL' ? 'S4 · CRITICAL' : 'S3 · HELP',
         action: action === 'OK' ? 'OK (Clear)' : 'I’ve Arrived',
@@ -205,7 +205,7 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
       const response = await fetch(`${API_BASE}/api/alerts/${alert.alertId}/actions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, actorId: 'Maria Vance', etaMinutes: action === 'COMING' ? 5 : undefined }),
+        body: JSON.stringify({ action, actorId: 'Caregiver', etaMinutes: action === 'COMING' ? 5 : undefined }),
       })
       if (response.ok) {
         const data = await response.json()
@@ -240,13 +240,13 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
   }
 
   const inProgress = alert?.state === 'CARE_IN_PROGRESS'
-  const elderName = primaryResident?.name || 'Eleanor'
+  const elderName = primaryResident?.name || 'Elder'
   const elderRoomName = (alert?.roomId || 'living_room').replace('_', ' ').toUpperCase()
   const triggerTime = formatTriggerTime(alert?.createdAt || activeScene?.createdAt)
   const elapsed = formatElapsed(alert?.createdAt || activeScene?.createdAt)
   const aiNote =
     activeScene?.contextText ||
-    'Eleanor experienced an unexpected fall near the bedside. Immediate caregiver assistance recommended.'
+    'Elder experienced an unexpected fall near the bedside. Immediate caregiver assistance recommended.'
   const elderAvatarUrl =
     primaryResident?.faceTemplates?.[0]?.previewUrl ||
     (primaryResident as unknown as { avatarUrl?: string })?.avatarUrl
@@ -344,13 +344,13 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
                   Emergency Contact Circle
                 </div>
                 <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, marginBottom: '4px' }}>
-                  Maria Vance (Daughter)
+                  Caregiver (Daughter)
                 </div>
                 <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>
                   +1 (555) 234-5678 · Primary Caregiver
                 </div>
                 <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, marginBottom: '4px' }}>
-                  John Vance (Son)
+                  Resident Family (Son)
                 </div>
                 <div style={{ fontSize: '12px', color: '#64748b' }}>+1 (555) 876-5432 · Backup Contact</div>
               </div>
@@ -378,7 +378,7 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
                   <span className="validator-timeline-time">{triggerTime}</span>
                   <span className="validator-timeline-dot alert" />
                   <span className="validator-timeline-text">
-                    <strong>Auto-Push Family:</strong> Emergency alert broadcasted to Maria & John Vance (WhatsApp &
+                    <strong>Auto-Push Family:</strong> Emergency alert broadcasted to Caregiver & Resident Family (WhatsApp &
                     Push).
                   </span>
                 </div>
@@ -387,7 +387,7 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
                     <span className="validator-timeline-time">{triggerTime}</span>
                     <span className="validator-timeline-dot warning" />
                     <span className="validator-timeline-text">
-                      <strong>Caregiver Dispatched:</strong> Maria Vance acknowledged COMING (ETA: 5m).
+                      <strong>Caregiver Dispatched:</strong> Caregiver acknowledged COMING (ETA: 5m).
                     </span>
                   </div>
                 )}
@@ -664,7 +664,7 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
 
             <p className="validator-message">
               {inProgress
-                ? 'Maria Vance is en route to ' + elderRoomName + ' (ETA: 5m). Family notified.'
+                ? 'Caregiver is en route to ' + elderRoomName + ' (ETA: 5m). Family notified.'
                 : message || 'Choose an action to immediately notify the family and care team.'}
             </p>
           </>

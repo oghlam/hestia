@@ -1,4 +1,4 @@
-# HESTIA — Deployment Architecture & Access Model
+﻿# HESTIA — Deployment Architecture & Access Model
 
 This document specifies the deployment topology, runtime architecture, security boundaries, and network access points for the HESTIA Elder Care Command Center.
 
@@ -104,7 +104,7 @@ This document specifies the deployment topology, runtime architecture, security 
    - Face template embeddings (64-dimensional vectors) are generated locally.
    - Amazon Nova Micro **never receives raw images or video streams**; only sanitized JSON text prompts are transmitted.
 4. **Target Identity vs. Visitor Protection**:
-   - Only registered resident face templates (e.g., Eleanor) trigger care paths and emergency escalations.
+   - Only registered resident face templates (e.g., Elder) trigger care paths and emergency escalations.
    - Unrecognized visitors are recorded in the Access Log (`S2_WATCH`) without triggering false emergency sirens.
 5. **Caregiver Governance**:
    - AI outputs context; the human caregiver always remains the decision authority.

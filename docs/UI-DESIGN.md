@@ -1,4 +1,4 @@
-# HESTIA UI Design
+﻿# HESTIA UI Design
 
 The following references are implementation references, not merely inspiration:
 
@@ -79,7 +79,7 @@ The intended flow is:
 🔴 HELP
 Possible distress detected
 
-Eleanor
+Elder
 Bedroom
 
 [ OK ]
