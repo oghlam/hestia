@@ -788,6 +788,7 @@ export function App() {
             residents.setEditingResident(null)
           }}
           editingResident={residents.editingResident}
+          careTeamList={careTeam.careTeam}
           residentFormData={residents.residentFormData}
           setResidentFormData={residents.setResidentFormData}
           handleSaveResidentSubmit={residents.handleSaveResidentSubmit}

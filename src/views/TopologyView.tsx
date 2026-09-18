@@ -344,8 +344,10 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ onSelectNodeForDrawe
               })}
             </div>
 
-            <div className="topology-horizontal-arrow">
-              <div className={`wire-pulse horizontal ${trafficSimulating ? 'active' : ''}`} />
+            <div className="topology-horizontal-connector">
+              <div className="arrow-head left" />
+              <div className={`wire-pulse-h ${trafficSimulating ? 'active' : ''}`} />
+              <div className="arrow-head right" />
             </div>
 
             <div className="topology-tier tier-care flex-1">

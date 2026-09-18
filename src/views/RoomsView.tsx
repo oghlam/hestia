@@ -478,9 +478,6 @@ export const RoomsView: React.FC<RoomsViewProps> = ({
                           <b>Presence</b>
                           {liveState?.activePerson || 'No person'}
                         </span>
-                        <span>
-                          <b>Coordinates</b>X: {coord.x}%, Y: {coord.y}%
-                        </span>
                       </div>
                     )}
                   </div>

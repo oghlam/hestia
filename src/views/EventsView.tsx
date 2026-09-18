@@ -228,18 +228,19 @@ export const EventsView: React.FC<EventsViewProps> = ({
         </div>
 
         {/* Events Table */}
-        <table className="table-responsive">
-          <thead>
-            <tr>
-              <th>Date & Time</th>
-              <th>Room</th>
-              <th>Scene Code</th>
-              <th>Confidence</th>
-              <th>Resident / Subject</th>
-              <th>AI Context Summary (Nova Micro)</th>
-              <th>Action</th>
-            </tr>
-          </thead>
+        <div className="controller-table-box">
+          <table className="controller-table">
+            <thead>
+              <tr>
+                <th style={{ minWidth: '110px' }}>Date & Time</th>
+                <th style={{ minWidth: '110px' }}>Room</th>
+                <th style={{ minWidth: '100px' }}>Scene Code</th>
+                <th style={{ minWidth: '90px' }}>Confidence</th>
+                <th style={{ minWidth: '140px' }}>Resident / Subject</th>
+                <th style={{ minWidth: '240px' }}>AI Context Summary (Nova Micro)</th>
+                <th style={{ minWidth: '90px' }}>Action</th>
+              </tr>
+            </thead>
           <tbody>
             {paginatedEvents.length > 0 ? (
               paginatedEvents.map((s) => (
@@ -316,6 +317,7 @@ export const EventsView: React.FC<EventsViewProps> = ({
             )}
           </tbody>
         </table>
+      </div>
 
         {/* Pagination Controls Footer */}
         <div className="table-pagination-footer">

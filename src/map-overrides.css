@@ -6,7 +6,23 @@
 .ring-device.error { background: #ee5146; box-shadow: 0 0 0 3px #ee514622; }
 .ring-device.active { animation: ring-pulse 1.4s ease-in-out infinite; }
 .ring-device svg { stroke-width: 2.5; }
-.device-tooltip { position: absolute; left: 26px; bottom: 20px; width: 174px; padding: 10px 11px; border: 1px solid #ffffffaa; border-radius: 9px; background: #ffffffdf; backdrop-filter: blur(8px); box-shadow: 0 8px 22px #1a315c1c; color: #233b59; display: none; z-index: 10; text-align: left; }
+.device-tooltip { 
+  position: absolute; 
+  left: 26px; 
+  bottom: 20px; 
+  width: 174px; 
+  padding: 10px 11px; 
+  border: 1px solid #cbd5e1; 
+  border-radius: 9px; 
+  background: #ffffff !important; 
+  background-color: #ffffff !important; 
+  backdrop-filter: none !important; 
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.15); 
+  color: #1e293b; 
+  display: none; 
+  z-index: 50; 
+  text-align: left; 
+}
 .device-tooltip strong,.device-tooltip small,.device-tooltip span { display: block; }
 .device-tooltip strong { font-size: 11px; }
 .device-tooltip small { color: #71829a; font-size: 9px; margin: 3px 0 8px; }
@@ -591,66 +607,79 @@
 }
 .floorplan-canvas.overview-mode {
   max-width: 100%;
-  height: 240px;
-  aspect-ratio: auto;
-  overflow: visible;
+  height: 280px;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  position: relative;
+}
+
+.floorplan-canvas.overview-mode .floorplan-bg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  object-fit: cover;
+}
+
+.floorplan-canvas.overview-mode .pin-label-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  top: 30px;
 }
 .floorplan-canvas.overview-mode .floorplan-pin-marker {
   cursor: pointer !important;
+  z-index: 50;
 }
 .floorplan-canvas.overview-mode .device-tooltip {
-  display: block;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: max-content;
-  min-width: 160px;
-  max-width: 220px;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 9px;
-  background: #ffffff;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.16);
-  color: #1e293b;
-  z-index: 999;
-  pointer-events: none;
-  text-align: left;
+  display: block !important;
+  position: absolute !important;
+  width: max-content !important;
+  min-width: 140px !important;
+  max-width: 190px !important;
+  height: auto !important;
+  padding: 8px 10px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15) !important;
+  color: #1e293b !important;
+  z-index: 100 !important;
+  pointer-events: none !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
 }
 .floorplan-canvas.overview-mode .device-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 5px;
-  border-style: solid;
-  border-color: #ffffff transparent transparent transparent;
+  display: none;
 }
 .floorplan-canvas.overview-mode .device-tooltip strong {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   color: #0f172a;
   font-weight: 700;
+  margin-bottom: 2px;
 }
-.floorplan-canvas.overview-mode .device-tooltip small {
-  display: block;
-  color: #64748b;
-  font-size: 10px;
-  margin: 2px 0 6px;
+.floorplan-canvas.overview-mode .device-tooltip .tooltip-inline-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 3px;
+  margin-top: 2px;
+  font-size: 9px;
+  color: #475569;
 }
 .floorplan-canvas.overview-mode .device-tooltip span {
-  display: flex;
-  justify-content: space-between;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 4px;
-  margin-top: 4px;
-  font-size: 10px;
+  display: block;
+  font-size: 9px;
   color: #475569;
 }
 .floorplan-canvas.overview-mode .device-tooltip b {
-  color: #0f172a;
+  color: #334155;
   font-weight: 600;
+  margin-right: 4px;
 }
 .summary-avatar-img {
   width: 44px;
@@ -2122,10 +2151,10 @@
   letter-spacing: 0.4px;
 }
 .kpi-value {
-  font-size: 22px;
+  font-size: 14px;
   font-weight: 700;
   color: #0f172a;
-  margin: 4px 0 2px;
+  margin: 2px 0 1px;
 }
 .kpi-subtext {
   font-size: 11px;

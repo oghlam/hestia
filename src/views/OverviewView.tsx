@@ -570,32 +570,6 @@ export const OverviewView: React.FC<OverviewViewProps> = ({
                 >
                   <Wifi size={13} />
                   <span className="pin-label-tag">{room.name}</span>
-                  {isHovered && (
-                    <div
-                      className="device-tooltip"
-                      style={{
-                        display: 'block',
-                        left: coord.x > 75 ? 'auto' : coord.x < 25 ? '0' : '50%',
-                        right: coord.x > 75 ? '0' : 'auto',
-                        bottom: coord.y < 35 ? 'auto' : 'calc(100% + 10px)',
-                        top: coord.y < 35 ? 'calc(100% + 10px)' : 'auto',
-                        transform: coord.x >= 25 && coord.x <= 75 ? 'translateX(-50%)' : 'none',
-                      }}
-                    >
-                      <strong>{room.deviceName || `Ring ${room.name}`}</strong>
-                      <small>
-                        {room.deviceType || 'Indoor Cam'} · {room.floor || 'Floor 1'}
-                      </small>
-                      <span>
-                        <b>Signal</b>
-                        {room.signalDbm || 'Good · -55 dBm'}
-                      </span>
-                      <span>
-                        <b>Presence</b>
-                        {liveState?.activePerson || 'No person'}
-                      </span>
-                    </div>
-                  )}
                 </div>
               )
             })}

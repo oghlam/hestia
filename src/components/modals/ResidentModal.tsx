@@ -6,6 +6,7 @@ export interface ResidentModalProps {
   isOpen: boolean
   onClose: () => void
   editingResident: Resident | null
+  careTeamList?: any[]
   residentFormData: {
     name: string
     age: number
@@ -47,6 +48,7 @@ export const ResidentModal: React.FC<ResidentModalProps> = ({
   isOpen,
   onClose,
   editingResident,
+  careTeamList = [],
   residentFormData,
   setResidentFormData,
   handleSaveResidentSubmit,
@@ -215,56 +217,41 @@ export const ResidentModal: React.FC<ResidentModalProps> = ({
                 <span>Emergency Caregiver & Family Contact</span>
               </div>
 
-              <div className="form-row">
-                <div className="form-group" style={{ flex: 1.2 }}>
-                  <label className="form-label">Caregiver Name</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. Maria Vance"
-                    value={residentFormData.emergencyName}
-                    onChange={(e) =>
+              <div className="form-group">
+                <label className="form-label">Caregiver (Care Team Lookup)</label>
+                <select
+                  className="form-input"
+                  value={residentFormData.emergencyName}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    const member = careTeamList.find((m) => m.name === val)
+                    if (member) {
                       setResidentFormData({
                         ...residentFormData,
-                        emergencyName: e.target.value,
+                        emergencyName: member.name,
+                        emergencyRelation: member.relation || member.role,
+                        emergencyPhone: member.phone || '',
                       })
-                    }
-                  />
-                </div>
-                <div className="form-group" style={{ flex: 0.8 }}>
-                  <label className="form-label">Relationship</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. Daughter"
-                    value={residentFormData.emergencyRelation}
-                    onChange={(e) =>
+                    } else {
                       setResidentFormData({
                         ...residentFormData,
-                        emergencyRelation: e.target.value,
+                        emergencyName: val,
                       })
                     }
-                  />
-                </div>
+                  }}
+                >
+                  <option value="">-- Select Caregiver from Care Team --</option>
+                  {careTeamList.map((m) => (
+                    <option key={m.id} value={m.name}>
+                      {m.name} ({m.relation || m.role})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Phone Number / WhatsApp</label>
-                <div className="input-with-icon">
-                  <Phone size={14} className="input-icon" />
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="+1 (555) 234-5678"
-                    value={residentFormData.emergencyPhone}
-                    onChange={(e) =>
-                      setResidentFormData({
-                        ...residentFormData,
-                        emergencyPhone: e.target.value,
-                      })
-                    }
-                  />
-                </div>
+              <div className="form-row" style={{ opacity: 0.85, fontSize: '12px', marginTop: '6px', color: 'var(--text-muted, #888)' }}>
+                <div>Relationship: <strong>{residentFormData.emergencyRelation || '-'}</strong></div>
+                <div>Phone: <strong>{residentFormData.emergencyPhone || '-'}</strong></div>
               </div>
             </div>
 
@@ -275,37 +262,42 @@ export const ResidentModal: React.FC<ResidentModalProps> = ({
                 <span>Primary Physician & Clinic</span>
               </div>
 
-              <div className="form-row">
-                <div className="form-group" style={{ flex: 1.2 }}>
-                  <label className="form-label">Physician Name</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. Dr. Robert Chen, MD"
-                    value={residentFormData.doctorName}
-                    onChange={(e) =>
+              <div className="form-group">
+                <label className="form-label">Physician (Care Team Lookup)</label>
+                <select
+                  className="form-input"
+                  value={residentFormData.doctorName}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    const member = careTeamList.find((m) => m.name === val)
+                    if (member) {
                       setResidentFormData({
                         ...residentFormData,
-                        doctorName: e.target.value,
+                        doctorName: member.name,
+                        doctorClinic: member.relation || member.shiftSchedule || 'St. Jude Geriatric Care',
+                        doctorPhone: member.phone || '',
+                        doctorSpecialty: member.role === 'physician' ? 'Geriatric Medicine' : member.role,
                       })
-                    }
-                  />
-                </div>
-                <div className="form-group" style={{ flex: 0.8 }}>
-                  <label className="form-label">Clinic / Hospital</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    placeholder="e.g. St. Jude Geriatric"
-                    value={residentFormData.doctorClinic}
-                    onChange={(e) =>
+                    } else {
                       setResidentFormData({
                         ...residentFormData,
-                        doctorClinic: e.target.value,
+                        doctorName: val,
                       })
                     }
-                  />
-                </div>
+                  }}
+                >
+                  <option value="">-- Select Physician from Care Team --</option>
+                  {careTeamList.map((m) => (
+                    <option key={m.id} value={m.name}>
+                      {m.name} ({m.relation || m.role})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-row" style={{ opacity: 0.85, fontSize: '12px', marginTop: '6px', color: 'var(--text-muted, #888)' }}>
+                <div>Clinic/Role: <strong>{residentFormData.doctorClinic || '-'}</strong></div>
+                <div>Phone: <strong>{residentFormData.doctorPhone || '-'}</strong></div>
               </div>
             </div>
 
