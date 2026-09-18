@@ -3,25 +3,92 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <meta name="theme-color" content="#ffffff" />
+    <meta name="theme-color" content="#0B1E3A" />
     <link rel="icon" href="/logo/hestia_favicon_32.png" />
     <link rel="manifest" href="/manifest.json" />
     
     <!-- iOS / Safari PWA Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="HESTIA" />
-    <link rel="apple-touch-icon" href="/logo/hestia_pwa_192.png" />
+    <link rel="apple-touch-icon" href="/logo/hestia_apple_180.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/logo/hestia_pwa_192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/logo/hestia_pwa_512.png" />
     
     <!-- Windows PWA Tiles -->
-    <meta name="msapplication-TileColor" content="#ffffff" />
-    <meta name="msapplication-TileImage" content="/logo/hestia_pwa_192.png" />
+    <meta name="msapplication-TileColor" content="#0B1E3A" />
+    <meta name="msapplication-TileImage" content="/logo/hestia_maskable_192.png" />
 
     <title>HESTIA — Care Command Center</title>
+    <style>
+      /* HESTIA Premium PWA Splash — instant paint before React hydrates */
+      #hestia-splash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0B1E3A;overflow:hidden;transition:opacity .55s cubic-bezier(.16,1,.3,1),visibility .55s}
+      #hestia-splash.splash-hidden{opacity:0;visibility:hidden;pointer-events:none}
+      #hestia-splash .splash-bg{position:absolute;inset:0;background:
+        radial-gradient(700px 420px at 50% -10%, rgba(0,92,245,.28), transparent 60%),
+        radial-gradient(520px 520px at 90% 85%, rgba(16,185,129,.14), transparent 60%),
+        radial-gradient(600px 600px at 10% 90%, rgba(59,130,246,.10), transparent 65%),
+        linear-gradient(180deg,#0B1E3A 0%,#0F2340 55%,#0A1931 100%)}
+      #hestia-splash .splash-grid{position:absolute;inset:0;opacity:.06;background-image:
+        linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 80% 60% at 50% 40%, black 40%, transparent 75%)}
+      #hestia-splash .splash-glow{position:absolute;border-radius:50%;filter:blur(40px);opacity:.5;pointer-events:none}
+      #hestia-splash .splash-glow-1{width:320px;height:320px;background:rgba(0,92,245,.22);top:-70px;left:50%;transform:translateX(-50%)}
+      #hestia-splash .splash-glow-2{width:420px;height:420px;background:rgba(6,182,212,.12);bottom:-120px;right:-80px}
+      #hestia-splash .splash-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:0;padding:24px 20px;width:100%;max-width:360px}
+      #hestia-splash .splash-icon-wrap{width:96px;height:96px;border-radius:28px;background:#fff;display:grid;place-items:center;box-shadow:0 20px 50px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.08),0 0 40px rgba(0,92,245,.25);animation:splashFloat 3s ease-in-out infinite}
+      #hestia-splash .splash-icon-wrap img{width:72px;height:72px;object-fit:contain}
+      #hestia-splash .splash-wordmark{margin-top:18px;height:30px;width:auto;object-fit:contain;filter:brightness(0) invert(1);opacity:.96}
+      #hestia-splash .splash-tagline{margin-top:8px;font-family:'DM Sans',system-ui,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.72);text-transform:uppercase}
+      #hestia-splash .splash-divider{margin:18px 0 0;width:36px;height:2px;border-radius:999px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.9),transparent)}
+      #hestia-splash .splash-loader{margin-top:22px;width:148px;height:3px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;position:relative}
+      #hestia-splash .splash-loader-bar{position:absolute;inset:0;width:42%;background:linear-gradient(90deg,#0ea5e9,#005CF5,#38bdf8);border-radius:999px;animation:splashShimmer 1.15s cubic-bezier(.4,0,.6,1) infinite}
+      #hestia-splash .splash-sub{margin-top:12px;font-family:'DM Sans',system-ui,sans-serif;font-size:11px;font-weight:500;color:rgba(255,255,255,.58);letter-spacing:.02em;text-align:center}
+      #hestia-splash .splash-footer{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-family:'DM Sans',system-ui,sans-serif;font-size:10px;font-weight:600;letter-spacing:.08em;color:rgba(255,255,255,.38);white-space:nowrap;display:flex;align-items:center;gap:6px}
+      #hestia-splash .splash-footer-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 10px rgba(34,197,94,.8);animation:splashPulse 1.6s ease-in-out infinite}
+      @keyframes splashFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+      @keyframes splashShimmer{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+      @keyframes splashPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.92)}}
+      @media (max-height:600px){#hestia-splash .splash-icon-wrap{width:78px;height:78px;border-radius:22px}#hestia-splash .splash-icon-wrap img{width:58px;height:58px}}
+    </style>
   </head>
   <body>
+    <!-- Premium PWA Splash — paints instantly, fades when React is ready -->
+    <div id="hestia-splash" aria-hidden="true">
+      <div class="splash-bg"></div>
+      <div class="splash-grid"></div>
+      <div class="splash-glow splash-glow-1"></div>
+      <div class="splash-glow splash-glow-2"></div>
+      <div class="splash-content">
+        <div class="splash-icon-wrap">
+          <img src="/logo/hestia_pwa_512.png" alt="HESTIA" width="72" height="72" />
+        </div>
+        <img src="/logo/hestia_logo_full.png" alt="HESTIA" class="splash-wordmark" />
+        <div class="splash-tagline">Elder Care for Ring</div>
+        <div class="splash-divider"></div>
+        <div class="splash-loader"><div class="splash-loader-bar"></div></div>
+        <div class="splash-sub">AI-Assisted Safety · Ring + Nova Micro</div>
+      </div>
+      <div class="splash-footer"><span class="splash-footer-dot"></span> Securing Greenwood Residence · Hybrid Store Ready</div>
+    </div>
     <div id="root"></div>
+    <script>
+      // Auto-hide splash once React has painted or after max 2.8s (PWA standalone feels native instantly)
+      (function(){
+        var splash = document.getElementById('hestia-splash');
+        if(!splash) return;
+        var hidden = false;
+        function hide(){ if(hidden) return; hidden=true; splash.classList.add('splash-hidden'); setTimeout(function(){ if(splash.parentNode) splash.parentNode.removeChild(splash); },650); }
+        // Hide quickly after window load + small delay so transition to PreloadScreen is seamless (same navy)
+        window.addEventListener('load', function(){ setTimeout(hide, 700); });
+        // Safety: if React takes long, force hide at 2.8s
+        setTimeout(hide, 2800);
+        // Also hide when React mounts #root has content
+        var obs = new MutationObserver(function(){ var root=document.getElementById('root'); if(root && root.children.length>0){ setTimeout(hide, 380); obs.disconnect(); } });
+        obs.observe(document.getElementById('root'),{childList:true});
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

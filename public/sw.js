@@ -1,5 +1,5 @@
 // HESTIA PWA Service Worker
-const CACHE_NAME = 'hestia-pwa-v1';
+const CACHE_NAME = 'hestia-pwa-v3-android-maskable';
 const STATIC_ASSETS = [
   '/',
   '/?view=validator',
@@ -8,6 +8,9 @@ const STATIC_ASSETS = [
   '/logo/hestia_logo_primary.png',
   '/logo/hestia_pwa_192.png',
   '/logo/hestia_pwa_512.png',
+  '/logo/hestia_maskable_192.png',
+  '/logo/hestia_maskable_512.png',
+  '/logo/hestia_apple_180.png',
   '/logo/hestia_favicon_32.png'
 ];
 
