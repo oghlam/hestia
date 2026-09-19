@@ -53,27 +53,34 @@ HESTIA is designed as a calm elder-care operating system rather than a surveilla
 Here is the visual walkthrough of the HESTIA platform across its core modules:
 
 ### 1. Care Command Center Overview
-![Dashboard Overview](docs/screenshots/01-dashboard-overview.png)
+![Dashboard Overview Top](docs/screenshots/01-dashboard-overview-top-rooms.png)
+![Dashboard Overview Bottom](docs/screenshots/01-dashboard-overview-bottom-rooms.png)
+![Dashboard Default](docs/screenshots/00-Dasboard-Default.png)
 
 ### 2. Event Inspection & Amazon Nova Micro AI Context
 ![Event Inspection](docs/screenshots/02-event-inspection-nova-context.png)
 
 ### 3. Fast-Action Validator PWA
 ![Validator PWA](docs/screenshots/03-validator-pwa-action.png)
+![Validator Confirm](docs/screenshots/03-validator-pwa-action-confirm.png)
 
 ### 4. Family Reassurance & Handled State
 ![Family Reassurance](docs/screenshots/04-family-reassurance-resolved.png)
 
 ### 5. Ring Hardware Registry & Webhook Integration
 ![Ring Integration](docs/screenshots/05-ring-integration.png)
+![Care Topology](docs/screenshots/08-care-topology.png)
 
 ### 6. Resident Face Studio & Multi-Angle Biometrics
 ![Face Studio](docs/screenshots/06-resident-face-studio.png)
-![Face Studio Angle B](docs/screenshots/06A-resident-face-studio.png)
+![Face Studio Camera](docs/screenshots/06-resident-face-studio-camera.png)
 
-### 7. Automation Rules Engine
+### 7. Automation Rules Engine & Insights
 ![Automation Rules](docs/screenshots/07-automation-rules.png)
-![Automation Rules Angle B](docs/screenshots/07A-automation-rules.png)
+![Insights](docs/screenshots/07-automation-rules-Insight.png)
+
+### Timeline
+![Timeline 2:55](docs/screenshots/TIMELINE-TABLE.png)
 
 ## Running the project
 
