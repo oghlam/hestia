@@ -63,6 +63,8 @@ docs/references/
 docs/references/*
 docs/video/
 docs/video/*
+docs/screenshots-2/
+docs/screenshots-2/*
 
 # Stray Windows drive artifact (bash mkdir C: creates ./C: folder) — never commit
 C:/
