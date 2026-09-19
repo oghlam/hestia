@@ -1,6 +1,28 @@
-# HESTIA
+<div align="center">
+
+<img src="docs/logo/hestia_logo_full.png" alt="HESTIA" width="340" />
+
+### ELDER CARE COMMAND CENTER FOR RING
 
 > A home that cares, even when you're away.
+
+**Ring event → scene understanding → caregiver validation → family reassurance**
+
+[![Tests](https://img.shields.io/badge/tests-11%2F11_passing-brightgreen?style=for-the-badge&logo=checkmarx&logoColor=white)](docs/TESTING.md)
+[![Build](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white)](docs/TESTING.md)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
+[![PWA](https://img.shields.io/badge/validator-PWA_ready-purple?style=for-the-badge)](docs/ARCHITECTURE.md)
+
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-EC2_%7C_Bedrock_%7C_DynamoDB-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
+![Bedrock Nova Micro](https://img.shields.io/badge/Amazon_Nova_Micro-Bedrock-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white)
+![Python](https://img.shields.io/badge/Python-OpenCV_%7C_ArcFace-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Ring](https://img.shields.io/badge/Ring-Webhook_%7C_HMAC-red?style=for-the-badge&logo=ring&logoColor=white)
+
+</div>
 
 HESTIA is an elder-care command center concept for turning home activity into understandable care context and human response. The intended flow is **Ring event → scene understanding → caregiver validation → family reassurance**.
 
