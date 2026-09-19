@@ -54,16 +54,13 @@ HESTIA is designed as a calm elder-care operating system rather than a surveilla
 
 ## Documentation
 
-- [Demo & Device Testing Plan](HESTIA-DEMO-PLAN.md) — complete step-by-step testing guide
 - [Product overview](docs/OVERVIEW.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [UI design](docs/UI-DESIGN.md)
 - [Ring integration](docs/RING-INTEGRATION.md)
 - [AWS integration](docs/AWS-INTEGRATION.md)
 - [Testing](docs/TESTING.md)
-- [Product feedback](PRODUCT-FEEDBACK.md)
 - [Friction log](FRICTION-LOG.md)
-- [Implementation progress](HESTIA-PROGRESS.md) — sprint tracker & checklist
 
 ## References
 

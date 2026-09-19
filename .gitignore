@@ -67,6 +67,21 @@ docs/screenshots-2/
 docs/screenshots-2/*
 docs/screenshots/TIMELINE-*.png
 
+# Internal work docs — agent handoff, sprint trackers, fix reports (not for public repo)
+AGENTS.md
+DEPLOYMENT-TEST.md
+HESTIA-DEMO-PLAN.md
+HESTIA-PROGRESS.md
+HESTIA-SCREENSHOT-VIDEO-GUIDE.md
+HESTIA-SPRINT-MVP.md
+INTEGRATION-COMPLETE.md
+MODULARIZATION-GUIDE.md
+PATH-ALIAS-FIX.md
+PRODUCT-FEEDBACK.md
+REFACTORING-COMPLETE.md
+TESTING-INSTRUCTIONS.md
+devpost-submission.md
+
 # Stray Windows drive artifact (bash mkdir C: creates ./C: folder) — never commit
 C:/
 C:
