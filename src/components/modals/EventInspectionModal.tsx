@@ -214,8 +214,8 @@ export const EventInspectionModal: React.FC<EventInspectionModalProps> = ({
               <div
                 style={{
                   marginTop: '12px',
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '8px',
                   padding: '10px 12px',
                 }}
@@ -232,7 +232,7 @@ export const EventInspectionModal: React.FC<EventInspectionModalProps> = ({
                 >
                   <Cpu size={13} /> Amazon Nova Micro AI Explanation
                 </strong>
-                <p style={{ fontSize: '12px', color: '#334155', lineHeight: 1.5, margin: 0 }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
                   "{selectedEventForInspection.contextText || 'No unusual risk factors detected in this zone.'}"
                 </p>
               </div>

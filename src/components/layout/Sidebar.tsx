@@ -7,13 +7,16 @@ import {
   ChevronDown,
   House,
   Monitor,
+  Moon,
   Network,
   Radio,
   Settings,
   SlidersHorizontal,
+  Sun,
   UserCheck,
   Users,
 } from 'lucide-react'
+import { useTheme } from '../../hooks/useTheme'
 import type { TabKey } from '../../domain/mock-data'
 
 export interface SidebarProps {
@@ -33,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   homeName = 'Greenwood Residence',
   homeId = 'HGW-001',
 }) => {
+  const { theme, toggle } = useTheme()
   return (
     <>
       {menuOpen && (
@@ -157,9 +161,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </a>
         </nav>
 
-        <div className="home-switcher" title={`${homeName} (ID: ${homeId})`}>
-          <div className="home-photo">⌂</div>
-        </div>
+        <button
+          className="home-switcher theme-as-home"
+          onClick={toggle}
+          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          data-tooltip={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          aria-label="Toggle theme"
+        >
+          <div className="home-photo theme-photo">
+            {theme === 'dark' ? <Sun size={18} strokeWidth={2.2} /> : <Moon size={18} strokeWidth={2.2} />}
+          </div>
+        </button>
       </aside>
     </>
   )

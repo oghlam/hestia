@@ -52,9 +52,10 @@ export const Header: React.FC<HeaderProps> = ({
             <Menu size={20} strokeWidth={2.2} />
           </button>
 
-          {/* Logo Hestia di Sudut Kiri Atas */}
+          {/* Logo Hestia — light: hestia_logo_full (BG putih menyatu di topbar putih), dark: transparent tanpa kotak */}
           <div className="topbar-logo-area">
             <img src="/logo/hestia_logo_full.png" alt="HESTIA" className="logo-full" />
+            <img src="/logo/hestia_splash_transparent.png?v=5" alt="HESTIA" className="topbar-h-icon" />
             <img src="/logo/hestia_pwa_192.png" alt="H" className="logo-icon-mobile" />
           </div>
 

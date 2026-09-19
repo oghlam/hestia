@@ -261,7 +261,8 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
           <ChevronLeft size={22} />
         </button>
         <div className="validator-header-logo">
-          <img src="/logo/hestia_logo_full.png" alt="HESTIA" />
+          <img src="/logo/hestia_logo_full.png" alt="HESTIA" className="logo-full" />
+          <img src="/logo/hestia_splash_transparent.png?v=5" alt="HESTIA" className="topbar-h-icon" style={{ height: '30px', width: '30px' }} />
         </div>
         <button
           onClick={() => {
@@ -327,32 +328,32 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
                 style={{
                   marginTop: '24px',
                   padding: '14px',
-                  background: '#f8fafc',
+                  background: 'var(--bg-subtle)',
                   borderRadius: '12px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--border-color)',
                 }}
               >
                 <div
                   style={{
                     fontSize: '11px',
                     fontWeight: 700,
-                    color: '#64748b',
+                    color: 'var(--text-muted)',
                     textTransform: 'uppercase',
                     marginBottom: '8px',
                   }}
                 >
                   Emergency Contact Circle
                 </div>
-                <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600, marginBottom: '4px' }}>
                   Caregiver (Daughter)
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '10px' }}>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '10px' }}>
                   +1 (555) 234-5678 · Primary Caregiver
                 </div>
-                <div style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, marginBottom: '4px' }}>
+                <div style={{ fontSize: '13px', color: 'var(--text-primary)', fontWeight: 600, marginBottom: '4px' }}>
                   Resident Family (Son)
                 </div>
-                <div style={{ fontSize: '12px', color: '#64748b' }}>+1 (555) 876-5432 · Backup Contact</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>+1 (555) 876-5432 · Backup Contact</div>
               </div>
             </div>
           ) : (
@@ -424,25 +425,27 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
               <div className="validator-handled-badge">
                 <CheckCircle2 size={15} /> ALERT HANDLED · ALL CLEAR
               </div>
-              <div style={{ margin: '14px 0' }}>
-                <ShieldCheck size={56} style={{ color: '#16a34a', margin: '0 auto' }} />
+              <div style={{ margin: '14px 0', display: 'grid', placeItems: 'center' }}>
+                <ShieldCheck size={56} style={{ color: '#16a34a', display: 'block' }} />
               </div>
-              <h1 style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+              <h1 style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 6px' }}>
                 Resident Safe & Verified
               </h1>
-              <p style={{ fontSize: '13px', color: '#64748b', lineHeight: 1.5, margin: '0 0 16px' }}>
-                <strong>{handledRecord.residentName}</strong> was checked in <strong>{handledRecord.roomName}</strong>.
-                Care team response completed by <strong>{handledRecord.actorId}</strong> at {handledRecord.handledAt}.
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5, margin: '0 0 16px' }}>
+                <strong style={{ color: 'var(--text-primary)' }}>{handledRecord.residentName}</strong> was checked in{' '}
+                <strong style={{ color: 'var(--text-primary)' }}>{handledRecord.roomName}</strong>. Care team response
+                completed by <strong style={{ color: 'var(--text-primary)' }}>{handledRecord.actorId}</strong> at{' '}
+                {handledRecord.handledAt}.
               </p>
 
               <div
                 style={{
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--bg-subtle)',
+                  border: '1px solid var(--border-color)',
                   borderRadius: '12px',
                   padding: '12px',
                   fontSize: '12px',
-                  color: '#334155',
+                  color: 'var(--text-secondary)',
                   marginBottom: '18px',
                   textAlign: 'left',
                 }}
