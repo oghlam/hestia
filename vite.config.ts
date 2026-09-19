@@ -16,6 +16,14 @@ export default defineConfig({
       '/health': 'http://localhost:8787',
     },
   },
+  preview: {
+    port: 4173,
+    proxy: {
+      '/webhooks': 'http://localhost:8787',
+      '/api': 'http://localhost:8787',
+      '/health': 'http://localhost:8787',
+    },
+  },
   build: {
     chunkSizeWarningLimit: 600,
     rollupOptions: {
