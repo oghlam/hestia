@@ -123,11 +123,12 @@ export function App() {
   const [isMasterDeviceModalOpen, setIsMasterDeviceModalOpen] = useState(false)
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
-  // Real Initial Preload State
+  // Real Initial Preload State — skip PreloadScreen on PWA standalone (Android/iOS) to avoid double splash; PWA splash in index.html already covers it
+  const isStandalonePwa = typeof window !== 'undefined' && (window.matchMedia('(display-mode: standalone)').matches || window.matchMedia('(display-mode: fullscreen)').matches || (window.navigator as unknown as { standalone?: boolean }).standalone === true)
   const [preloadProgress, setPreloadProgress] = useState(15)
   const [preloadStatus, setPreloadStatus] = useState('Booting HESTIA Core Services...')
   const [isPreloadComplete, setIsPreloadComplete] = useState(false)
-  const [showPreloader, setShowPreloader] = useState(true)
+  const [showPreloader, setShowPreloader] = useState(!isStandalonePwa)
   const [backendConnected, setBackendConnected] = useState(false)
 
   // Live clock update effect
@@ -180,8 +181,17 @@ export function App() {
     }
   }, [rooms, residents, careTeam, automationRules, sceneEvents, systemSettings])
 
-  // Master Preload & Initial Ingestion sequence
+  // Master Preload & Initial Ingestion sequence — PWA standalone uses index.html splash (data-driven via hestia:ready event), desktop uses PreloadScreen
   useEffect(() => {
+    if (isStandalonePwa) {
+      // PWA: hydrate data in background, dispatch hestia:ready when real data settled so index.html splash hides data-driven (not timer)
+      let cancelled = false
+      fetchData().finally(() => {
+        if (!cancelled) window.dispatchEvent(new CustomEvent('hestia:ready'))
+      })
+      const pollInterval = setInterval(() => fetchData(), 4000)
+      return () => { cancelled = true; clearInterval(pollInterval) }
+    }
     let isMounted = true
 
     async function initialBootstrap() {

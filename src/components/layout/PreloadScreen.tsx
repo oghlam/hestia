@@ -28,10 +28,11 @@ export const PreloadScreen: React.FC<PreloadScreenProps> = ({
         {/* Brand Logo & Wordmark */}
         <div className="preload-brand">
           <img
-            src="/logo/hestia_logo_full.png"
+            src="/logo/hestia_splash_transparent.png?v=5"
             alt="HESTIA"
-            className="preload-logo-img"
+            className="preload-h-icon"
           />
+          <div className="preload-wordmark">HESTIA</div>
           <div className="preload-tagline">ELDER CARE FOR RING</div>
         </div>
 

@@ -1,5 +1,5 @@
 // HESTIA PWA Service Worker
-const CACHE_NAME = 'hestia-pwa-v5-splash-transparent';
+const CACHE_NAME = 'hestia-pwa-v7-clean-split';
 const STATIC_ASSETS = [
   '/',
   '/?view=validator',
@@ -8,12 +8,9 @@ const STATIC_ASSETS = [
   '/logo/hestia_logo_primary.png',
   '/logo/hestia_pwa_192.png',
   '/logo/hestia_pwa_512.png',
-  '/logo/hestia_maskable_192.png',
-  '/logo/hestia_maskable_512.png',
   '/logo/hestia_apple_180.png',
   '/logo/hestia_favicon_32.png',
   '/logo/hestia_splash_transparent.png',
-  '/logo/hestia_topbar_80.png',
   '/avatar/default.png'
 ];
 
@@ -38,6 +35,9 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Ignore non-GET and non-http(s) schemes (e.g. chrome-extension:// from Adobe extension) — Cache API only supports http/https
+  if (event.request.method !== 'GET') return;
+  if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) return;
   // Do not cache API endpoints or dynamic webhook feeds
   if (event.request.url.includes('/api/') || event.request.url.includes('/webhooks/') || event.request.url.includes('/health')) {
     return;

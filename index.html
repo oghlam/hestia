@@ -41,7 +41,7 @@
       #hestia-splash .splash-content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:0;padding:24px 20px;width:100%;max-width:360px}
       #hestia-splash .splash-icon-wrap{width:110px;height:110px;display:grid;place-items:center;background:transparent;filter:drop-shadow(0 10px 28px rgba(0,0,0,.45));animation:splashFloat 3s ease-in-out infinite}
       #hestia-splash .splash-icon-wrap img{width:110px;height:110px;object-fit:contain;display:block}
-      #hestia-splash .splash-wordmark{margin-top:18px;height:30px;width:auto;object-fit:contain;filter:brightness(0) invert(1);opacity:.96}
+      #hestia-splash .splash-wordmark-text{margin-top:18px;font-family:'DM Serif Display',Georgia,serif;font-size:30px;font-weight:700;letter-spacing:.18em;color:#fff;line-height:1;text-shadow:0 2px 18px rgba(0,0,0,.45)}
       #hestia-splash .splash-tagline{margin-top:8px;font-family:'DM Sans',system-ui,sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.18em;color:rgba(255,255,255,.72);text-transform:uppercase}
       #hestia-splash .splash-divider{margin:18px 0 0;width:36px;height:2px;border-radius:999px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.9),transparent)}
       #hestia-splash .splash-loader{margin-top:22px;width:148px;height:3px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;position:relative}
@@ -66,7 +66,7 @@
         <div class="splash-icon-wrap">
           <img src="/logo/hestia_splash_transparent.png?v=5" alt="HESTIA" width="110" height="110" />
         </div>
-        <img src="/logo/hestia_logo_full.png" alt="HESTIA" class="splash-wordmark" />
+        <div class="splash-wordmark-text">HESTIA</div>
         <div class="splash-tagline">Elder Care for Ring</div>
         <div class="splash-divider"></div>
         <div class="splash-loader"><div class="splash-loader-bar"></div></div>
@@ -90,10 +90,9 @@
         splash.classList.add('force-show');
         var hidden = false;
         function hide(){ if(hidden) return; hidden=true; splash.classList.add('splash-hidden'); setTimeout(function(){ if(splash.parentNode) splash.parentNode.removeChild(splash); },650); }
-        window.addEventListener('load', function(){ setTimeout(hide, 700); });
-        setTimeout(hide, 2800);
-        var obs = new MutationObserver(function(){ var root=document.getElementById('root'); if(root && root.children.length>0){ setTimeout(hide, 380); obs.disconnect(); } });
-        obs.observe(document.getElementById('root'),{childList:true});
+        // Data-driven hide: React dispatches 'hestia:ready' after real hydration (rooms/residents/rules/scenes). Fallback max 5000ms for offline.
+        window.addEventListener('hestia:ready', function(){ setTimeout(hide, 280); });
+        setTimeout(hide, 5000);
       })();
     </script>
     <script type="module" src="/src/main.tsx"></script>

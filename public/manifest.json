@@ -23,13 +23,13 @@
       "purpose": "any"
     },
     {
-      "src": "/logo/hestia_maskable_192.png",
+      "src": "/logo/hestia_pwa_192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/logo/hestia_maskable_512.png",
+      "src": "/logo/hestia_pwa_512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
