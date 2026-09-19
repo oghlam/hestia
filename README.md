@@ -101,9 +101,6 @@ Here is the visual walkthrough of the HESTIA platform across its core modules:
 ![Automation Rules](docs/screenshots/07-automation-rules.png)
 ![Insights](docs/screenshots/07-automation-rules-Insight.png)
 
-### Timeline
-![Timeline 2:55](docs/screenshots/TIMELINE-TABLE.png)
-
 ## Running the project
 
 Install dependencies and start the frontend shell:
