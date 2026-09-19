@@ -85,11 +85,11 @@ TODO: Verify and enter the active public demo URL.
 
 Current documented deployment:
 
-`http://32.193.23.154/`
+`https://<public-endpoint>/` (HTTPS public endpoint on AWS EC2, `us-east-1` — exact URL shared privately with reviewers)
 
 Validator view:
 
-`http://32.193.23.154/?view=validator`
+`https://<public-endpoint>/?view=validator`
 
 ## Public Repository Link
 

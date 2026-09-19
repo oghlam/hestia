@@ -17,8 +17,7 @@ This document specifies the deployment topology, runtime architecture, security 
 │                    AWS CLOUD ENVIRONMENT (us-east-1)                        │
 │                                                                             │
 │  ┌───────────────────────────────────────────────────────────────────────┐  │
-│  │                    EC2 RUNTIME INSTANCE (kurusetra)                   │  │
-│  │                     Public IP: 32.193.23.154                          │  │
+ │  │                EC2 RUNTIME (AWS EC2 · us-east-1)                     │  │
 │  │                                                                       │  │
 │  │  ┌──────────────────────┐  ┌────────────────────────────────────────┐ │  │
 │  │  │ NGINX / Web Frontend │  │          HESTIA BACKEND API            │ │  │
@@ -72,24 +71,22 @@ This document specifies the deployment topology, runtime architecture, security 
 
 ## 3. Network Access & Live URLs
 
-### Production AWS EC2 Host: `kurusetra`
-- **Instance ID**: `i-019f069b2899d8569`
-- **Public IP**: `32.193.23.154`
-- **Private IP**: `172.31.95.112`
-- **AWS Region**: `us-east-1`
-- **Public DNS**: `ec2-32-193-23-154.compute-1.amazonaws.com`
+### Production Host: AWS EC2 (`us-east-1`)
+- **Compute**: AWS EC2
+- **Region**: `us-east-1`
+- **Access**: HTTPS public endpoint (exact URL shared privately with reviewers)
 
-### Public Endpoints:
+### Public Endpoints (paths relative to the HTTPS public endpoint):
 
-| Endpoint | Target URL | Method / Usage |
+| Endpoint | Path | Method / Usage |
 |---|---|---|
-| **Dashboard UI** | `http://32.193.23.154/` | Web browser interface for elder-care command center. |
-| **Validator PWA** | `http://32.193.23.154/?view=validator` | Fast-action validation screen optimized for caregiver smartphones. |
-| **Ring Webhook** | `http://32.193.23.154:8787/webhooks/ring` | Ingestion endpoint for Ring developer sandbox & hardware events. |
-| **Pipeline Feed** | `http://32.193.23.154:8787/api/pipeline/feed` | WebRTC webcam stream and snapshot feed ingestion. |
-| **API Health** | `http://32.193.23.154:8787/health` | Service health probe returning `{ "ok": true, "service": "hestia-api" }`. |
-| **Scene Results** | `http://32.193.23.154:8787/api/scenes` | Real-time scene history and telemetry stream. |
-| **Alert Actions** | `http://32.193.23.154:8787/api/alerts/:id/actions` | State machine transition actions (`OK`, `COMING`, `SIREN`, `I_HAVE_ARRIVED`). |
+| **Dashboard UI** | `/` | Web browser interface for elder-care command center. |
+| **Validator PWA** | `/?view=validator` | Fast-action validation screen optimized for caregiver smartphones. |
+| **Ring Webhook** | `/webhooks/ring` | Ingestion endpoint for Ring developer sandbox & hardware events. |
+| **Pipeline Feed** | `/api/pipeline/feed` | WebRTC webcam stream and snapshot feed ingestion. |
+| **API Health** | `/health` | Service health probe returning `{ "ok": true, "service": "hestia-api" }`. |
+| **Scene Results** | `/api/scenes` | Real-time scene history and telemetry stream. |
+| **Alert Actions** | `/api/alerts/:id/actions` | State machine transition actions (`OK`, `COMING`, `SIREN`, `I_HAVE_ARRIVED`). |
 
 ---
 
