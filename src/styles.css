@@ -273,6 +273,7 @@ button, input, select, textarea {
 html[data-theme="dark"] .logo-full { display: none !important; }
 html[data-theme="dark"] .topbar-h-icon { display: block !important; }
 html[data-theme="light"] .topbar-h-icon { display: none !important; }
+html[data-theme="dark"] .topbar-logo-area .logo-icon-mobile { display: none !important; }
 .topbar-logo-area img {
   height: 36px;
   width: auto;

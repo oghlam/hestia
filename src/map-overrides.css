@@ -2599,6 +2599,7 @@ html[data-theme="dark"] .validator-empty h1 { background: #111f3a !important; bo
 html[data-theme="dark"] .validator-empty p { color: #94a3b8 !important; }
 html[data-theme="dark"] .validator-timeline-text { color: #cbd5e1 !important; }
 html[data-theme="dark"] .validator-timeline-text strong { color: #f1f5f9 !important; }
+.validator-header-logo .logo-full { display: block; }
 .validator-header-logo .topbar-h-icon { display: none; }
 html[data-theme="dark"] .validator-header-logo .logo-full { display: none !important; }
 html[data-theme="dark"] .validator-header-logo .topbar-h-icon { display: block !important; }

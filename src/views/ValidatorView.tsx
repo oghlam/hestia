@@ -254,6 +254,15 @@ export const ValidatorView: React.FC<ValidatorViewProps> = ({ apiBase }) => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerTab, setDrawerTab] = useState<'menu' | 'live_updates'>('menu')
 
+  // Standalone PWA view renders without App shell, so apply saved theme here.
+  // Without this, html has no data-theme and dark logo rules never fire.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('hestia-theme')
+      document.documentElement.setAttribute('data-theme', saved === 'dark' ? 'dark' : 'light')
+    } catch {}
+  }, [])
+
   return (
     <main className="validator-page">
       <header className="validator-header">
