@@ -1151,7 +1151,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 <div><strong>Current Version:</strong> <span className="badge normal" style={{ marginLeft: '6px' }}>v{systemSettings.appVersion}</span></div>
                 <div><strong>Build Channel:</strong> Production MVP</div>
                 <div><strong>Last Health Check:</strong> {new Date(systemSettings.lastUpdateCheck).toLocaleString()}</div>
-                <div><strong>Vision AI Engine:</strong> Python 3.14 + OpenCV ArcFace (Active)</div>
+                <div><strong>Vision AI Engine:</strong> Python 3.14 + OpenCV 5 YuNet+SFace (Active)</div>
                 <div><strong>Bedrock Gateway:</strong> Amazon Nova Micro (us-east-1)</div>
               </div>
               <button

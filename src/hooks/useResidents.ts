@@ -356,7 +356,7 @@ export function useResidents(): UseResidentsReturn {
       if (!selectedResidentForFace) return
 
       setIsCapturingFace(true)
-      setFaceCaptureNotice(`Extracting 64-dimensional feature vector for ${angle.toUpperCase()} angle...`)
+      setFaceCaptureNotice(`Extracting 128-dimensional SFace feature vector for ${angle.toUpperCase()} angle...`)
 
       let previewUrl = generateFacePoseThumbnail(angle)
 
@@ -432,7 +432,7 @@ export function useResidents(): UseResidentsReturn {
           syncResidentsToStorage(updatedList)
         }
 
-        setFaceCaptureNotice(`✔ ${angle.toUpperCase()} angle registered successfully with 64-d embedding`)
+        setFaceCaptureNotice(`✔ ${angle.toUpperCase()} angle registered successfully with 128-d SFace embedding`)
         setFaceAngleToRegister(angle === 'front' ? 'left' : angle === 'left' ? 'right' : 'front')
       } catch (error) {
         console.error('Error capturing face angle:', error)

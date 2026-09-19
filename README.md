@@ -19,7 +19,7 @@
 ![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-EC2_%7C_Bedrock_%7C_DynamoDB-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white)
 ![Bedrock Nova Micro](https://img.shields.io/badge/Amazon_Nova_Micro-Bedrock-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white)
-![Python](https://img.shields.io/badge/Python-OpenCV_%7C_ArcFace-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-OpenCV5_YuNet_SFace-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Ring](https://img.shields.io/badge/Ring-Webhook_%7C_HMAC-red?style=for-the-badge&logo=ring&logoColor=white)
 
 </div>
@@ -32,7 +32,7 @@ This repository contains the full, functional implementation of HESTIA:
 - **Core Domain & Scene Engine**: Deterministic classification (S1–S4), confidence gates, and alert state machine.
 - **Ring Webhook Adapter**: HMAC-SHA256 constant-time signature validation, deduplication, and normalized v1.1 payload handling.
 - **AWS Bedrock Context**: Amazon Nova Micro structured natural-language explanation generation with intelligent fallback.
-- **Vision & Biometric Face Matcher**: Local OpenCV 64-d cosine similarity matcher strictly separating registered care targets from unknown visitors.
+- **Vision & Biometric Face Matcher**: Local OpenCV 5 (YuNet detector + SFace 128-d) cosine similarity matcher strictly separating registered care targets from unknown visitors.
 - **Dynamic Operational Engine**: Full CRUD for Rooms, Ring Devices, Precision Floor Plan Mapping, Resident Care Profiles, Multi-Angle Face Studio (0°, 45°L, 45°R), Care Team Roster, and Automation Rules Engine.
 - **Dynamic Device Pipeline**: Real-time camera streaming & snapshot ingestion supporting Local Webcams, Smartphone WebRTC, Ring Sandbox Simulator, and Live Ring Hardware.
 - **Validator PWA**: Mobile fast-action interface (`OK`, `COMING`, `SIREN`, `I'VE ARRIVED`).
@@ -99,6 +99,7 @@ Install dependencies and start the frontend shell:
 
 ```bash
 npm install
+pip install -r vision/requirements.txt   # Python vision service (OpenCV 5 YuNet+SFace)
 npm run dev
 ```
 

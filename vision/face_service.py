@@ -3,30 +3,54 @@ HESTIA Vision Service - Face Recognition for Elder Care
 Matches Ring snapshot frames against registered resident target templates.
 Product rule: Only registered care targets (e.g. Elder) are identified as 'known_target'.
 All other detected faces are classified as 'unknown' (never triggers siren by identity alone).
+
+OpenCV 5 native pipeline: YuNet detector (FaceDetectorYN) + SFace recognizer
+(FaceRecognizerSF, 128-d) with cosine similarity. No ArcFace/insightface dependency.
+Model files are optional: place `face_detection_yunet_2023mar.onnx` and
+`face_recognition_sface_2021dec.onnx` in `vision/models/` (or set HESTIA_YUNET_MODEL /
+HESTIA_SFACE_MODEL). Without them, extraction falls back to a normalized
+center-crop descriptor so the service never crashes on OpenCV 5 (where the legacy
+Haar CascadeClassifier API no longer exists).
 """
 
+import os
 import sys
 import json
-import math
 from typing import Dict, Any, List, Optional, Tuple
 import cv2
 import numpy as np
 
-# Conservative threshold for care target verification
-MATCH_THRESHOLD = 0.75
+EMBEDDING_DIM = 128
 
-# Default reference face templates for registered residents (normalized 64-d feature vectors or haar/hog-based embeddings)
+# Conservative threshold for care target verification (SFace cosine space)
+MATCH_THRESHOLD = 0.50
+
+MODELS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
+YUNET_PATH = os.environ.get(
+    "HESTIA_YUNET_MODEL",
+    os.path.join(MODELS_DIR, "face_detection_yunet_2023mar.onnx"),
+)
+SFACE_PATH = os.environ.get(
+    "HESTIA_SFACE_MODEL",
+    os.path.join(MODELS_DIR, "face_recognition_sface_2021dec.onnx"),
+)
+
+_detector: Optional[Any] = None
+_recognizer: Optional[Any] = None
+
+
+# Default reference face templates for registered residents (normalized 128-d SFace vectors)
 # Seeded with deterministic synthetic/canonical embeddings for resident Elder
-def _generate_canonical_embedding(seed: int = 42, dim: int = 64) -> np.ndarray:
-    np.random.seed(seed)
-    vec = np.random.randn(dim).astype(np.float32)
+def _generate_canonical_embedding(seed: int = 42, dim: int = EMBEDDING_DIM) -> np.ndarray:
+    rng = np.random.RandomState(seed)
+    vec = rng.randn(dim).astype(np.float32)
     return vec / np.linalg.norm(vec)
 
 REGISTERED_RESIDENTS = {
     "resident_elder": {
         "residentId": "resident_elder",
         "name": "Elder",
-        "embedding": _generate_canonical_embedding(42, 64).tolist(),
+        "embedding": _generate_canonical_embedding(42, EMBEDDING_DIM).tolist(),
         "meta": {"registeredAt": "2026-09-01T00:00:00Z", "role": "primary_resident"}
     }
 }
@@ -39,23 +63,96 @@ def cosine_similarity(v1: np.ndarray, v2: np.ndarray) -> float:
         return 0.0
     return dot / (norm1 * norm2)
 
+def _get_detector() -> Optional[Any]:
+    """Lazily create the YuNet face detector. Returns None when model/api unavailable."""
+    global _detector
+    if _detector is not None:
+        return _detector
+    try:
+        if not os.path.isfile(YUNET_PATH):
+            return None
+        _detector = cv2.FaceDetectorYN_create(YUNET_PATH, "", (320, 320))
+    except Exception:
+        _detector = None
+    return _detector
+
+def _get_recognizer() -> Optional[Any]:
+    """Lazily create the SFace recognizer. Returns None when model/api unavailable."""
+    global _recognizer
+    if _recognizer is not None:
+        return _recognizer
+    try:
+        if not os.path.isfile(SFACE_PATH):
+            return None
+        _recognizer = cv2.FaceRecognizerSF_create(SFACE_PATH, "")
+    except Exception:
+        _recognizer = None
+    return _recognizer
+
+def _sface_embedding(img: np.ndarray) -> Tuple[int, Optional[np.ndarray]]:
+    """Detect with YuNet, embed largest face with SFace. Returns (0, None) on any failure."""
+    detector = _get_detector()
+    recognizer = _get_recognizer()
+    if detector is None or recognizer is None:
+        return (0, None)
+    try:
+        h, w = img.shape[:2]
+        detector.setInputSize((w, h))
+        _, faces = detector.detect(img)
+        if faces is None or len(faces) == 0:
+            return (0, None)
+        # Largest bbox wins for single-target elder-care matching
+        best = max(faces, key=lambda f: float(f[2]) * float(f[3]))
+        aligned = recognizer.alignCrop(img, best)
+        feat = recognizer.feature(aligned).flatten().astype(np.float32)
+        norm = float(np.linalg.norm(feat))
+        if norm > 0:
+            feat = feat / norm
+        if len(feat) != EMBEDDING_DIM:
+            return (len(faces), None)
+        return (len(faces), feat)
+    except Exception:
+        return (0, None)
+
+def _fallback_embedding(img: np.ndarray) -> Tuple[int, Optional[np.ndarray]]:
+    """Model-free descriptor: normalized center-crop pixels (EMBEDDING_DIM-d).
+
+    Keeps real-image matching functional when the YuNet/SFace .onnx files are
+    not installed. Lower accuracy than SFace; re-enroll templates once models exist.
+    """
+    try:
+        h, w = img.shape[:2]
+        side = min(h, w)
+        y0, x0 = (h - side) // 2, (w - side) // 2
+        crop = img[y0:y0 + side, x0:x0 + side]
+        gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+        # 16x8 = 128 pixels to match SFace dimensionality
+        small = cv2.resize(gray, (16, 8), interpolation=cv2.INTER_AREA).flatten().astype(np.float32)
+        norm = float(np.linalg.norm(small))
+        if norm > 0:
+            small = small / norm
+        return (1, small)
+    except Exception:
+        return (0, None)
+
 def extract_synthetic_features(image_bytes: Optional[bytes] = None, seed_hint: Optional[str] = None) -> Tuple[int, Optional[np.ndarray]]:
     """
     Detect faces and extract embedding vector.
-    If actual image bytes are provided with OpenCV, performs face detection.
+    If actual image bytes are provided, runs the OpenCV 5 YuNet+SFace pipeline
+    (with center-crop fallback when models are absent).
     Supports seed hints for deterministic testing.
     """
     if seed_hint:
         if seed_hint == "elder" or seed_hint == "known_target" or seed_hint == "resident_elder":
             base = np.array(REGISTERED_RESIDENTS["resident_elder"]["embedding"], dtype=np.float32)
             # Add small realistic variance (e.g., lighting/angle)
-            noise = np.random.RandomState(101).randn(64).astype(np.float32) * 0.05
+            noise = np.random.RandomState(101).randn(len(base)).astype(np.float32) * 0.05
             emb = base + noise
             emb = emb / np.linalg.norm(emb)
             return (1, emb)
         elif seed_hint == "unknown" or seed_hint == "visitor":
             # Distinct vector representing an unknown visitor
-            vec = np.random.RandomState(999).randn(64).astype(np.float32)
+            vec = np.random.RandomState(999).randn(EMBEDDING_DIM).astype(np.float32)
             vec = vec / np.linalg.norm(vec)
             return (1, vec)
         elif seed_hint == "no_face" or seed_hint == "empty":
@@ -70,21 +167,12 @@ def extract_synthetic_features(image_bytes: Optional[bytes] = None, seed_hint: O
         if img is None:
             return (0, None)
 
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
-        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=4, minSize=(30, 30))
-
-        if len(faces) == 0:
-            return (0, None)
-
-        # Extract normalized pixel histogram / spatial gradient as compact 64-d representation
-        x, y, w, h = faces[0]
-        face_roi = gray[y:y+h, x:x+w]
-        face_resized = cv2.resize(face_roi, (8, 8), interpolation=cv2.INTER_AREA).flatten().astype(np.float32)
-        norm = np.linalg.norm(face_resized)
-        if norm > 0:
-            face_resized = face_resized / norm
-        return (len(faces), face_resized)
+        count, vec = _sface_embedding(img)
+        if vec is not None:
+            return (count, vec)
+        # _sface_embedding returning (n, None) means faces seen but no embedding;
+        # fall through to descriptor so we still return something comparable.
+        return _fallback_embedding(img)
     except Exception:
         return (0, None)
 
@@ -119,6 +207,8 @@ def match_face(
 
     for res_id, res_data in REGISTERED_RESIDENTS.items():
         ref_vec = np.array(res_data["embedding"], dtype=np.float32)
+        if len(ref_vec) != len(query_vec):
+            continue  # dimension mismatch (e.g. legacy 64-d template) -> no match
         score = cosine_similarity(query_vec, ref_vec)
         if score > best_score:
             best_score = score

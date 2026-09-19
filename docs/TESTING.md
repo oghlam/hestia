@@ -29,7 +29,7 @@ Init DynamoDB tables: npm run db:init   # production cloud store (us-east-1)
 - [x] Scene Engine S2 WATCH — classification suite; unknown visitors stay S2, no siren
 - [x] Scene Engine S3 HELP — classification suite; demo alert `S3_HELP · Elder`
 - [x] Scene Engine S4 CRITICAL — classification suite + validator `critical` tag path
-- [x] Known/unknown face recognition behavior — vision suite: 64-d cosine ≥ 0.75, 3-angle templates; non-target → `unknown`
+- [x] Known/unknown face recognition behavior — vision suite: 128-d SFace cosine ≥ 0.50, 3-angle templates; non-target → `unknown`
 - [x] Bedrock context — Nova Micro suite: structured text metadata only, deterministic fallback (`server/bedrock-service.ts`)
 - [x] Dashboard state — OverviewView polling `/api/scenes`, `/api/alerts` (4s); map, feed, heatmap, telemetry update
 - [x] Validator OK / COMING / SIREN — state machine suite + `?view=validator` manual pass
@@ -52,5 +52,5 @@ Init DynamoDB tables: npm run db:init   # production cloud store (us-east-1)
 |---|---|---|
 | Demo event (`POST /demo/events`) | S3 HELP alert + scene + AI summary | `server/index.ts` demo fixture, localStorage `hestia_active_alert` |
 | Handled record | `ALERT HANDLED`, family reassurance | localStorage `hestia_last_handled` |
-| Resident face templates (0°/45°L/45°R) | 64-d embeddings, match ≥ 0.75 | `POST /api/residents/:id/faces` |
+| Resident face templates (0°/45°L/45°R) | 128-d SFace embeddings, match ≥ 0.50 | `POST /api/residents/:id/faces` |
 | HMAC webhook sample | `X-Signature` verifies, dedup by `request_id` | Ring adapter suite + Settings → Webhook Test |

@@ -48,7 +48,7 @@ export const FaceStudioModal: React.FC<FaceStudioModalProps> = ({
         </div>
         <div className="modal-body">
           <p style={{ fontSize: '13px', color: '#475569', marginBottom: '14px', lineHeight: 1.5 }}>
-            Register 3 canonical angles (Front 0°, Left 45°, Right 45°) to train the local OpenCV/ArcFace feature matcher.
+            Register 3 canonical angles (Front 0°, Left 45°, Right 45°) to train the local OpenCV 5 YuNet+SFace feature matcher.
           </p>
 
           {/* Simulated / Live Camera Viewfinder with Sweep Scanner */}
@@ -179,7 +179,7 @@ export const FaceStudioModal: React.FC<FaceStudioModalProps> = ({
           >
             <Camera size={16} />{' '}
             {isCapturingFace
-              ? 'Extracting 64-d Feature Vector...'
+              ? 'Extracting 128-d SFace Feature Vector...'
               : `Capture & Register ${faceAngleToRegister.toUpperCase()} Angle`}
           </button>
 

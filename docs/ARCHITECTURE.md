@@ -29,9 +29,9 @@ This document specifies the deployment topology, runtime architecture, security 
 │  │  └──────────────────────┘  │  • /api/rules, /settings, /alerts      │ │  │
 │  │                            └───────────────────┬────────────────────┘ │  │
 │  │                                                │                      │  │
-│  │  ┌──────────────────────────────────────────┐  │                      │  │
-│  │  │      PYTHON VISION SERVICE (64-d)        │  │                      │  │
-│  │  │   • ArcFace & Cosine Similarity (0.75)   │◀─┤                      │  │
+  │  │  ┌──────────────────────────────────────────┐  │                      │  │
+  │  │  │      PYTHON VISION SERVICE (128-d)       │  │                      │  │
+  │  │  │   • YuNet + SFace & Cosine Sim (0.50)    │◀─┤                      │  │
 │  │  │   • Multi-Angle Face Matcher             │  │                      │  │
 │  │  └──────────────────────────────────────────┘  │                      │  │
 │  └────────────────────────────────────────────────┼──────────────────────┘  │
@@ -63,7 +63,7 @@ This document specifies the deployment topology, runtime architecture, security 
 | **Validator Mobile PWA** | Modular React View (`?view=validator`) | Fast Action Interface for primary caregivers (OK / COMING / SIREN / I'VE ARRIVED transitions). |
 | **Backend API Gateway** | Node.js + Express + TypeScript (`server/index.ts`) | Captures raw bodies for constant-time HMAC verification, handles REST CRUD, dispatches notifications, and tracks audit trails. |
 | **Scene Engine** | Deterministic TypeScript Domain Engine (`src/domain/scene-engine.ts`) | Classifies signals into S1 (Normal), S2 (Watch), S3 (Help), and S4 (Critical) with confidence gating. |
-| **Vision Face Matcher** | Python 3.14 + OpenCV + ArcFace 64-d (`server/vision-service.ts`) | Local multi-angle facial template matching (0° Front, 45° Left, 45° Right) with cosine similarity threshold (≥ 0.75). |
+| **Vision Face Matcher** | Python 3.14 + OpenCV 5 YuNet/SFace 128-d (`server/vision-service.ts`) | Local multi-angle facial template matching (0° Front, 45° Left, 45° Right) with cosine similarity threshold (≥ 0.50). |
 | **AWS Bedrock Gateway** | Amazon Nova Micro (`server/bedrock-service.ts`) | Generates structured, calm scene explanations from text payloads; includes automated deterministic fallback. |
 | **Data Repository** | In-Memory Store (`server/store.ts`) + DynamoDB Profile | Low-latency state tracking with optional Amazon DynamoDB cloud integration and 6-digit MFA authentication. |
 
@@ -98,7 +98,7 @@ This document specifies the deployment topology, runtime architecture, security 
 2. **Event Deduplication**:
    - `meta.request_id` tracked in an in-memory window to eliminate duplicate webhook triggers.
 3. **Elder Privacy & Zero-Cloud Image Leakage**:
-   - Face template embeddings (64-dimensional vectors) are generated locally.
+    - Face template embeddings (128-dimensional SFace vectors) are generated locally.
    - Amazon Nova Micro **never receives raw images or video streams**; only sanitized JSON text prompts are transmitted.
 4. **Target Identity vs. Visitor Protection**:
    - Only registered resident face templates (e.g., Elder) trigger care paths and emergency escalations.

@@ -120,7 +120,7 @@ export const TopologyView: React.FC<TopologyViewProps> = ({ onSelectNodeForDrawe
       id: 'node-vision-target',
       tier: 'target',
       label: 'Target Elder Recognition',
-      sublabel: '64-d Face Embedding Match',
+      sublabel: '128-d SFace Embedding Match',
       icon: Eye,
       status: 'online' as const,
       latency: 12,

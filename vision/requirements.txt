@@ -1,0 +1,10 @@
+# HESTIA Vision Service — Python dependencies
+# Install: pip install -r vision/requirements.txt  (Python 3.14)
+opencv-python>=5,<6
+numpy>=1.26
+
+# Optional OpenCV 5 DNN face models (YuNet + SFace, 128-d).
+# Download once into vision/models/ (or set HESTIA_YUNET_MODEL / HESTIA_SFACE_MODEL):
+#   - face_detection_yunet_2023mar.onnx
+#   - face_recognition_sface_2021dec.onnx
+# Without them the service uses a normalized center-crop fallback descriptor.

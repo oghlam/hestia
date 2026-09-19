@@ -50,7 +50,7 @@ class TestFaceService(unittest.TestCase):
         
         # Minor perturbation (slight angle/lighting shift) -> should still be recognized
         for seed in [1, 7, 23, 99]:
-            noise = np.random.RandomState(seed).randn(64).astype(np.float32) * 0.08
+            noise = np.random.RandomState(seed).randn(len(base_emb)).astype(np.float32) * 0.08
             perturbed = base_emb + noise
             perturbed = (perturbed / np.linalg.norm(perturbed)).tolist()
             res = match_face(embedding=perturbed)
@@ -58,7 +58,7 @@ class TestFaceService(unittest.TestCase):
             self.assertEqual(res["residentId"], "resident_elder")
 
         # Heavy distortion/different face -> should drop to unknown
-        random_stranger = np.random.RandomState(54321).randn(64).astype(np.float32)
+        random_stranger = np.random.RandomState(54321).randn(len(base_emb)).astype(np.float32)
         random_stranger = (random_stranger / np.linalg.norm(random_stranger)).tolist()
         res_stranger = match_face(embedding=random_stranger)
         self.assertEqual(res_stranger["identity"], "unknown")
