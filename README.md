@@ -62,11 +62,6 @@ HESTIA is designed as a calm elder-care operating system rather than a surveilla
 - [Testing](docs/TESTING.md)
 - [Friction log](FRICTION-LOG.md)
 
-## References
-
-- [Dashboard mockup](docs/references/dashboard-mockup.png)
-- [Validator mobile mockup](docs/references/validator-mobile-mockup.png)
-
 ## Visual Gallery & Screenshots
 
 Here is the visual walkthrough of the HESTIA platform across its core modules:
